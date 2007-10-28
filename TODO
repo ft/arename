@@ -1,0 +1,6 @@
+- v0.5
+    + put all global configuration variables into a %conf hash
+    + make it possible to get leading spaces in templates
+- v0.6
+    + add support for FLAC (Audio::FLAC::Header)
+    + support for GENRE tag?
