@@ -131,10 +131,13 @@ Defines a template to use with files that provide a compilation tag
 overwritten by the B<-T> command line option. (default value:
 I<va/&album/&tracknumber - &artist - &tracktitle>)
 
-=item B<default_year>
+=item B<default_*>
 
-Defines a default year, for files, that lack this information.
-(default value: I<undefined>)
+default_artist, default_album, default_compilation, default_tracknumber,
+default_tracktitle, default_year
+
+Defines a default value, for the given tag in files, that lack this
+information. (default value: I<undefined>)
 
 =item B<prefix>
 
@@ -589,8 +592,6 @@ sub rcload { #{{{
             $template = $val;
         } elsif ($key eq 'comp_template') {
             $comp_template = $val;
-        } elsif ($key eq 'default_year') {
-            $defaults{year} = $val;
         } elsif ($key eq 'sepreplace') {
             $sepreplace = (defined $val ? $val : "");
         } elsif ($key eq 'tnpad') {
@@ -599,6 +600,18 @@ sub rcload { #{{{
             $verbose = 1;
         } elsif ($key eq 'prefix') {
             $prefix = $val;
+        } elsif ($key eq 'default_artist') {
+            $defaults{artist}      = $val;
+        } elsif ($key eq 'default_album') {
+            $defaults{album}       = $val;
+        } elsif ($key eq 'default_compilation') {
+            $defaults{compilation} = $val;
+        } elsif ($key eq 'default_tracknumber') {
+            $defaults{tracknumber} = $val;
+        } elsif ($key eq 'default_tracktitle') {
+            $defaults{tracktitle}  = $val;
+        } elsif ($key eq 'default_year') {
+            $defaults{year}        = $val;
         } else {
             warn "$file,$lnum: invalid line '$line'.\n";
             return -1;
