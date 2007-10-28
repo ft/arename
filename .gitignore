@@ -1,0 +1,8 @@
+.*
+!.gitignore
+*~
+*.tmp
+*.orig
+*.log
+arename.1
+arename.html
