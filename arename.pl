@@ -305,7 +305,7 @@ my (
     $dryrun, $comp_template, $force, $quiet, $quiet_skip, $oprefix, $prefix,
     $sepreplace, $template, $tnpad, $verbose
 );
-my ($NAME, $VERSION) = ( 'arename.pl', 'v0.4' );
+my ($NAME, $VERSION) = ( 'arename.pl', 'v0.5pre1' );
 #}}}
 sub apply_defaults { #{{{
     my ($datref) = @_;
