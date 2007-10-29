@@ -1,5 +1,3 @@
-- v0.5
-    + put all global configuration variables into a %conf hash
 - v0.6
     + add support for FLAC (Audio::FLAC::Header)
     + support for GENRE tag?

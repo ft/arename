@@ -300,20 +300,17 @@ Please report bugs.
 =cut
 #}}}
 # variables {{{
-my (
-    %defaults, %methods, %opts,
-    $dryrun, $comp_template, $force, $quiet, $quiet_skip, $oprefix, $prefix,
-    $sepreplace, $template, $tnpad, $verbose
-);
-my ($NAME, $VERSION) = ( 'arename.pl', 'v0.5pre1' );
+my ( %conf, %defaults, %methods, %opts );
+my ( $NAME, $VERSION ) = ( 'arename.pl', 'v0.5' );
 #}}}
 sub apply_defaults { #{{{
     my ($datref) = @_;
 
     foreach my $key (keys %defaults) {
         if (!defined $datref->{$key}) {
-            if ($verbose) {
-                print $oprefix . "Setting ($key) to \"$defaults{$key}\".\n";
+            if ($conf{verbose}) {
+                print $conf{oprefix}
+                      . "Setting ($key) to \"$defaults{$key}\".\n";
             }
             $datref->{$key} = $defaults{$key};
         }
@@ -326,23 +323,23 @@ sub arename { #{{{
 
     apply_defaults($datref);
 
-    if ($verbose) { #{{{
-        print $oprefix . "Artist     : \"" .
+    if ($conf{verbose}) { #{{{
+        print $conf{oprefix} . "Artist     : \"" .
             (defined $datref->{artist}      ? $datref->{artist}      : "-.-")
             . "\"\n";
-        print $oprefix . "Compilation: \"" .
+        print $conf{oprefix} . "Compilation: \"" .
             (defined $datref->{compilation} ? $datref->{compilation} : "-.-")
             . "\"\n";
-        print $oprefix . "Album      : \"" .
+        print $conf{oprefix} . "Album      : \"" .
             (defined $datref->{album}       ? $datref->{album}       : "-.-")
             . "\"\n";
-        print $oprefix . "Tracktitle : \"" .
+        print $conf{oprefix} . "Tracktitle : \"" .
             (defined $datref->{tracktitle}  ? $datref->{tracktitle}  : "-.-")
             . "\"\n";
-        print $oprefix . "Tracknumber: \"" .
+        print $conf{oprefix} . "Tracknumber: \"" .
             (defined $datref->{tracknumber} ? $datref->{tracknumber} : "-.-")
             . "\"\n";
-        print $oprefix . "Year       : \"" .
+        print $conf{oprefix} . "Year       : \"" .
             (defined $datref->{year}        ? $datref->{year}        : "-.-")
             . "\"\n";
     } #}}}
@@ -350,9 +347,9 @@ sub arename { #{{{
     if (defined $datref->{compilation}
         && $datref->{compilation} ne $datref->{artist}) {
 
-        $t = $comp_template;
+        $t = $conf{comp_template};
     } else {
-        $t = $template;
+        $t = $conf{template};
     }
 
     $newname = expand_template($t, $datref);
@@ -360,33 +357,36 @@ sub arename { #{{{
         return;
     }
 
-    $newname = $prefix . '/' . $newname . '.' . $ext;
+    $newname = $conf{prefix} . '/' . $newname . '.' . $ext;
 
     if (file_eq($newname, $file)) {
-        if ($quiet) {
-            if (!$quiet_skip) {
+        if ($conf{quiet}) {
+            if (!$conf{quiet_skip}) {
                 print "Skipping: '$file'\n";
             }
         } else {
-            print $oprefix . "'$file'\n      would stay the way it is, skipping.\n";
+            print $conf{oprefix}
+                  . "'$file'\n      would stay the way it is, skipping.\n";
         }
         return;
     }
 
-    if (-e $newname && !$force) {
-        print $oprefix . "'$newname' exists." . ($quiet ? " " : "\n      ") . "use '-f' to force overwriting.\n";
+    if (-e $newname && !$conf{force}) {
+        print $conf{oprefix} . "'$newname' exists."
+              . ($conf{quiet} ? " " : "\n      ")
+              . "use '-f' to force overwriting.\n";
         return;
     }
 
     ensure_dir(dirname($newname));
 
-    if ($quiet) {
+    if ($conf{quiet}) {
         print "'$newname'\n";
     } else {
-        print $oprefix . "mv '$file' \\\n         '$newname'\n";
+        print $conf{oprefix} . "mv '$file' \\\n         '$newname'\n";
     }
 
-    if (!$dryrun) {
+    if (!$conf{dryrun}) {
         xrename($file, $newname);
     }
 }
@@ -422,10 +422,10 @@ sub ensure_dir { #{{{
                  );
 
         if (!-d $sofar) {
-            if (($dryrun || $verbose) && !$quiet) {
-                print $oprefix . "mkdir \"$sofar\"\n";
+            if (($conf{dryrun} || $conf{verbose}) && !$conf{quiet}) {
+                print $conf{oprefix} . "mkdir \"$sofar\"\n";
             }
-            if (!$dryrun) {
+            if (!$conf{dryrun}) {
                 mkdir($sofar) or die "Could not mkdir($sofar).\n" .
                                      "Reason: $!\n";
             }
@@ -452,7 +452,7 @@ sub expand_template { #{{{
             if (defined $2) { $len = $2; }
 
             if (!defined $datref->{$tag} || $datref->{$tag} eq '') {
-                warn $oprefix . "$tag not defined, but required by template. Giving up.\n";
+                warn $conf{oprefix} . "$tag not defined, but required by template. Giving up.\n";
                 return undef;
             }
 
@@ -466,17 +466,17 @@ sub expand_template { #{{{
                     } else {
                         $val = $datref->{$tag};
                     }
-                    $token = sprintf "%0" . $tnpad . "d", $val;
+                    $token = sprintf "%0" . $conf{tnpad} . "d", $val;
                 } else {
                     $token = $datref->{$tag};
                 }
             }
             if ($token =~ m!/!) {
-                if ($verbose) {
-                    print $oprefix . "Found directory seperator in token.\n";
-                    print $oprefix . "Replacing with \"$sepreplace\".\n";
+                if ($conf{verbose}) {
+                    print $conf{oprefix} . "Found directory seperator in token.\n";
+                    print $conf{oprefix} . "Replacing with \"$conf{sepreplace}\".\n";
                 }
-                $token =~ s!/!$sepreplace!g;
+                $token =~ s!/!$conf{sepreplace}!g;
             }
             $template =~ s/&$tag(\[(\d+)\]|)/$token/;
         }
@@ -512,14 +512,15 @@ sub process_mp3 { #{{{
     $mp3 = MP3::Tag->new($file);
 
     if (!defined $mp3) {
-        print $oprefix . "Failed to open \"$file\".\n$oprefix" . "Reason: $!\n";
+        print $conf{oprefix}
+              . "Failed to open \"$file\".\n$conf{oprefix}" . "Reason: $!\n";
         return;
     }
 
     $mp3->get_tags;
 
     if (!exists $mp3->{ID3v1} && !exists $mp3->{ID3v2}) {
-        print $oprefix . "No tag found. Ignoring.\n";
+        print $conf{oprefix} . "No tag found. Ignoring.\n";
         $mp3->close();
         return;
     }
@@ -532,7 +533,7 @@ sub process_mp3 { #{{{
         ($data{tracknumber}, $info) = $mp3->{ID3v2}->get_frame("TRCK");
         ($data{year},        $info) = $mp3->{ID3v2}->get_frame("TYER");
     } elsif (exists $mp3->{ID3v1}) {
-        print $oprefix . "Only found ID3v1 tag.\n";
+        print $conf{oprefix} . "Only found ID3v1 tag.\n";
         $data{artist}      = $mp3->{ID3v1}->artist;
         $data{album}       = $mp3->{ID3v1}->album;
         $data{tracktitle}  = $mp3->{ID3v1}->title;
@@ -552,7 +553,7 @@ sub process_ogg { #{{{
     $ogg = Ogg::Vorbis::Header->load($file);
 
     if (!defined $ogg) {
-        print $oprefix . "Failed to open \"$file\".\n$oprefix" . "Reason: $!\n";
+        print $conf{oprefix} . "Failed to open \"$file\".\n$conf{oprefix}" . "Reason: $!\n";
         return;
     }
 
@@ -597,7 +598,7 @@ sub process_ogg { #{{{
 sub process_warn { #{{{
     my ($file) = @_;
 
-    warn $oprefix . "No method for handling \"$file\".\n";
+    warn $conf{oprefix} . "No method for handling \"$file\".\n";
 }
 #}}}
 sub rcload { #{{{
@@ -607,7 +608,7 @@ sub rcload { #{{{
     my $lnum  = 0;
 
     if (!open($fh, "<$file")) {
-        warn "Failed to read $desc ($file).\n$oprefix" . "Reason: $!\n";
+        warn "Failed to read $desc ($file).\n$conf{oprefix}" . "Reason: $!\n";
         return 1;
     }
 
@@ -623,30 +624,32 @@ sub rcload { #{{{
 
         $line =~ s/^\s*//;
         my ($key,$val) = split(/\s+/, $line, 2);
-        $val =~ s/^\\//;
+        if (defined $val) {
+            $val =~ s/^\\//;
+        }
 
         if ($key eq 'template') {
-            $template = $val;
+            $conf{template} = $val;
         } elsif ($key eq 'comp_template') {
-            $comp_template = $val;
+            $conf{comp_template} = $val;
         } elsif ($key eq 'sepreplace') {
-            $sepreplace = (defined $val ? $val : "");
+            $conf{sepreplace} = (defined $val ? $val : "");
         } elsif ($key eq 'tnpad') {
-            $tnpad = $val;
+            $conf{tnpad} = $val;
         } elsif ($key eq 'verbose') {
-            if ($quiet) {
+            if ($conf{quiet}) {
                 die "$file,$lnum: quiet set. verbose not allowed.\n";
             }
-            $verbose = 1;
+            $conf{verbose} = 1;
         } elsif ($key eq 'quiet') {
-            if ($verbose) {
+            if ($conf{verbose}) {
                 die "$file,$lnum: verbose set. quiet not allowed.\n";
             }
-            $quiet = 1;
+            $conf{quiet} = 1;
         } elsif ($key eq 'quiet_skip') {
-            $quiet_skip = 1;
+            $conf{quiet_skip} = 1;
         } elsif ($key eq 'prefix') {
-            $prefix = $val;
+            $conf{prefix} = $val;
         } elsif ($key eq 'default_artist') {
             $defaults{artist}      = $val;
         } elsif ($key eq 'default_album') {
@@ -668,7 +671,8 @@ sub rcload { #{{{
     }
     close $fh;
 
-    print $oprefix . "Read $desc.\n$oprefix" . "$count valid items.\n";
+    print $conf{oprefix}
+          . "Read $desc.\n$conf{oprefix}" . "$count valid items.\n";
     return 0;
 }
 #}}}
@@ -748,15 +752,15 @@ if (defined $opts{V}) {
 #}}}
 # set defaults {{{
 
-$dryrun        = 0;
-$force         = 0;
-$oprefix       = '  -!- ';
-$prefix        = '.';
-$sepreplace    = '_';
-$tnpad         = 2;
-$verbose       = 0;
-$comp_template = "va/&album/&tracknumber - &artist - &tracktitle";
-$template      = "&artist[1]/&artist/&album/&tracknumber - &tracktitle";
+$conf{dryrun}        = 0;
+$conf{force}         = 0;
+$conf{oprefix}       = '  -!- ';
+$conf{prefix}        = '.';
+$conf{sepreplace}    = '_';
+$conf{tnpad}         = 2;
+$conf{verbose}       = 0;
+$conf{comp_template} = "va/&album/&tracknumber - &artist - &tracktitle";
+$conf{template}      = "&artist[1]/&artist/&album/&tracknumber - &tracktitle";
 
 #}}}
 # reading config file(s) {{{
@@ -788,49 +792,49 @@ if ($#ARGV == -1) {
     die "No input files. See: $NAME -h\n";
 }
 
-if (!$verbose && defined $opts{v}) {
-    $verbose = $opts{v};
-    $quiet = 0;
+if (!$conf{verbose} && defined $opts{v}) {
+    $conf{verbose} = $opts{v};
+    $conf{quiet} = 0;
 }
 
 if (defined $opts{q}) {
-    $quiet = $opts{q};
-    $verbose = 0;
+    $conf{quiet} = $opts{q};
+    $conf{verbose} = 0;
 }
 
 if (defined $opts{Q}) {
-    if (!$quiet) {
+    if (!$conf{quiet}) {
         die "quiet_skip (-Q) does not make sense without quiet (-q).\n";
     }
-    $quiet_skip = $opts{Q};
+    $conf{quiet_skip} = $opts{Q};
 }
 
 if (defined $opts{f}) {
-    $force = $opts{f};
+    $conf{force} = $opts{f};
 }
 
 if (defined $opts{p}) {
-    $prefix = $opts{p};
+    $conf{prefix} = $opts{p};
 }
 
 if (defined $opts{t}) {
-    $template = $opts{t};
+    $conf{template} = $opts{t};
 }
 
 if (defined $opts{T}) {
-    $comp_template = $opts{T};
+    $conf{comp_template} = $opts{T};
 }
 
 if (defined $opts{d}) {
-    $dryrun = $opts{d};
+    $conf{dryrun} = $opts{d};
 }
 
 undef %opts;
 
 #}}}
 # process what's left on the commandline aka. main() {{{
-if ($quiet) {
-    $oprefix = "";
+if ($conf{quiet}) {
+    $conf{oprefix} = "";
 }
 
 %methods = (
@@ -838,29 +842,29 @@ if ($quiet) {
     '.ogg$' => \&process_ogg
 );
 
-if ($dryrun) {
+if ($conf{dryrun}) {
     print "+++ We are on a dry run!\n";
 }
 
-if ($verbose) {
+if ($conf{verbose}) {
     print "+++ Running verbose.\n";
 }
 
-if ($dryrun || $verbose) {
+if ($conf{dryrun} || $conf{verbose}) {
     print "\n";
 }
 
 foreach my $file (@ARGV) {
     my $done = 0;
-    if (!$quiet) {
+    if (!$conf{quiet}) {
         print "Processing: $file\n";
     }
     if (-l $file) {
-        warn $oprefix . "Refusing to handle symbolic links ($file).\n";
+        warn $conf{oprefix} . "Refusing to handle symbolic links ($file).\n";
         next;
     }
     if (! -r $file) {
-        warn $oprefix . "Can't read \"$file\": $!\n";
+        warn $conf{oprefix} . "Can't read \"$file\": $!\n";
         next;
     }
 
