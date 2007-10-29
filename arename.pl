@@ -157,6 +157,14 @@ information. (default value: I<undefined>)
 Defines a prefix for destination files. This setting can still be
 overwritten by the B<-p> command line option. (default value: I<.>)
 
+=item B<quiet>
+
+Switches on quietness by default. (default value: I<off>)
+
+=item B<quiet_skip>
+
+Be quiet about skips by default. (default value: I<off>)
+
 =item B<sepreplace>
 
 Tagging information strings may contain slashes, which is a pretty bad
@@ -201,6 +209,9 @@ The simple form.
 
 The "complex" form. The I<length> argument in square brackets defines the
 maximum length, to which the expression should be expanded.
+
+That means, if the Artist of a file reveals to be 'I<Frank Zappa>', then
+using 'B<&artist[1]>' will expand to 'I<F>'.
 
 =back
 
