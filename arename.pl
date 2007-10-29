@@ -121,6 +121,9 @@ as the identifier of a setting (eg. I<verbose>). The second part (read: the
 rest of the line) is used as the value of the setting. (No quoting, or whatsoever
 is required.)
 
+If the value part start with a backslash, that backslash is left out of the
+value. That makes it possible to define templates with leading whitespace.
+
 If a line consists of only one part, that means the setting is switched on.
 
 =head2 Configuration file example
@@ -620,6 +623,7 @@ sub rcload { #{{{
 
         $line =~ s/^\s*//;
         my ($key,$val) = split(/\s+/, $line, 2);
+        $val =~ s/^\\//;
 
         if ($key eq 'template') {
             $template = $val;
