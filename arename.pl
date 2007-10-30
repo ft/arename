@@ -354,6 +354,9 @@ sub arename { #{{{
         print $conf{oprefix} . "Tracknumber: \"" .
             (defined $datref->{tracknumber} ? $datref->{tracknumber} : "-.-")
             . "\"\n";
+        print $conf{oprefix} . "Genre      : \"" .
+            (defined $datref->{genre}       ? $datref->{genre}       : "-.-")
+            . "\"\n";
         print $conf{oprefix} . "Year       : \"" .
             (defined $datref->{year}        ? $datref->{year}        : "-.-")
             . "\"\n";
@@ -454,6 +457,7 @@ sub expand_template { #{{{
         'album',
         'artist',
         'compilation',
+        'genre',
         'tracknumber',
         'tracktitle',
         'year'
@@ -541,6 +545,7 @@ sub process_flac { #{{{
                 $tag =~ m/^TITLE$/i         ||
                 $tag =~ m/^TRACKNUMBER$/i   ||
                 $tag =~ m/^DATE$/i          ||
+                $tag =~ m/^GENRE$/i         ||
                 $tag =~ m/^ALBUMARTIST$/i
             )) { next; }
 
@@ -555,6 +560,8 @@ sub process_flac { #{{{
             $realtag = 'tracknumber';
         } elsif ($tag =~ m/^DATE$/i) {
             $realtag = 'year';
+        } elsif ($tag =~ m/^GENRE$/i) {
+            $realtag = 'genre';
         } elsif ($tag =~ m/^ALBUMARTIST$/i) {
             $realtag = 'compilation';
         } else {
@@ -595,6 +602,7 @@ sub process_mp3 { #{{{
         ($data{album},       $info) = $mp3->{ID3v2}->get_frame("TALB");
         ($data{tracktitle},  $info) = $mp3->{ID3v2}->get_frame("TIT2");
         ($data{tracknumber}, $info) = $mp3->{ID3v2}->get_frame("TRCK");
+        ($data{genre},       $info) = $mp3->{ID3v2}->get_frame("TCON");
         ($data{year},        $info) = $mp3->{ID3v2}->get_frame("TYER");
     } elsif (exists $mp3->{ID3v1}) {
         print $conf{oprefix} . "Only found ID3v1 tag.\n";
@@ -602,6 +610,7 @@ sub process_mp3 { #{{{
         $data{album}       = $mp3->{ID3v1}->album;
         $data{tracktitle}  = $mp3->{ID3v1}->title;
         $data{tracknumber} = $mp3->{ID3v1}->track;
+        $data{genre}       = $mp3->{ID3v1}->genre;
         $data{year}        = $mp3->{ID3v1}->year;
     }
 
@@ -631,6 +640,7 @@ sub process_ogg { #{{{
                 $tag =~ m/^TITLE$/i         ||
                 $tag =~ m/^TRACKNUMBER$/i   ||
                 $tag =~ m/^DATE$/i          ||
+                $tag =~ m/^GENRE$/i         ||
                 $tag =~ m/^ALBUMARTIST$/i
             )) { next; }
 
@@ -645,6 +655,8 @@ sub process_ogg { #{{{
             $realtag = 'tracknumber';
         } elsif ($tag =~ m/^DATE$/i) {
             $realtag = 'year';
+        } elsif ($tag =~ m/^GENRE$/i) {
+            $realtag = 'genre';
         } elsif ($tag =~ m/^ALBUMARTIST$/i) {
             $realtag = 'compilation';
         } else {
