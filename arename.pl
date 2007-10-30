@@ -11,12 +11,14 @@ use File::Copy;
 
 # These are external modules. On debian systems, do:
 #   % aptitude install libogg-vorbis-header-perl \
-#                      libmp3-tag-perl
+#                      libmp3-tag-perl           \
+#                      libaudio-flac-header-perl
 #
 # If you don't know how to get them for your OS, get them
 # from CPAN: <http://cpan.org>.
 use MP3::Tag;
 use Ogg::Vorbis::Header;
+use Audio::FLAC::Header;
 
 #}}}
 # documentation {{{
@@ -518,6 +520,55 @@ sub file_eq { #{{{
     return 0;
 }
 #}}}
+sub process_flac { #{{{
+    my ($file) = @_;
+    my ($flac, %data, $tags);
+
+    $flac = Audio::FLAC::Header->new($file);
+
+    if (!defined $flac) {
+        print $conf{oprefix} . "Failed to open \"$file\".\n$conf{oprefix}" . "Reason: $!\n";
+        return;
+    }
+
+    $tags = $flac->tags();
+
+    foreach my $tag (keys %$tags) {
+        my ($realtag, $value);
+        if (!(
+                $tag =~ m/^ALBUM$/i         ||
+                $tag =~ m/^ARTIST$/i        ||
+                $tag =~ m/^TITLE$/i         ||
+                $tag =~ m/^TRACKNUMBER$/i   ||
+                $tag =~ m/^DATE$/i          ||
+                $tag =~ m/^ALBUMARTIST$/i
+            )) { next; }
+
+        $value = %$tags->{$tag};
+        if ($tag =~ m/^ALBUM$/i) {
+            $realtag = 'album';
+        } elsif ($tag =~ m/^ARTIST$/i) {
+            $realtag = 'artist';
+        } elsif ($tag =~ m/^TITLE$/i) {
+            $realtag = 'tracktitle';
+        } elsif ($tag =~ m/^TRACKNUMBER$/i) {
+            $realtag = 'tracknumber';
+        } elsif ($tag =~ m/^DATE$/i) {
+            $realtag = 'year';
+        } elsif ($tag =~ m/^ALBUMARTIST$/i) {
+            $realtag = 'compilation';
+        } else {
+            die "This should not happen. Report this BUG. ($tag, $value)";
+        }
+
+        if (!defined $data{$realtag}) {
+            $data{$realtag} = $value;
+        }
+    }
+
+    arename($file, \%data, 'flac');
+}
+#}}}
 sub process_mp3 { #{{{
     my ($file) = @_;
     my ($mp3, %data, $info);
@@ -851,8 +902,9 @@ if ($conf{quiet}) {
 }
 
 %methods = (
-    '.mp3$' => \&process_mp3,
-    '.ogg$' => \&process_ogg
+    '\.flac$' => \&process_flac,
+    '\.mp3$'  => \&process_mp3,
+    '\.ogg$'  => \&process_ogg
 );
 
 if ($conf{dryrun}) {
