@@ -95,9 +95,9 @@ destination file name. The format of that filename is configurable for the
 user by the use of template strings.
 
 B<arename.pl> currently supports two widely used audio formats, namely
-MPEG Layer3 and ogg vorbis. The format, that B<arename.pl> will assume
-for each input file is determined by the file's filename-extension
-(I<.mp3> vs. I<.ogg>). The extension check is case-insensitive.
+MPEG Layer3, ogg vorbis and flac. The format, that B<arename.pl> will
+assume for each input file is determined by the file's filename-extension
+(I<.mp3> vs. I<.ogg> vs. I<.flac>). The extension check is case-insensitive.
 
 By default, B<arename.pl> will refuse to overwrite destination files,
 if the file in question already exists. You can force overwriting by
@@ -164,8 +164,8 @@ I<va/&album/&tracknumber - &artist - &tracktitle>)
 
 =item B<default_*>
 
-default_artist, default_album, default_compilation, default_tracknumber,
-default_tracktitle, default_year
+default_artist, default_album, default_compilation, default_genre, 
+default_tracknumber, default_tracktitle, default_year
 
 Defines a default value, for the given tag in files, that lack this
 information. (default value: I<undefined>)
@@ -236,8 +236,9 @@ using 'B<&artist[1]>' will expand to 'I<F>'.
 =head2 Available expression identifiers
 
 The data, that is expanded is derived from tagging information in
-the audio files. For I<.ogg> files, the tag checking B<arename.pl> does
-is case insensitive and the first matching tag will be used.
+the audio files. For I<.ogg> and I<.flac> files, the tag checking
+B<arename.pl> does is case insensitive and the first matching tag
+will be used.
 
 =over 8
 
@@ -251,9 +252,14 @@ Guess again.
 
 =item B<compilation>
 
-For I<.ogg> this is filled with information found in the 'albumartist' tag.
-For I<.mp3> this is filled with information from the id3v2 TPE2 frame.
-If the mp3 file only provides a id3v1 tag, this is not supported.
+For I<.ogg> and I<.flac> this is filled with information found in the
+'albumartist' tag. For I<.mp3> this is filled with information from the
+id3v2 TPE2 frame. If the mp3 file only provides a id3v1 tag, this is not
+supported.
+
+=item B<genre>
+
+The genre or content type of the audio file.
 
 =item B<tracknumber>
 
@@ -269,13 +275,13 @@ Well...
 
 =item B<year>
 
-Year (id3v1), TYER (id3v2) or DATE tag (.ogg).
+Year (id3v1), TYER (id3v2) or DATE tag (.ogg/.flac).
 
 =back
 
 =head1 SEE ALSO
 
-L<Ogg::Vorbis::Header(3)> and L<MP3::Tag(3)>.
+L<Ogg::Vorbis::Header(3)>, L<Audio::FLAC::Header(3)> and L<MP3::Tag(3)>.
 
 =head1 AUTHOR
 
@@ -316,7 +322,7 @@ Please report bugs.
 #}}}
 # variables {{{
 my ( %conf, %defaults, %methods, %opts );
-my ( $NAME, $VERSION ) = ( 'arename.pl', 'v0.5' );
+my ( $NAME, $VERSION ) = ( 'arename.pl', 'v0.6' );
 #}}}
 sub apply_defaults { #{{{
     my ($datref) = @_;
@@ -732,6 +738,8 @@ sub rcload { #{{{
             $defaults{album}       = $val;
         } elsif ($key eq 'default_compilation') {
             $defaults{compilation} = $val;
+        } elsif ($key eq 'default_genre') {
+            $defaults{genre}       = $val;
         } elsif ($key eq 'default_tracknumber') {
             $defaults{tracknumber} = $val;
         } elsif ($key eq 'default_tracktitle') {
