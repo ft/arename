@@ -322,7 +322,7 @@ Please report bugs.
 #}}}
 # variables {{{
 my ( %conf, %defaults, %methods, %opts );
-my ( $NAME, $VERSION ) = ( 'arename.pl', 'v0.6' );
+my ( $NAME, $VERSION ) = ( 'arename.pl', 'v0.7' );
 #}}}
 sub apply_defaults { #{{{
     my ($datref) = @_;
@@ -555,7 +555,7 @@ sub process_flac { #{{{
                 $tag =~ m/^ALBUMARTIST$/i
             )) { next; }
 
-        $value = %$tags->{$tag};
+        $value = $tags->{$tag};
         if ($tag =~ m/^ALBUM$/i) {
             $realtag = 'album';
         } elsif ($tag =~ m/^ARTIST$/i) {
