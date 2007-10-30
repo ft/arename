@@ -2,13 +2,26 @@
 use warnings;
 use strict;
 
+# modules {{{
+
+# These are commonly installed along with Perl:
 use Getopt::Std;
 use File::Basename;
 use File::Copy;
+
+# These are external modules. On debian systems, do:
+#   % aptitude install libogg-vorbis-header-perl \
+#                      libmp3-tag-perl
+#
+# If you don't know how to get them for your OS, get them
+# from CPAN: <http://cpan.org>.
 use MP3::Tag;
 use Ogg::Vorbis::Header;
 
+#}}}
 # documentation {{{
+=pod
+
 =head1 NAME
 
 arename.pl - automatically rename audio files by tagging information
