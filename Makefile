@@ -17,8 +17,9 @@ distclean:
 	rm -f arename.html arename.1 *.tmp *~
 
 install:
-	@printf 'Installing arename.pl to %s\n' "$(prefix)/bin"
+	@printf 'Installing arename.pl  to %s\n' "$(prefix)/bin"
 	@cp arename.pl   $(prefix)/bin/
+	@printf 'Installing ataglist.pl to %s\n' "$(prefix)/bin"
 	@cp ataglist.pl  $(prefix)/bin/
 	@chown root:root $(prefix)/bin/arename.pl $(prefix)/bin/ataglist.pl
 	@chmod 0755      $(prefix)/bin/arename.pl $(prefix)/bin/ataglist.pl
