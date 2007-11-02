@@ -322,7 +322,7 @@ Please report bugs.
 #}}}
 # variables {{{
 my ( %conf, %defaults, %methods, %opts );
-my ( $NAME, $VERSION ) = ( 'arename.pl', 'v0.7' );
+my ( $NAME, $VERSION ) = ( 'arename.pl', 'v0.8' );
 #}}}
 sub apply_defaults { #{{{
     my ($datref) = @_;

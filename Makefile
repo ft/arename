@@ -19,8 +19,9 @@ distclean:
 install:
 	@printf 'Installing arename.pl to %s\n' "$(prefix)/bin"
 	@cp arename.pl   $(prefix)/bin/
-	@chown root:root $(prefix)/bin/arename.pl
-	@chmod 0755      $(prefix)/bin/arename.pl
+	@cp ataglist.pl  $(prefix)/bin/
+	@chown root:root $(prefix)/bin/arename.pl $(prefix)/bin/ataglist.pl
+	@chmod 0755      $(prefix)/bin/arename.pl $(prefix)/bin/ataglist.pl
 
 install-doc: doc
 	@printf 'Installing arename.1  to %s\n' "$(prefix)/share/man/man1"
