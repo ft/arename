@@ -1,2 +1,4 @@
 - v0.9
-    + ...
+    + export code, that ataglist.pl and arename.pl are
+      sharing into a module.
+    + improve the docs. There are minor mistakes in it.
