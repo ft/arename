@@ -211,7 +211,7 @@ Switches on verbosity by default. (default value: I<off>)
 
 B<arename.pl>'s templates are quite simple, yet powerful.
 
-At simplest, a template is just a fixes character string. However, that would
+At simplest, a template is just a fixed character string. However, that would
 not be exactly useful. So, the script is able to expand certain expressions
 with information gathered from the file's tagging information.
 
@@ -265,7 +265,7 @@ The genre or content type of the audio file.
 
 The number of the position of the track on the disc. Obviously. However, this
 can be in the form of '12' or '12/23'. In the second form, only the part left
-of the slash is used. The tracknumber is a little special, as you can defined
+of the slash is used. The tracknumber is a little special, as you can define
 to what width it should be padded with zeros on the left (see I<tnpad> setting
 in L<arename(1)/SETTINGS>).
 
