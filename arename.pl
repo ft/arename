@@ -76,7 +76,7 @@ a file's tagging information, from which it will assemble a consistent
 destination file name. The format of that filename is configurable for the
 user by the use of template strings.
 
-B<arename.pl> currently supports two widely used audio formats, namely
+B<arename.pl> currently supports three widely used audio formats, namely
 MPEG Layer3, ogg vorbis and flac. The format, that B<arename.pl> will
 assume for each input file is determined by the file's filename-extension
 (I<.mp3> vs. I<.ogg> vs. I<.flac>). The extension check is case-insensitive.
