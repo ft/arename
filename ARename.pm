@@ -75,13 +75,13 @@ sub arename_verbosity { #{{{
     my ($datref) = @_;
 
     if ($conf{verbose}) {
-        oprint("Artist     : \"" . getdat($datref, "artist"})      . "\"\n");
-        oprint("Compilation: \"" . getdat($datref, "compilation"}) . "\"\n");
-        oprint("Album      : \"" . getdat($datref, "album"})       . "\"\n");
-        oprint("Tracktitle : \"" . getdat($datref, "tracktitle"})  . "\"\n");
-        oprint("Tracknumber: \"" . getdat($datref, "tracknumber"}) . "\"\n");
-        oprint("Genre      : \"" . getdat($datref, "genre"})       . "\"\n");
-        oprint("Year       : \"" . getdat($datref, "year"})        . "\"\n");
+        oprint("Artist     : \"" . getdat($datref, "artist")      . "\"\n");
+        oprint("Compilation: \"" . getdat($datref, "compilation") . "\"\n");
+        oprint("Album      : \"" . getdat($datref, "album")       . "\"\n");
+        oprint("Tracktitle : \"" . getdat($datref, "tracktitle")  . "\"\n");
+        oprint("Tracknumber: \"" . getdat($datref, "tracknumber") . "\"\n");
+        oprint("Genre      : \"" . getdat($datref, "genre")       . "\"\n");
+        oprint("Year       : \"" . getdat($datref, "year")        . "\"\n");
     }
 }
 #}}}
@@ -354,6 +354,43 @@ err:
 }
 #}}}
 
+sub handle_vorbistag { #{{{
+    my ($datref, $tag, $value) = @_;
+    my ($realtag);
+
+    if (!(
+            $tag =~ m/^ALBUM$/i         ||
+            $tag =~ m/^ARTIST$/i        ||
+            $tag =~ m/^TITLE$/i         ||
+            $tag =~ m/^TRACKNUMBER$/i   ||
+            $tag =~ m/^DATE$/i          ||
+            $tag =~ m/^GENRE$/i         ||
+            $tag =~ m/^ALBUMARTIST$/i
+        )) { next; }
+
+    if ($tag =~ m/^ALBUM$/i) {
+        $realtag = 'album';
+    } elsif ($tag =~ m/^ARTIST$/i) {
+        $realtag = 'artist';
+    } elsif ($tag =~ m/^TITLE$/i) {
+        $realtag = 'tracktitle';
+    } elsif ($tag =~ m/^TRACKNUMBER$/i) {
+        $realtag = 'tracknumber';
+    } elsif ($tag =~ m/^DATE$/i) {
+        $realtag = 'year';
+    } elsif ($tag =~ m/^GENRE$/i) {
+        $realtag = 'genre';
+    } elsif ($tag =~ m/^ALBUMARTIST$/i) {
+        $realtag = 'compilation';
+    } else {
+        die "This should not happen. Report this BUG. ($tag, $value)";
+    }
+
+    if (!defined $datref->{$realtag}) {
+        $datref->{$realtag} = $value;
+    }
+}
+#}}}
 sub process_flac { #{{{
     my ($file) = @_;
     my ($flac, %data, $tags);
@@ -369,39 +406,7 @@ sub process_flac { #{{{
     $tags = $flac->tags();
 
     foreach my $tag (keys %$tags) {
-        my ($realtag, $value);
-        if (!(
-                $tag =~ m/^ALBUM$/i         ||
-                $tag =~ m/^ARTIST$/i        ||
-                $tag =~ m/^TITLE$/i         ||
-                $tag =~ m/^TRACKNUMBER$/i   ||
-                $tag =~ m/^DATE$/i          ||
-                $tag =~ m/^GENRE$/i         ||
-                $tag =~ m/^ALBUMARTIST$/i
-            )) { next; }
-
-        $value = $tags->{$tag};
-        if ($tag =~ m/^ALBUM$/i) {
-            $realtag = 'album';
-        } elsif ($tag =~ m/^ARTIST$/i) {
-            $realtag = 'artist';
-        } elsif ($tag =~ m/^TITLE$/i) {
-            $realtag = 'tracktitle';
-        } elsif ($tag =~ m/^TRACKNUMBER$/i) {
-            $realtag = 'tracknumber';
-        } elsif ($tag =~ m/^DATE$/i) {
-            $realtag = 'year';
-        } elsif ($tag =~ m/^GENRE$/i) {
-            $realtag = 'genre';
-        } elsif ($tag =~ m/^ALBUMARTIST$/i) {
-            $realtag = 'compilation';
-        } else {
-            die "This should not happen. Report this BUG. ($tag, $value)";
-        }
-
-        if (!defined $data{$realtag}) {
-            $data{$realtag} = $value;
-        }
+        handle_vorbistag(\%data, $tag, $tags->{$tag});
     }
 
     $postproc->($file, \%data, 'flac');
@@ -451,8 +456,6 @@ sub process_mp3 { #{{{
 }
 #}}}
 sub process_ogg { #{{{
-    # TODO: process_flac() and this one are *very* much alike.
-    #       Move duplicate code to another function.
     my ($file) = @_;
     my ($ogg, %data, @tags);
 
@@ -467,39 +470,7 @@ sub process_ogg { #{{{
     @tags = $ogg->comment_tags;
 
     foreach my $tag (@tags) {
-        my ($realtag, $value);
-        if (!(
-                $tag =~ m/^ALBUM$/i         ||
-                $tag =~ m/^ARTIST$/i        ||
-                $tag =~ m/^TITLE$/i         ||
-                $tag =~ m/^TRACKNUMBER$/i   ||
-                $tag =~ m/^DATE$/i          ||
-                $tag =~ m/^GENRE$/i         ||
-                $tag =~ m/^ALBUMARTIST$/i
-            )) { next; }
-
-        $value = join(' ', $ogg->comment($tag));
-        if ($tag =~ m/^ALBUM$/i) {
-            $realtag = 'album';
-        } elsif ($tag =~ m/^ARTIST$/i) {
-            $realtag = 'artist';
-        } elsif ($tag =~ m/^TITLE$/i) {
-            $realtag = 'tracktitle';
-        } elsif ($tag =~ m/^TRACKNUMBER$/i) {
-            $realtag = 'tracknumber';
-        } elsif ($tag =~ m/^DATE$/i) {
-            $realtag = 'year';
-        } elsif ($tag =~ m/^GENRE$/i) {
-            $realtag = 'genre';
-        } elsif ($tag =~ m/^ALBUMARTIST$/i) {
-            $realtag = 'compilation';
-        } else {
-            die "This should not happen. Report this BUG. ($tag, $value)";
-        }
-
-        if (!defined $data{$realtag}) {
-            $data{$realtag} = $value;
-        }
+        handle_vorbistag(\%data, $tag, join(' ', $ogg->comment($tag)));
     }
 
     $postproc->($file, \%data, 'ogg');
