@@ -34,44 +34,11 @@ sub arename { #{{{
     my ($t, $newname);
 
     apply_defaults($datref);
+    arename_verbosity($datref);
 
-    if ($conf{verbose}) { #{{{
-        print $conf{oprefix} . "Artist     : \"" .
-            (defined $datref->{artist}      ? $datref->{artist}      : "-.-")
-            . "\"\n";
-        print $conf{oprefix} . "Compilation: \"" .
-            (defined $datref->{compilation} ? $datref->{compilation} : "-.-")
-            . "\"\n";
-        print $conf{oprefix} . "Album      : \"" .
-            (defined $datref->{album}       ? $datref->{album}       : "-.-")
-            . "\"\n";
-        print $conf{oprefix} . "Tracktitle : \"" .
-            (defined $datref->{tracktitle}  ? $datref->{tracktitle}  : "-.-")
-            . "\"\n";
-        print $conf{oprefix} . "Tracknumber: \"" .
-            (defined $datref->{tracknumber} ? $datref->{tracknumber} : "-.-")
-            . "\"\n";
-        print $conf{oprefix} . "Genre      : \"" .
-            (defined $datref->{genre}       ? $datref->{genre}       : "-.-")
-            . "\"\n";
-        print $conf{oprefix} . "Year       : \"" .
-            (defined $datref->{year}        ? $datref->{year}        : "-.-")
-            . "\"\n";
-    } #}}}
-
-    if (defined $datref->{compilation}
-        && $datref->{compilation} ne $datref->{artist}) {
-
-        $t = $conf{comp_template};
-    } else {
-        $t = $conf{template};
-    }
-
+    $t = choose_template($datref);
     $newname = expand_template($t, $datref);
-    if (!defined $newname) {
-        return;
-    }
-
+    return if not defined $newname;
     $newname = $conf{prefix} . '/' . $newname . '.' . $ext;
 
     if (file_eq($newname, $file)) {
@@ -80,16 +47,14 @@ sub arename { #{{{
                 print "Skipping: '$file'\n";
             }
         } else {
-            print $conf{oprefix}
-                  . "'$file'\n      would stay the way it is, skipping.\n";
+            oprint("'$file'\n      would stay the way it is, skipping.\n");
         }
         return;
     }
 
     if (-e $newname && !$conf{force}) {
-        print $conf{oprefix} . "'$newname' exists."
-              . ($conf{quiet} ? " " : "\n      ")
-              . "use '-f' to force overwriting.\n";
+        oprint("'$newname' exists." . ($conf{quiet} ? " " : "\n      ")
+            . "use '-f' to force overwriting.\n");
         return;
     }
 
@@ -98,11 +63,25 @@ sub arename { #{{{
     if ($conf{quiet}) {
         print "'$newname'\n";
     } else {
-        print $conf{oprefix} . "mv '$file' \\\n         '$newname'\n";
+        oprint("mv '$file' \\\n         '$newname'\n");
     }
 
     if (!$conf{dryrun}) {
         xrename($file, $newname);
+    }
+}
+#}}}
+sub arename_verbosity { #{{{
+    my ($datref) = @_;
+
+    if ($conf{verbose}) {
+        oprint("Artist     : \"" . getdat($datref, "artist"})      . "\"\n");
+        oprint("Compilation: \"" . getdat($datref, "compilation"}) . "\"\n");
+        oprint("Album      : \"" . getdat($datref, "album"})       . "\"\n");
+        oprint("Tracktitle : \"" . getdat($datref, "tracktitle"})  . "\"\n");
+        oprint("Tracknumber: \"" . getdat($datref, "tracknumber"}) . "\"\n");
+        oprint("Genre      : \"" . getdat($datref, "genre"})       . "\"\n");
+        oprint("Year       : \"" . getdat($datref, "year"})        . "\"\n");
     }
 }
 #}}}
@@ -112,11 +91,22 @@ sub apply_defaults { #{{{
     foreach my $key (keys %defaults) {
         if (!defined $datref->{$key}) {
             if ($conf{verbose}) {
-                print $conf{oprefix}
-                      . "Setting ($key) to \"$defaults{$key}\".\n";
+                oprint("Setting ($key) to \"$defaults{$key}\".\n");
             }
             $datref->{$key} = $defaults{$key};
         }
+    }
+}
+#}}}
+sub choose_template { #{{{
+    my ($datref) = @_;
+
+    if (defined $datref->{compilation}
+        && $datref->{compilation} ne $datref->{artist}) {
+
+        return $conf{comp_template};
+    } else {
+        return $conf{template};
     }
 }
 #}}}
@@ -152,7 +142,7 @@ sub ensure_dir { #{{{
 
         if (!-d $sofar) {
             if (($conf{dryrun} || $conf{verbose}) && !$conf{quiet}) {
-                print $conf{oprefix} . "mkdir \"$sofar\"\n";
+                oprint("mkdir \"$sofar\"\n");
             }
             if (!$conf{dryrun}) {
                 mkdir($sofar) or die "Could not mkdir($sofar).\n" .
@@ -182,7 +172,7 @@ sub expand_template { #{{{
             if (defined $2) { $len = $2; }
 
             if (!defined $datref->{$tag} || $datref->{$tag} eq '') {
-                warn $conf{oprefix} . "$tag not defined, but required by template. Giving up.\n";
+                owarn("$tag not defined, but required by template. Giving up.\n");
                 return undef;
             }
 
@@ -203,8 +193,8 @@ sub expand_template { #{{{
             }
             if ($token =~ m!/!) {
                 if ($conf{verbose}) {
-                    print $conf{oprefix} . "Found directory seperator in token.\n";
-                    print $conf{oprefix} . "Replacing with \"$conf{sepreplace}\".\n";
+                    oprint("Found directory seperator in token.\n");
+                    oprint("Replacing with \"$conf{sepreplace}\".\n");
                 }
                 $token =~ s!/!$conf{sepreplace}!g;
             }
@@ -235,6 +225,24 @@ sub file_eq { #{{{
     return 0;
 }
 #}}}
+sub getdat { #{{{
+    my ($datref, $tag) = @_;
+
+    return defined $datref->{$tag} ? $datref->{$tag} : "-.-";
+}
+#}}}
+sub oprint { #{{{
+    my ($string) = @_;
+
+    print $conf{oprefix} . $string;
+}
+#}}}
+sub owarn { #{{{
+    my ($string) = @_;
+
+    warn $conf{oprefix} . $string;
+}
+#}}}
 sub rcload { #{{{
     my ($file, $desc) = @_;
     my ($fh, $retval);
@@ -242,7 +250,8 @@ sub rcload { #{{{
     my $lnum  = 0;
 
     if (!open($fh, "<$file")) {
-        warn "Failed to read $desc ($file).\n$conf{oprefix}" . "Reason: $!\n";
+        warn "Failed to read $desc ($file).\n";
+        owarn("Reason: $!\n");
         return 1;
     }
 
@@ -307,8 +316,8 @@ sub rcload { #{{{
     }
     close $fh;
 
-    print $conf{oprefix}
-          . "Read $desc.\n$conf{oprefix}" . "$count valid items.\n";
+    oprint("Read $desc.\n");
+    oprint("$count valid items.\n");
     return 0;
 }
 #}}}
@@ -351,7 +360,8 @@ sub process_flac { #{{{
     $flac = Audio::FLAC::Header->new($file);
 
     if (!defined $flac) {
-        print $conf{oprefix} . "Failed to open \"$file\".\n$conf{oprefix}" . "Reason: $!\n";
+        oprint("Failed to open \"$file\".\n");
+        oprint("Reason: $!\n");
         return;
     }
 
@@ -403,15 +413,15 @@ sub process_mp3 { #{{{
     $mp3 = MP3::Tag->new($file);
 
     if (!defined $mp3) {
-        print $conf{oprefix}
-              . "Failed to open \"$file\".\n$conf{oprefix}" . "Reason: $!\n";
+        oprint("Failed to open \"$file\".\n");
+        oprint("Reason: $!\n");
         return;
     }
 
     $mp3->get_tags;
 
     if (!exists $mp3->{ID3v1} && !exists $mp3->{ID3v2}) {
-        print $conf{oprefix} . "No tag found. Ignoring.\n";
+        oprint("No tag found. Ignoring.\n");
         $mp3->close();
         return;
     }
@@ -425,7 +435,7 @@ sub process_mp3 { #{{{
         ($data{genre},       $info) = $mp3->{ID3v2}->get_frame("TCON");
         ($data{year},        $info) = $mp3->{ID3v2}->get_frame("TYER");
     } elsif (exists $mp3->{ID3v1}) {
-        print $conf{oprefix} . "Only found ID3v1 tag.\n";
+        oprint("Only found ID3v1 tag.\n");
         $data{artist}      = $mp3->{ID3v1}->artist;
         $data{album}       = $mp3->{ID3v1}->album;
         $data{tracktitle}  = $mp3->{ID3v1}->title;
@@ -446,7 +456,8 @@ sub process_ogg { #{{{
     $ogg = Ogg::Vorbis::Header->load($file);
 
     if (!defined $ogg) {
-        print $conf{oprefix} . "Failed to open \"$file\".\n$conf{oprefix}" . "Reason: $!\n";
+        oprint("Failed to open \"$file\".\n");
+        oprint("Reason: $!\n");
         return;
     }
 
@@ -494,7 +505,7 @@ sub process_ogg { #{{{
 sub process_warn { #{{{
     my ($file) = @_;
 
-    warn $conf{oprefix} . "No method for handling \"$file\".\n";
+    owarn("No method for handling \"$file\".\n");
 }
 #}}}
 
