@@ -271,6 +271,7 @@ sub rcload { #{{{
             $val =~ s/^\\//;
         }
 
+        # TODO: Improve this mess.
         if ($key eq 'template') {
             $conf{template} = $val;
         } elsif ($key eq 'comp_template') {
@@ -450,6 +451,8 @@ sub process_mp3 { #{{{
 }
 #}}}
 sub process_ogg { #{{{
+    # TODO: process_flac() and this one are *very* much alike.
+    #       Move duplicate code to another function.
     my ($file) = @_;
     my ($ogg, %data, @tags);
 
@@ -566,18 +569,7 @@ sub read_cmdline_options { #{{{
     }
 
     if (defined $opts{h}) {
-        print " Usage:\n  $NAME [OPTION(s)] FILE(s)...\n\n";
-        print "    -d                Go into dryrun mode.\n";
-        print "    -f                Overwrite files if needed.\n";
-        print "    -h                Display this help text.\n";
-        print "    -Q                Don't display skips in quiet mode.\n";
-        print "    -q                Enable quiet output.\n";
-        print "    -V                Display version infomation.\n";
-        print "    -v                Enable verbose output.\n";
-        print "    -p <prefix>       Define a prefix for destination files.\n";
-        print "    -T <template>     Define a compilation template.\n";
-        print "    -t <template>     Define a generic template.\n";
-        print "\n";
+        usage();
         exit 0;
     }
 
@@ -662,6 +654,21 @@ sub set_default_methods { #{{{
 #}}}
 sub set_postproc { #{{{
     $postproc = $_[0];
+}
+#}}}
+sub usage { #{{{
+    print " Usage:\n  $NAME [OPTION(s)] FILE(s)...\n\n";
+    print "    -d                Go into dryrun mode.\n";
+    print "    -f                Overwrite files if needed.\n";
+    print "    -h                Display this help text.\n";
+    print "    -Q                Don't display skips in quiet mode.\n";
+    print "    -q                Enable quiet output.\n";
+    print "    -V                Display version infomation.\n";
+    print "    -v                Enable verbose output.\n";
+    print "    -p <prefix>       Define a prefix for destination files.\n";
+    print "    -T <template>     Define a compilation template.\n";
+    print "    -t <template>     Define a generic template.\n";
+    print "\n";
 }
 #}}}
 
