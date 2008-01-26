@@ -302,6 +302,7 @@ Please report bugs.
 
 =cut
 #}}}
+
 my ( $NAME, $VERSION ) = ( 'arename.pl', 'v0.9' );
 
 ARename::set_default_options();
@@ -320,7 +321,7 @@ if (ARename::get_opt("dryrun")) {
 }
 
 if (ARename::get_opt("verbose")) {
-    print "+++ Running verbose.\n";
+    print "+++ Running verbosely.\n";
 }
 
 if (ARename::get_opt("dryrun") || ARename::get_opt("verbose")) {
