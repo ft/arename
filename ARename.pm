@@ -24,10 +24,31 @@ use Audio::FLAC::Header;
 
 #}}}
 # variables {{{
-my ( %conf, %defaults, %methods, %opts, $postproc );
-my ( $NAME, $VERSION ) = ( 'arename.pl', 'v0.8' );
+my ( %conf, %defaults, %methods, %opts, %parsers, $postproc, @supported_tags );
+my ( $NAME, $VERSION ) = ( 'unset', 'unset' );
+
+@supported_tags = (
+    'album',        'artist',
+    'compilation',
+    'genre',
+    'tracknumber',  'tracktitle',
+    'year'
+);
 
 $postproc = \&arename;
+#}}}
+sub apply_defaults { #{{{
+    my ($datref) = @_;
+
+    foreach my $key (keys %defaults) {
+        if (!defined $datref->{$key}) {
+            if ($conf{verbose}) {
+                oprint("Setting ($key) to \"$defaults{$key}\".\n");
+            }
+            $datref->{$key} = $defaults{$key};
+        }
+    }
+}
 #}}}
 sub arename { #{{{
     my ($file, $datref, $ext) = @_;
@@ -82,19 +103,6 @@ sub arename_verbosity { #{{{
         oprint("Tracknumber: \"" . getdat($datref, "tracknumber") . "\"\n");
         oprint("Genre      : \"" . getdat($datref, "genre")       . "\"\n");
         oprint("Year       : \"" . getdat($datref, "year")        . "\"\n");
-    }
-}
-#}}}
-sub apply_defaults { #{{{
-    my ($datref) = @_;
-
-    foreach my $key (keys %defaults) {
-        if (!defined $datref->{$key}) {
-            if ($conf{verbose}) {
-                oprint("Setting ($key) to \"$defaults{$key}\".\n");
-            }
-            $datref->{$key} = $defaults{$key};
-        }
     }
 }
 #}}}
@@ -154,17 +162,8 @@ sub ensure_dir { #{{{
 #}}}
 sub expand_template { #{{{
     my ($template, $datref) = @_;
-    my @tags = (
-        'album',
-        'artist',
-        'compilation',
-        'genre',
-        'tracknumber',
-        'tracktitle',
-        'year'
-    );
 
-    foreach my $tag (@tags) {
+    foreach my $tag (@supported_tags) {
         my ($len, $token);
 
         while ($template =~ m/&$tag(\[(\d+)\]|)/) {
@@ -262,63 +261,42 @@ sub rcload { #{{{
         $lnum++;
 
         if ($line =~ m/^\s*#/ || $line =~ m/^\s*$/) {
+            # skip comments and blank lines
             next;
         }
 
+        # remove leading whitespace
         $line =~ s/^\s*//;
         my ($key,$val) = split(/\s+/, $line, 2);
+
         if (defined $val) {
+            # if $val starts with a backslash, throw it away
             $val =~ s/^\\//;
         }
 
-        # TODO: Improve this mess.
-        if ($key eq 'template') {
-            $conf{template} = $val;
-        } elsif ($key eq 'comp_template') {
-            $conf{comp_template} = $val;
-        } elsif ($key eq 'sepreplace') {
-            $conf{sepreplace} = (defined $val ? $val : "");
-        } elsif ($key eq 'tnpad') {
-            $conf{tnpad} = $val;
-        } elsif ($key eq 'verbose') {
-            if ($conf{quiet}) {
-                die "$file,$lnum: quiet set. verbose not allowed.\n";
-            }
-            $conf{verbose} = 1;
-        } elsif ($key eq 'quiet') {
-            if ($conf{verbose}) {
-                die "$file,$lnum: verbose set. quiet not allowed.\n";
-            }
-            $conf{quiet} = 1;
-        } elsif ($key eq 'quiet_skip') {
-            $conf{quiet_skip} = 1;
-        } elsif ($key eq 'prefix') {
-            $conf{prefix} = $val;
-        } elsif ($key eq 'default_artist') {
-            $defaults{artist}      = $val;
-        } elsif ($key eq 'default_album') {
-            $defaults{album}       = $val;
-        } elsif ($key eq 'default_compilation') {
-            $defaults{compilation} = $val;
-        } elsif ($key eq 'default_genre') {
-            $defaults{genre}       = $val;
-        } elsif ($key eq 'default_tracknumber') {
-            $defaults{tracknumber} = $val;
-        } elsif ($key eq 'default_tracktitle') {
-            $defaults{tracktitle}  = $val;
-        } elsif ($key eq 'default_year') {
-            $defaults{year}        = $val;
-        } else {
+        if (!parse($file, $lnum, $count, $key, $val)) {
             warn "$file,$lnum: invalid line '$line'.\n";
             return -1;
+        } else {
+            $count++;
         }
-
-        $count++;
     }
     close $fh;
 
     oprint("Read $desc.\n");
     oprint("$count valid items.\n");
+    return 0;
+}
+#}}}
+sub tag_supported { #{{{
+    my ($tag) = @_;
+
+    foreach my $sub (@supported_tags) {
+        if ($tag eq $sub) {
+            return 1;
+        }
+    }
+
     return 0;
 }
 #}}}
@@ -352,6 +330,102 @@ err:
     die "Could not rename($src, $dest);\n" .
         "Reason: $cause(): $!\n";
 }
+#}}}
+
+%parsers = (
+#{{{
+    '^comp_template$' => \&parse_generic,
+    '^default_.*$'    => \&parse_default,
+    '^prefix$'        => \&parse_generic,
+    '^quiet$'         => \&parse_quiet,
+    '^quiet_skip$'    => \&parse_quiet_skip,
+    '^sepreplace$'    => \&parse_generic,
+    '^template$'      => \&parse_generic,
+    '^tnpad$'         => \&parse_generic,
+    '^verbose$'       => \&parse_verbose
+);
+#}}}
+
+# parser sub functions {{{
+
+sub parse { #{{{
+    my ($file, $lnum, $count, $key, $val) = @_;
+
+    foreach my $pattern (sort keys %parsers) {
+        if ($key =~ m/$pattern/) {
+
+            $parsers{$pattern}->(
+                $file, $lnum, $count,
+                $key, (defined $val ? $val : "")
+            );
+
+            return 1;
+        }
+    }
+
+    return 0;
+}
+#}}}
+sub parse_default { #{{{
+    my ($file, $lnum, $count, $key, $val) = @_;
+
+    $key =~ s/^default_//;
+
+    if (!tag_supported($key)) {
+        die "$file,$lnum: Default for unsupported tag found: '$key'\n";
+    }
+
+    if ($conf{verbose} > 0) {
+        oprint("\$defaults{$key} = '$val'\n");
+    }
+
+    $defaults{$key} = $val;
+}
+#}}}
+sub parse_generic { #{{{
+    my ($file, $lnum, $count, $key, $val) = @_;
+
+    if ($conf{verbose} > 0) {
+        oprint("\$conf{$key} = '$val'\n");
+    }
+
+    $conf{$key} = $val;
+}
+#}}}
+sub parse_quiet { #{{{
+    my ($file, $lnum, $count, $key, $val) = @_;
+
+    if ($conf{verbose}) {
+        die "$file,$lnum: verbose set. quiet not allowed.\n";
+    }
+    $conf{$key} = 1;
+}
+#}}}
+sub parse_quiet_skip { #{{{
+    my ($file, $lnum, $count, $key, $val) = @_;
+
+    if ($conf{verbose}) {
+        die "$file,$lnum: verbose set. quiet_skip not allowed.\n";
+    }
+
+    if (!$conf{quiet}) {
+        oprint "quiet_skip requested, forcing quiet, too.\n";
+        $conf{quiet} = 1;
+    }
+
+    $conf{$key} = 1;
+}
+#}}}
+sub parse_verbose { #{{{
+    my ($file, $lnum, $count, $key, $val) = @_;
+
+    if ($conf{quiet}) {
+        die "$file,$lnum: quiet set. verbose not allowed.\n";
+    }
+    $conf{$key} = 1;
+}
+#}}}
+
 #}}}
 
 sub handle_vorbistag { #{{{
@@ -621,6 +695,13 @@ sub set_default_methods { #{{{
         '\.mp3$'  => \&ARename::process_mp3,
         '\.ogg$'  => \&ARename::process_ogg
     );
+}
+#}}}
+sub set_nameversion { #{{{
+    my ($n, $v) = @_;
+
+    $NAME    = $n;
+    $VERSION = $v;
 }
 #}}}
 sub set_postproc { #{{{

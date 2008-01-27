@@ -305,6 +305,7 @@ Please report bugs.
 
 my ( $NAME, $VERSION ) = ( 'arename.pl', 'v0.9' );
 
+ARename::set_nameversion($NAME, $VERSION);
 ARename::set_default_options();
 ARename::read_cmdline_options();
 ARename::read_rcs();

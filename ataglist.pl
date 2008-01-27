@@ -34,6 +34,7 @@ if (! -r $file) {
     die "Can't read \"$file\": $!\n";
 }
 
+ARename::set_nameversion($NAME, $VERSION);
 ARename::set_postproc(\&main::list);
 ARename::set_default_methods();
 ARename::apply_methods($file, 1);
