@@ -44,7 +44,7 @@ install-doc: doc
 	@chmod 0644      "$(prefix)/share/man/man1/arename.1"
 
 updateweb:
-	@printf 'Updating webpages...'
+	@printf 'Updating webpages...\n'
 	@./updatewebsite.sh "$(ikiroot)" "$(ikisubroot)"
 
 .PHONY: install install-doc distclean clean all doc
