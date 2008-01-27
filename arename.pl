@@ -303,7 +303,7 @@ Please report bugs.
 =cut
 #}}}
 
-my ( $NAME, $VERSION ) = ( 'arename.pl', 'v0.9' );
+my ( $NAME, $VERSION ) = ( 'arename.pl', 'v1.0-rc1' );
 
 ARename::set_nameversion($NAME, $VERSION);
 ARename::set_default_options();
