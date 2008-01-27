@@ -46,6 +46,7 @@ install-doc: doc
 updateweb:
 	@printf 'Updating webpages...\n'
 	@./updatewebsite.sh "$(ikiroot)" "$(ikisubroot)"
+	make distclean
 
 removeweb:
 	@printf 'Remove webpages...\n'
