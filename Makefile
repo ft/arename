@@ -47,4 +47,8 @@ updateweb:
 	@printf 'Updating webpages...\n'
 	@./updatewebsite.sh "$(ikiroot)" "$(ikisubroot)"
 
+removeweb:
+	@printf 'Remove webpages...\n'
+	rm -f "$(ikiroot)"/arename.mdwn "$(ikisubroot)"/*
+
 .PHONY: install install-doc distclean clean all doc
