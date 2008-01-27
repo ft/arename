@@ -1,5 +1,5 @@
 # default installation location:
-#  	binaries: /usr/local/bin
+#   binaries: /usr/local/bin
 #   module  : /usr/local/lib/site_perl
 prefix="/usr/local"
 libpath="lib/site_perl"
