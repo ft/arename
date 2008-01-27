@@ -4,6 +4,10 @@
 prefix="/usr/local"
 libpath="lib/site_perl"
 
+# the place *I* keep sources arename's "website".
+ikiroot='/home/hawk/src/web/ft/comp'
+ikisubroot='/home/hawk/src/web/subpages.ft/comp/arename'
+
 all: arename.1 arename.html
 
 doc: all
@@ -38,5 +42,9 @@ install-doc: doc
 	@cp arename.1    "$(prefix)/share/man/man1/"
 	@chown root:root "$(prefix)/share/man/man1/arename.1"
 	@chmod 0644      "$(prefix)/share/man/man1/arename.1"
+
+updateweb:
+	@printf 'Updating webpages...'
+	@./updatewebsite.sh "$(ikiroot)" "$(ikisubroot)"
 
 .PHONY: install install-doc distclean clean all doc
