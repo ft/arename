@@ -15,10 +15,11 @@ arename.html: arename.pl
 	pod2html ./arename.pl > arename.html 2>/dev/null
 	@rm -f *.tmp
 
-clean: distclean
-
-distclean:
+clean:
 	rm -f arename.html arename.1 *.tmp *~
+
+distclean: clean
+	rm -f *.tar.gz
 
 install:
 	@printf 'Installing arename.pl  to %s\n' "$(prefix)/bin"
