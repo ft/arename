@@ -5,8 +5,8 @@ prefix="/usr/local"
 libpath="lib/site_perl"
 
 # the place *I* keep sources arename's "website".
-ikiroot='/home/hawk/src/web/ft/comp'
-ikisubroot='/home/hawk/src/web/subpages.ft/comp/arename'
+ikiroot=/home/hawk/src/web/ft/comp
+ikisubroot=/home/hawk/src/web/subpages.ft/comp/arename
 
 all: arename.1 arename.html
 
