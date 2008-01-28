@@ -53,7 +53,7 @@ createtargz() {
     make doc
     git add .
     git commit -a -m 'createtargz'
-    git-archive --format=tar --prefix="arename-${ver}/" "createtargz" | gzip -c -  > "arename-${ver}.tar.gz"
+    git-archive --format=tar --prefix="arename-${ver}/" "createtargz" | gzip -c -  > "../arename-${ver}.tar.gz"
     git checkout master
     git branch -D createtargz
 }
@@ -81,6 +81,6 @@ fi
 sed -e "$SEDCOMMANDS" < ./website.mdwn.in > "$1/arename.mdwn"
 
 rm -f "$2"/*.tar.gz
-mv *.tar.gz "$2/"
+mv ../arename-*.tar.gz "$2/"
 make doc
 cp "arename.1" "arename.html" "$2"
