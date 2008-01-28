@@ -79,5 +79,6 @@ fi
 
 sed -e "$SEDCOMMANDS" < ./website.mdwn.in > "$1/arename.mdwn"
 
+rm -f "$2"/*.tar.gz
 mv *.tar.gz "$2/"
 cp "arename.1" "arename.html" "$2"
