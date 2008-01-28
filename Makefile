@@ -4,7 +4,8 @@
 prefix="/usr/local"
 libpath="lib/site_perl"
 
-# the place *I* keep sources arename's "website".
+# the place where *I* keep the sources of arename's "website".
+# The whole updatewebsite-fu is probably not useful for anybody else.
 ikiroot=/home/hawk/src/web/ft/comp
 ikisubroot=/home/hawk/src/web/subpages.ft/comp/arename
 
