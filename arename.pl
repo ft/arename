@@ -335,11 +335,11 @@ foreach my $file (@ARGV) {
         print "Processing: $file\n";
     }
     if (-l $file) {
-        warn ARename::get_opt("oprefix") . "Refusing to handle symbolic links ($file).\n";
+        ARename::owarn("Refusing to handle symbolic links ($file).\n");
         next;
     }
     if (! -r $file) {
-        warn ARename::get_opt("oprefix") . "Can't read \"$file\": $!\n";
+        ARename::owarn("Can't read \"$file\": $!\n");
         next;
     }
 
