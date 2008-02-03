@@ -28,6 +28,8 @@ SNSHOT="$(git-rev-list --abbrev=12 --abbrev-commit --max-count=1 HEAD)"
 [ "$PREREL" = "$LATEST" ] && PREREL=''
 [ $(git-rev-list --abbrev=12 --abbrev-commit --max-count=1 $LATEST) = "$PREREL" ] \
                           && SNSHOT=''
+[ $(git-rev-list --abbrev=12 --abbrev-commit --max-count=1 $PREREL) = "$SNSHOT" ] \
+                          && SNSHOT=''
 
 [ -n "$SNSHOT" ] && SNSVER="snap-$(date +"%Y%m%d")-$SNSHOT"
 
