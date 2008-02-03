@@ -25,11 +25,20 @@ LATEST="$(git tag | grep -v -- '-' | tail -n 1)"
 PREREL="$(git tag | tail -n 1)"
 SNSHOT="$(git-rev-list --abbrev=12 --abbrev-commit --max-count=1 HEAD)"
 
-[ "$PREREL" = "$LATEST" ] && PREREL=''
-[ $(git-rev-list --abbrev=12 --abbrev-commit --max-count=1 $LATEST) = "$PREREL" ] \
-                          && SNSHOT=''
-[ $(git-rev-list --abbrev=12 --abbrev-commit --max-count=1 $PREREL) = "$SNSHOT" ] \
-                          && SNSHOT=''
+LATSHA=$(git-rev-list --abbrev=12 --abbrev-commit --max-count=1 $LATEST)
+PRESHA=$(git-rev-list --abbrev=12 --abbrev-commit --max-count=1 $PREREL)
+
+    [ "$LATSHA" = "$PRESHA" ] && PREREL=''
+
+if [ -n "$PREREL" ] ; then
+
+    [ "$PRESHA" = "$SNSHOT" ] && SNSHOT=''
+
+else
+
+    [ "$LATSHA" = "$SNSHOT" ] && SNSHOT=''
+
+fi
 
 [ -n "$SNSHOT" ] && SNSVER="snap-$(date +"%Y%m%d")-$SNSHOT"
 
