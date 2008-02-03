@@ -7,6 +7,9 @@ looking at the file's tags and filling in that information into a
 string where it expands the tag information appropriately - the
 generated file name is used as the destination for the renaming.
 
+The latest version of arename can be found here:
+  <http://ft.bewatermyfriend.org/comp/arename.html>
+
 
 
 SCRIPTS
