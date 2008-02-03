@@ -1,0 +1,38 @@
+
+  arename.pl - audio file renaming using Perl
+
+
+arename.pl is able to rename audio files (mp3, ogg vorbis and flac) by
+looking at the file's tags and filling in that information into a
+string where it expands the tag information appropriately - the
+generated file name is used as the destination for the renaming.
+
+
+
+SCRIPTS
+
+  arename.pl
+    This is the program, you want to use.
+
+  ataglist.pl
+    This is a helper script, that is used by a zsh function,
+    which manipulates tagging information in audio files.
+    This script lists tag names and their values, transparently
+    for all supported file types. You will probably not find this
+    very useful to call by hand.
+
+    If you wonder what that zsh function is about, see:
+    <http://ft.bewatermyfriend.org/comp/zsh/functions/atag.html>
+
+
+
+INSTALLATION
+
+  If you're just interested in the scripts included in this package,
+  do (as root):
+
+    # make install
+
+  If you want both, the scripts and the documentation (as root):
+
+    # make install install-doc
