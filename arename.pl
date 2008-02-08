@@ -271,7 +271,7 @@ Frank Terbeck E<lt>ft@bewatermyfriend.orgE<gt>,
 
 Please report bugs.
 
-=head1 LICENSE
+=head1 LICENCE
 
  Copyright 2007, 2008
  Frank Terbeck <ft@bewatermyfriend.org>, All rights reserved.
