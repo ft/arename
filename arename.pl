@@ -273,7 +273,7 @@ Please report bugs.
 
 =head1 LICENSE
 
- Copyright 2007
+ Copyright 2007, 2008
  Frank Terbeck <ft@bewatermyfriend.org>, All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
