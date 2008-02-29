@@ -11,7 +11,6 @@ The latest version of arename can be found here:
   <http://ft.bewatermyfriend.org/comp/arename.html>
 
 
-
 SCRIPTS
 
   arename.pl
@@ -28,7 +27,6 @@ SCRIPTS
     <http://ft.bewatermyfriend.org/comp/zsh/functions/atag.html>
 
 
-
 INSTALLATION
 
   If you're just interested in the scripts included in this package,
@@ -39,3 +37,16 @@ INSTALLATION
   If you want both, the scripts and the documentation (as root):
 
     # make install install-doc
+
+
+ZSH COMPLETION
+
+  arename.pl comes with a completion function for zsh.
+  Just copy _arename to your $fpath (preferably somewhere in your
+  home directory) and restart zsh.
+
+  Say, you got ~/.zfunctions in your $fpath, do:
+    % cp _arename ~/.zfunctions
+    % exec zsh
+
+  Done.
