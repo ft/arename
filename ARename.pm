@@ -440,7 +440,7 @@ sub handle_vorbistag { #{{{
             $tag =~ m/^DATE$/i          ||
             $tag =~ m/^GENRE$/i         ||
             $tag =~ m/^ALBUMARTIST$/i
-        )) { next; }
+        )) { return; }
 
     if ($tag =~ m/^ALBUM$/i) {
         $realtag = 'album';
