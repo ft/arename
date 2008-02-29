@@ -1,0 +1,25 @@
+#compdef arename arename.pl
+local arguments
+local -a supported_extensions
+
+supported_extensions=( 'mp3' 'ogg' 'flac')
+
+function _arename_files() {
+    _path_files -g "(#i)*.(${(j:|:)supported_extensions})" -g "*(-/)"
+}
+
+arguments=(
+    '-p[define a directory prefix for destination file(s)]:directory prefix:_path_files -g '\''*(-/)'\'
+    '-T[define a compilation template]:compilation template:'
+    '-t[define a generic template]:template:'
+    '-f[overwrite file(s) if needed]'
+    '-d[go into dry-run mode]'
+    '-q[enable quiet output]'
+    '-v[enable verbose output]'
+    '-Q[do not display skips in quiet mode]'
+    '-h[display help information]:'
+    '-V[display version infomation]:'
+    '*::audio files:_arename_files'
+)
+
+_arguments -s $arguments
