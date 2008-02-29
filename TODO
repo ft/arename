@@ -1,6 +1,3 @@
-- v1.0
-    + test the lastest changes until everything is fine.
-    + release version 1.0 if things work.
 - v1.1
     + Hooks? In perl code?
       Introduce ~/.arename.hooks and ./.arename.localhooks?
