@@ -118,6 +118,11 @@ sub choose_template { #{{{
     }
 }
 #}}}
+sub disable_hooks { #{{{
+    $conf{usehooks} = 0;
+    $conf{uselocalhooks} = 0;
+}
+#}}}
 sub ensure_dir { #{{{
     # think: mkdir -p /foo/bar/baz
     my ($wantdir) = @_;
@@ -694,8 +699,7 @@ sub set_cmdline_options { #{{{
     }
 
     if (defined $opts{H}) {
-        $conf{usehooks} = 0;
-        $conf{uselocalhooks} = 0;
+        disable_hooks();
     }
 
     undef %opts;

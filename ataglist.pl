@@ -37,6 +37,7 @@ if (! -r $file) {
 ARename::set_nameversion($NAME, $VERSION);
 ARename::set_postproc(\&main::list);
 ARename::set_default_methods();
+ARename::disable_hooks();
 ARename::apply_methods($file, 1);
 
 die "No method for handling \"$file\".\n";
