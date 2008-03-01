@@ -26,6 +26,10 @@ Go into dryrun mode.
 
 Overwrite files if needed.
 
+=item B<-H>
+
+Do not make use of any sort (neither global nor local ones).
+
 =item B<-h>
 
 Display a short help text.
@@ -87,6 +91,8 @@ supplying the B<-f> option.
 
 =head1 FILES
 
+=head2 Configuration files
+
 B<arename.pl> uses up to two configuration files. As for most programs,
 the script will try to read a configuration file, that is located in the
 user's I<home directory>. In addition to that, it will try to load I<local>
@@ -105,7 +111,7 @@ per-directory local configuration file.
 
 =back
 
-=head2 File format
+=head3 File format
 
 The format of the aforementioned files is pretty simple.
 It is parsed line by line. Empty lines, lines only containing whitespace
@@ -130,6 +136,23 @@ If a line consists of only one part, that means the setting is switched on.
 
   # the author is crazy! use a sane template by default. :-)
   template &artist - &album (&year) - &tracknumber. &tracktitle
+
+=head2 Hook definition files
+
+=over 4
+
+=item B<~/.arename.hooks>
+
+Defines global hooks, that are in effect in every directory if the I<usehooks>
+option is set to B<true>.
+
+=item B<./.arename.hooks.local>
+
+This allows you to define special hooks, that will only be applied for processes
+that run in the directory the local file is found (and if the I<uselocalhooks>
+option is set to B<true>).
+
+For details about hooks in arename.pl, see see L<arename(1)/HOOKS>) below.
 
 =head1 SETTINGS
 
@@ -182,6 +205,16 @@ This setting can still be overwritten by the B<-T> command line option.
 
 This defines the width, to which the tracknumber field is padded with zeros
 on the left. (default value: I<2>)
+
+=item B<usehooks>
+
+If set to true use hooks defined in B<~/.arename.hooks>.
+(default value: I<true>)
+
+=item B<uselocalhooks>
+
+If set to true use hooks defined in B<./.arename.hooks.local>.
+(default value: I<false>)
 
 =item B<verbose>
 
@@ -261,6 +294,10 @@ Year (id3v1), TYER (id3v2) or DATE tag (.ogg/.flac).
 
 =back
 
+=head1 HOOKS
+
+TO BE WRITTEN!
+
 =head1 SEE ALSO
 
 L<Ogg::Vorbis::Header(3)>, L<Audio::FLAC::Header(3)> and L<MP3::Tag(3)>.
@@ -303,7 +340,7 @@ Please report bugs.
 =cut
 #}}}
 
-my ( $NAME, $VERSION ) = ( 'arename.pl', 'v1.0' );
+my ( $NAME, $VERSION ) = ( 'arename.pl', 'v1.0+git' );
 
 ARename::set_nameversion($NAME, $VERSION);
 ARename::set_default_options();

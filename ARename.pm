@@ -342,6 +342,8 @@ err:
     '^sepreplace$'    => \&parse_generic,
     '^template$'      => \&parse_generic,
     '^tnpad$'         => \&parse_generic,
+    '^usehooks$'      => \&parse_bool,
+    '^uselocalhooks$' => \&parse_bool,
     '^verbose$'       => \&parse_verbose
 );
 #}}}
@@ -387,6 +389,24 @@ sub parse_generic { #{{{
 
     if ($conf{verbose} > 0) {
         oprint("\$conf{$key} = '$val'\n");
+    }
+
+    $conf{$key} = $val;
+}
+#}}}
+sub parse_bool { #{{{
+    my ($file, $lnum, $count, $key, $val) = @_;
+
+    if (!defined $val || $val eq ''
+       || $val =~ m/^true$/i || $val eq '1') {
+
+        $val = 1;
+    } else {
+        $val = 0;
+    }
+
+    if ($conf{verbose} > 0) {
+        oprint("\$conf{$key} = '" . ($val ? 'true' : 'false' ) . "'\n");
     }
 
     $conf{$key} = $val;
@@ -600,7 +620,7 @@ sub read_cmdline_options { #{{{
     if ($#main::ARGV == -1) {
         $opts{h} = 1;
     } else {
-        if (!getopts('dfhQqVvp:T:t:', \%opts)) {
+        if (!getopts('dfhHQqVvp:T:t:', \%opts)) {
             if (exists $opts{t} && !defined $opts{t}) {
                 die " -t *requires* a string argument!\n";
             } elsif (exists $opts{T} && !defined $opts{T}) {
@@ -673,6 +693,11 @@ sub set_cmdline_options { #{{{
         $conf{dryrun} = $opts{d};
     }
 
+    if (defined $opts{H}) {
+        $conf{usehooks} = 0;
+        $conf{uselocalhooks} = 0;
+    }
+
     undef %opts;
 }
 #}}}
@@ -683,6 +708,8 @@ sub set_default_options { #{{{
     $conf{prefix}        = '.';
     $conf{sepreplace}    = '_';
     $conf{tnpad}         = 2;
+    $conf{usehooks}      = 1;
+    $conf{uselocalhooks} = 0;
     $conf{verbose}       = 0;
     $conf{comp_template} = "va/&album/&tracknumber - &artist - &tracktitle";
     $conf{template}      = "&artist[1]/&artist/&album/&tracknumber - &tracktitle";
@@ -712,6 +739,7 @@ sub usage { #{{{
     print " Usage:\n  $NAME [OPTION(s)] FILE(s)...\n\n";
     print "    -d                Go into dryrun mode.\n";
     print "    -f                Overwrite files if needed.\n";
+    print "    -H                Disable *all* hooks.\n";
     print "    -h                Display this help text.\n";
     print "    -Q                Don't display skips in quiet mode.\n";
     print "    -q                Enable quiet output.\n";

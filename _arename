@@ -13,6 +13,7 @@ arguments=(
     '-T[define a compilation template]:compilation template:'
     '-t[define a generic template]:template:'
     '-f[overwrite file(s) if needed]'
+    '-H[disable all hooks]'
     '-d[go into dry-run mode]'
     '-q[enable quiet output]'
     '-v[enable verbose output]'
