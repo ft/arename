@@ -11,7 +11,7 @@ use warnings;
 use strict;
 use ARename;
 
-my ( $NAME, $VERSION ) = ( 'ataglist.pl', 'v0.3' );
+my ( $NAME, $VERSION ) = ( 'ataglist.pl', 'v0.4' );
 
 sub list {
     my ($file, $datref, $ext) = @_;
