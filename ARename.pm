@@ -620,6 +620,34 @@ sub process_warn { #{{{
 }
 #}}}
 
+sub process_file { #{{{
+    my ($file) = @_;
+
+    run_hook('next_file_early', \$file);
+
+    if (!get_opt("quiet")) {
+        print "Processing: $file\n";
+    }
+    if (-l $file) {
+        owarn("Refusing to handle symbolic links ($file).\n");
+        next;
+    }
+    if (! -r $file) {
+        owarn("Can't read \"$file\": $!\n");
+        next;
+    }
+
+    run_hook('next_file_late', \$file);
+
+    if (!apply_methods($file, 0)) {
+        run_hook('filetype_unknown', \$file);
+        process_warn($file);
+    } else {
+        run_hook('file_done', \$file);
+    }
+}
+#}}}
+
 sub apply_methods { #{{{
     my ($file, $exit) = @_;
 
@@ -891,7 +919,12 @@ sub run_hook { #{{{
 }
 #}}}
 sub startup_hook { #{{{
-    run_hook('startup', \$NAME, \$VERSION, \%conf, \%methods, \@supported_tags);
+    run_hook(
+        'startup',
+        \$NAME, \$VERSION,
+        \%conf, \%methods,
+        \@supported_tags, \@main::ARGV
+    );
 }
 #}}}
 

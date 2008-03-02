@@ -375,26 +375,26 @@ These hooks are called at the highest level of the script.
 
 Called at the start of the main loop I<before> any file checks are done.
 
-I<Arguments>: B<0:> file name, B<1:> the program's argument list.
+I<Arguments>: B<0:> file name
 
 =item B<next_file_late>
 
 Called in the main loop I<after> the file checks are done.
 
-I<Arguments>: B<0:> file name, B<1:> the program's argument list.
+I<Arguments>: B<0:> file name
 
 =item B<file_done>
 
 Called in the main loop I<after> the file has been processed.
 
-I<Arguments>: B<0:> file name, B<1:> the program's argument list.
+I<Arguments>: B<0:> file name
 
 =item B<filetype_unknown>
 
 Called in the main loop I<after> the file was tried to be processed but
 the file type (the extension, specifically) was unknown.
 
-I<Arguments>: B<0:> file name, B<1:> the program's argument list
+I<Arguments>: B<0:> file name
 
 =back
 
@@ -629,13 +629,14 @@ for debugging.
 
 I<Arguments>: B<0:> program name, B<1:> its version, B<2:> configuration
 hash, B<3:> hash of extensions, that point the the according method for
-the file type B<4:> array of supported tags
+the file type B<4:> array of supported tags, B<5:> the program's argument
+list
 
 =item B<normal_quit>
 
 Called at the end of the script. This is reached if nothing fatal happened.
 
-I<Arguments>: B<0:> the program's argument list.
+I<Arguments>: B<0:> the program's argument list
 
 =back
 
@@ -742,30 +743,7 @@ dv_newline();
 # }}}
 
 foreach my $file (@ARGV) {
-    my $done = 0;
-
-    ARename::run_hook('next_file_early', \$file, \@ARGV);
-
-    if (!ARename::get_opt("quiet")) {
-        print "Processing: $file\n";
-    }
-    if (-l $file) {
-        ARename::owarn("Refusing to handle symbolic links ($file).\n");
-        next;
-    }
-    if (! -r $file) {
-        ARename::owarn("Can't read \"$file\": $!\n");
-        next;
-    }
-
-    ARename::run_hook('next_file_late', \$file, \@ARGV);
-
-    if (!ARename::apply_methods($file, 0)) {
-        ARename::run_hook('filetype_unknown', \$file, \@ARGV);
-        ARename::process_warn($file);
-    } else {
-        ARename::run_hook('file_done', \$file, \@ARGV);
-    }
+    ARename::process_file($file);
 }
 
 ARename::run_hook('normal_quit', @ARGV);

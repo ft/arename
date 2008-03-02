@@ -5,12 +5,12 @@ sub print_banner0 {
     # Yes, everything handed over to hooks are references.
     # This gives us simple two way communication, but it's
     # also a pretty big hammer. Think before screwing up. :)
-    my ($nameref, $verref, $confref, $suptagsref) = @_;
+    my ($nameref, $verref, $confref, $extref, $suptagsref, $argvref) = @_;
 
-    print "BANNER! $$nameref $$verref\n";
+    print "BANNER! $$nameref $$verref $argvref->[0]\n";
 
     # The following actually changes the $NAME variable, used
-    # in ARename.pl, which doesn't hurt, because it is only the
+    # in ARename.pm, which doesn't hurt, because it is only the
     # name of the program running. For other hooks there might
     # be vital data in one of the references.
     # If you're not sure about your code debug it *first*.
