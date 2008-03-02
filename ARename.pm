@@ -37,6 +37,7 @@ my ( $NAME, $VERSION ) = ( 'unset', 'unset' );
 
 $postproc = \&arename;
 #}}}
+
 sub apply_defaults { #{{{
     my ($datref) = @_;
 
@@ -691,7 +692,7 @@ sub read_cmdline_options { #{{{
     if ($#main::ARGV == -1) {
         $opts{h} = 1;
     } else {
-        if (!getopts('dfhHQqVvp:T:t:', \%opts)) {
+        if (!getopts('dfhHQqsVvp:T:t:', \%opts)) {
             if (exists $opts{t} && !defined $opts{t}) {
                 die " -t *requires* a string argument!\n";
             } elsif (exists $opts{T} && !defined $opts{T}) {
@@ -723,7 +724,11 @@ sub read_cmdline_options { #{{{
 sub set_cmdline_options { #{{{
     my ($argc) = @_;
 
-    if ($argc == -1) {
+    if (defined $opts{s}) {
+        $conf{readstdin} = 1;
+    }
+
+    if ($argc == -1 && $conf{readstdin} == 0) {
         die "No input files. See: $NAME -h\n";
     }
 
@@ -777,6 +782,7 @@ sub set_default_options { #{{{
     $conf{hookerrfatal}  = 1;
     $conf{oprefix}       = '  -!- ';
     $conf{prefix}        = '.';
+    $conf{readstdin}     = 0;
     $conf{sepreplace}    = '_';
     $conf{tnpad}         = 2;
     $conf{usehooks}      = 1;

@@ -16,6 +16,7 @@ arguments=(
     '-H[disable all hooks]'
     '-d[go into dry-run mode]'
     '-q[enable quiet output]'
+    '-s[read filenames from stdin]'
     '-v[enable verbose output]'
     '-Q[do not display skips in quiet mode]'
     '-h[display help information]:'

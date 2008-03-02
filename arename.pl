@@ -47,6 +47,10 @@ except for files, that are skipped because they would overwrite something).
 
 This option does not work, if 'quiet' isn't set.
 
+=item B<-s>
+
+Read filenames from stdin after processing files given on the commandline.
+
 =item B<-V>
 
 Display version infomation.
@@ -718,8 +722,10 @@ ARename::startup_hook();
 # customisation and cosmetics {{{
 
 # clear the line prefix, if we're running quietly.
-sub dv_newline {
-    if (ARename::get_opt("dryrun") || ARename::get_opt("verbose")) {
+sub dvr_newline {
+    if (   ARename::get_opt("dryrun")
+        || ARename::get_opt("readstdin")
+        || ARename::get_opt("verbose")) {
         print "\n";
     }
 }
@@ -728,7 +734,7 @@ if (ARename::get_opt("quiet")) {
     ARename::set_opt("oprefix", "");
 }
 
-dv_newline();
+dvr_newline();
 
 if (ARename::get_opt("dryrun")) {
     print "+++ We are on a dry run!\n";
@@ -738,7 +744,11 @@ if (ARename::get_opt("verbose")) {
     print "+++ Running verbosely.\n";
 }
 
-dv_newline();
+if (ARename::get_opt("readstdin")) {
+    print "+++ Reading stdin for filenames (after \@ARGV).\n";
+}
+
+dvr_newline();
 
 # }}}
 
@@ -746,4 +756,11 @@ foreach my $file (@ARGV) {
     ARename::process_file($file);
 }
 
-ARename::run_hook('normal_quit', @ARGV);
+if (ARename::get_opt("readstdin")) {
+    while (<STDIN>) {
+        chomp;
+        ARename::process_file($_);
+    }
+}
+
+ARename::run_hook('normal_quit', \@ARGV);
