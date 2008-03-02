@@ -794,6 +794,7 @@ sub usage { #{{{
     print "    -h                Display this help text.\n";
     print "    -Q                Don't display skips in quiet mode.\n";
     print "    -q                Enable quiet output.\n";
+    print "    -s                Read file names from stdin.\n";
     print "    -V                Display version infomation.\n";
     print "    -v                Enable verbose output.\n";
     print "    -p <prefix>       Define a prefix for destination files.\n";
