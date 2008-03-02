@@ -351,7 +351,7 @@ ARename::read_rcs();
 ARename::set_cmdline_options($#ARGV);
 ARename::read_hook_files();
 ARename::set_default_methods();
-ARename::startup_hooks();
+ARename::startup_hook();
 
 #}}}
 # customisation and cosmetics {{{

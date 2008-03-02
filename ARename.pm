@@ -42,6 +42,8 @@ sub apply_defaults { #{{{
 
     foreach my $key (keys %defaults) {
         if (!defined $datref->{$key}) {
+            run_hook('apply_defaults', $datref, \$defaults, \$key);
+
             if ($conf{verbose}) {
                 oprint("Setting ($key) to \"$defaults{$key}\".\n");
             }
@@ -163,6 +165,8 @@ sub ensure_dir { #{{{
 sub expand_template { #{{{
     my ($template, $datref) = @_;
 
+    run_hook('pre_expand_template', \$template, $datref);
+
     foreach my $tag (@supported_tags) {
         my ($len, $token);
 
@@ -190,6 +194,7 @@ sub expand_template { #{{{
                     $token = $datref->{$tag};
                 }
             }
+
             if ($token =~ m!/!) {
                 if ($conf{verbose}) {
                     oprint("Found directory seperator in token.\n");
@@ -197,9 +202,13 @@ sub expand_template { #{{{
                 }
                 $token =~ s!/!$conf{sepreplace}!g;
             }
+
+            run_hook('expand_template_postprocess_tag', \$template, \$token, $datref);
             $template =~ s/&$tag(\[(\d+)\]|)/$token/;
         }
     }
+
+    run_hook('post_expand_template', \$template, $datref);
 
     return $template;
 }
@@ -452,6 +461,8 @@ sub handle_vorbistag { #{{{
     my ($datref, $tag, $value) = @_;
     my ($realtag);
 
+    run_hook('pre_handle_vorbistag', \$tag, \$value, $datref);
+
     if (!(
             $tag =~ m/^ALBUM$/i         ||
             $tag =~ m/^ARTIST$/i        ||
@@ -483,11 +494,15 @@ sub handle_vorbistag { #{{{
     if (!defined $datref->{$realtag}) {
         $datref->{$realtag} = $value;
     }
+
+    run_hook('post_handle_vorbistag', \$tag, \$value, \$realtag, $datref);
 }
 #}}}
 sub process_flac { #{{{
     my ($file) = @_;
     my ($flac, %data, $tags);
+
+    run_hook('pre_process_flac', \$file);
 
     $flac = Audio::FLAC::Header->new($file);
 
@@ -504,11 +519,15 @@ sub process_flac { #{{{
     }
 
     $postproc->($file, \%data, 'flac');
+
+    run_hook('post_process_flac', \$file);
 }
 #}}}
 sub process_mp3 { #{{{
     my ($file) = @_;
     my ($mp3, %data, $info);
+
+    run_hook('pre_process_mp3', \$file);
 
     $mp3 = MP3::Tag->new($file);
 
@@ -526,6 +545,7 @@ sub process_mp3 { #{{{
         return;
     }
 
+    run_hook('pre_handle_mp3tag', $mp3, \%data);
     if (exists $mp3->{ID3v2}) {
         ($data{artist},      $info) = $mp3->{ID3v2}->get_frame("TPE1");
         ($data{compilation}, $info) = $mp3->{ID3v2}->get_frame("TPE2");
@@ -543,10 +563,13 @@ sub process_mp3 { #{{{
         $data{genre}       = $mp3->{ID3v1}->genre;
         $data{year}        = $mp3->{ID3v1}->year;
     }
+    run_hook('post_handle_mp3tag', $mp3, \%data);
 
     $mp3->close();
 
     $postproc->($file, \%data, 'mp3');
+
+    run_hook('post_process_mp3', \$file);
 }
 #}}}
 sub process_ogg { #{{{
@@ -582,7 +605,9 @@ sub apply_methods { #{{{
 
     foreach my $method (sort keys %methods) {
         if ($file =~ m/$method/i) {
+            run_hook('pre_method', \$file, \$method);
             $methods{$method}->($file);
+            run_hook('post_method', \$file, \$method);
             if ($exit) {
                 exit 0;
             } else {
@@ -836,37 +861,18 @@ sub run_hook { #{{{
     shift;
 
     if (!defined $hooks{$namespace} || scalar @{ $hooks{$namespace} } == 0) {
-        return undef;
+        return 0;
     }
 
     foreach my $funref (@{ $hooks{$namespace} }) {
         $funref->(@_);
     }
+
+    return 1
 }
 #}}}
-sub startup_hooks { #{{{
+sub startup_hook { #{{{
     run_hook('startup', \$NAME, \$VERSION, \%conf, \@supported_tags);
-
-    if (get_opt('dry_run')) {
-        run_hook('startup_dry_run',
-            \$NAME, \$VERSION, \%conf, \@supported_tags);
-    }
-    if (get_opt('quiet')) {
-        run_hook('startup_quiet',
-            \$NAME, \$VERSION, \%conf, \@supported_tags);
-    }
-    if (get_opt('quiet_skip')) {
-        run_hook('startup_quiet_skip',
-            \$NAME, \$VERSION, \%conf, \@supported_tags);
-    }
-    if (get_opt('uselocalhooks')) {
-        run_hook('startup_uselocalhooks',
-            \$NAME, \$VERSION, \%conf, \@supported_tags);
-    }
-    if (get_opt('verbose')) {
-        run_hook('startup_verbose',
-            \$NAME, \$VERSION, \%conf, \@supported_tags);
-    }
 }
 #}}}
 
