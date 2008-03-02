@@ -360,7 +360,7 @@ err:
 %parsers = (
 #{{{
     '^comp_template$' => \&parse_generic,
-    '^default_.*$'    => \&parse_default,
+    '^default_.*$'    => \&parse_defaultvalues,
     '^hookerrfatal$'  => \&parse_bool,
     '^prefix$'        => \&parse_generic,
     '^quiet$'         => \&parse_quiet,
@@ -394,7 +394,7 @@ sub parse { #{{{
     return 0;
 }
 #}}}
-sub parse_default { #{{{
+sub parse_defaultvalues { #{{{
     my ($file, $lnum, $count, $key, $val) = @_;
 
     $key =~ s/^default_//;
