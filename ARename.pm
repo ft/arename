@@ -717,6 +717,9 @@ sub set_cmdline_options { #{{{
         if (!$conf{quiet}) {
             $conf{quiet} = 1;
         }
+        if ($conf{verbose}) {
+            $conf{verbose} = 0;
+        }
         $conf{quiet_skip} = $opts{Q};
     }
 

@@ -26,13 +26,13 @@ Go into dryrun mode.
 
 Overwrite files if needed.
 
-=item B<-H>
-
-Do not make use of any sort (neither global nor local ones).
-
 =item B<-h>
 
 Display a short help text.
+
+=item B<-H>
+
+Do not make use of hooks of any sort (neither global nor local ones).
 
 =item B<-q>
 
