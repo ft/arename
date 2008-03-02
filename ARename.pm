@@ -363,14 +363,14 @@ err:
     '^default_.*$'    => \&parse_defaultvalues,
     '^hookerrfatal$'  => \&parse_bool,
     '^prefix$'        => \&parse_generic,
-    '^quiet$'         => \&parse_quiet,
-    '^quiet_skip$'    => \&parse_quiet_skip,
+    '^quiet$'         => \&parse_bool,
+    '^quiet_skip$'    => \&parse_bool,
     '^sepreplace$'    => \&parse_generic,
     '^template$'      => \&parse_generic,
     '^tnpad$'         => \&parse_generic,
     '^usehooks$'      => \&parse_bool,
     '^uselocalhooks$' => \&parse_bool,
-    '^verbose$'       => \&parse_verbose
+    '^verbose$'       => \&parse_bool
 );
 #}}}
 
@@ -436,39 +436,6 @@ sub parse_bool { #{{{
     }
 
     $conf{$key} = $val;
-}
-#}}}
-sub parse_quiet { #{{{
-    my ($file, $lnum, $count, $key, $val) = @_;
-
-    if ($conf{verbose}) {
-        die "$file,$lnum: verbose set. quiet not allowed.\n";
-    }
-    $conf{$key} = 1;
-}
-#}}}
-sub parse_quiet_skip { #{{{
-    my ($file, $lnum, $count, $key, $val) = @_;
-
-    if ($conf{verbose}) {
-        die "$file,$lnum: verbose set. quiet_skip not allowed.\n";
-    }
-
-    if (!$conf{quiet}) {
-        oprint "quiet_skip requested, forcing quiet, too.\n";
-        $conf{quiet} = 1;
-    }
-
-    $conf{$key} = 1;
-}
-#}}}
-sub parse_verbose { #{{{
-    my ($file, $lnum, $count, $key, $val) = @_;
-
-    if ($conf{quiet}) {
-        die "$file,$lnum: quiet set. verbose not allowed.\n";
-    }
-    $conf{$key} = 1;
 }
 #}}}
 
@@ -710,7 +677,7 @@ sub read_cmdline_options { #{{{
         exit 0;
     }
 
-    if (defined $opts{q} && defined $opts{v}) {
+    if ((defined $opts{q} || defined $opts{Q}) && defined $opts{v}) {
         print "Verbose *and* quiet? Please decide!\n";
         exit 1;
     }
@@ -742,9 +709,13 @@ sub set_cmdline_options { #{{{
         $conf{verbose} = 0;
     }
 
+    if ($conf{quiet_skip} && !$conf{quiet}) {
+        $conf{quiet} = 1;
+    }
+
     if (defined $opts{Q}) {
         if (!$conf{quiet}) {
-            die "quiet_skip (-Q) does not make sense without quiet (-q).\n";
+            $conf{quiet} = 1;
         }
         $conf{quiet_skip} = $opts{Q};
     }

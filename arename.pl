@@ -45,7 +45,7 @@ This option conflicts with the verbose option.
 Be even more quiet (this option will surpress, if a file is skipped.
 except for files, that are skipped because they would overwrite something).
 
-This option does not work, if 'quiet' isn't set.
+This option implies '-q'.
 
 =item B<-s>
 
@@ -198,7 +198,8 @@ Switches on quietness by default. (default value: I<off>)
 
 =item B<quiet_skip>
 
-Be quiet about skips by default. (default value: I<off>)
+Be quiet about skips by default. This implicitly sets 'quiet'.
+(default value: I<off>)
 
 =item B<sepreplace>
 
