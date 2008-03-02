@@ -56,13 +56,19 @@ sub arename { #{{{
     my ($file, $datref, $ext) = @_;
     my ($t, $newname);
 
+    run_hook('pre_apply_defaults', \$file, $datref, \$ext);
+
     apply_defaults($datref);
     arename_verbosity($datref);
+
+    run_hook('pre_template', \$file, $datref, \$ext);
 
     $t = choose_template($datref);
     $newname = expand_template($t, $datref);
     return if not defined $newname;
     $newname = $conf{prefix} . '/' . $newname . '.' . $ext;
+
+    run_hook('post_template', \$file, $datref, \$ext, \$newname);
 
     if (file_eq($newname, $file)) {
         if ($conf{quiet}) {
@@ -83,6 +89,8 @@ sub arename { #{{{
 
     ensure_dir(dirname($newname));
 
+    run_hook('post_ensure_dir', \$file, $datref, \$ext, \$newname);
+
     if ($conf{quiet}) {
         print "'$newname'\n";
     } else {
@@ -92,6 +100,8 @@ sub arename { #{{{
     if (!$conf{dryrun}) {
         xrename($file, $newname);
     }
+
+    run_hook('post_rename', \$file, $datref, \$ext, \$newname);
 }
 #}}}
 sub arename_verbosity { #{{{
@@ -179,6 +189,9 @@ sub expand_template { #{{{
                 return undef;
             }
 
+            run_hook('expand_template_next_tag',
+                \$template, \$tag, \$len, $datref);
+
             if ($len > 0) {
                 $token = substr($datref->{$tag}, 0, $len);
             } else {
@@ -203,7 +216,9 @@ sub expand_template { #{{{
                 $token =~ s!/!$conf{sepreplace}!g;
             }
 
-            run_hook('expand_template_postprocess_tag', \$template, \$token, $datref);
+            run_hook('expand_template_postprocess_tag',
+                \$template, \$token, \$tag, \$len, $datref);
+
             $template =~ s/&$tag(\[(\d+)\]|)/$token/;
         }
     }
