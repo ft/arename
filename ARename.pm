@@ -24,7 +24,7 @@ use Audio::FLAC::Header;
 
 #}}}
 # variables {{{
-my ( %conf, %defaults, %methods, %opts, %parsers, $postproc, @supported_tags );
+my ( %conf, %defaults, %hooks, %methods, %opts, %parsers, $postproc, @supported_tags );
 my ( $NAME, $VERSION ) = ( 'unset', 'unset' );
 
 @supported_tags = (
@@ -116,11 +116,6 @@ sub choose_template { #{{{
     } else {
         return $conf{template};
     }
-}
-#}}}
-sub disable_hooks { #{{{
-    $conf{usehooks} = 0;
-    $conf{uselocalhooks} = 0;
 }
 #}}}
 sub ensure_dir { #{{{
@@ -617,8 +612,6 @@ sub read_rcs { #{{{
             warn "Error opening local configuration.\n";
         }
     }
-
-    print "\n";
 }
 #}}}
 sub read_cmdline_options { #{{{
@@ -766,6 +759,114 @@ sub set_opt { #{{{
     my ($opt, $val) = @_;
 
     $conf{$opt} = $val;
+}
+#}}}
+
+sub disable_hooks { #{{{
+    $conf{usehooks} = 0;
+    $conf{uselocalhooks} = 0;
+}
+#}}}
+sub __read_hook_file { #{{{
+    my ($file) = @_;
+    my ($rc);
+
+    if (! -e $file) {
+        if (get_opt("verbose")) {
+            owarn("Hook file not found ($file).\n");
+        }
+        return;
+    }
+
+    $rc = do $file;
+
+    if (!$rc && $@) {
+        owarn("Could not parse hooks file ($file):\n - $@\n");
+    } elsif (!defined $rc) {
+        owarn("Could not read hooks file ($file):\n - $!\n");
+    } elsif ($rc == 0) {
+        owarn("Perl code in hooks file ($file) returns zero.\n");
+        owarn("This is deprecated, please add '1;' at the end of it.\n");
+        return;
+    }
+
+    if (!defined $rc || $rc == 0) {
+        exit 1; # XXX Make this optional
+    }
+
+    oprint("Hook file read ($file).\n");
+}
+#}}}
+sub read_hook_files { #{{{
+    if (get_opt("usehooks")) {
+        __read_hook_file("$ENV{HOME}/.arename.hooks");
+    }
+
+    if (get_opt("uselocalhooks")) {
+        __read_hook_file("./.arename.hooks.local");
+    }
+}
+#}}}
+sub register_hook { #{{{
+    my ($namespace, $funref) = @_;
+
+    push @{ $hooks{$namespace} }, $funref;
+
+    return 1;
+}
+#}}}
+sub remove_hook { #{{{
+    my ($namespace, $funref) = @_;
+
+    for my $i (0 .. scalar @{ $hooks{$namespace} } - 1) {
+        if ($funref == $hooks{$namespace}[$i]) {
+            # found; remove and rerun ourself to be sure
+            # the coderef is not registered more than once
+            # in this namespace.
+            splice @{ $hooks{$namespace} }, $i, 1;
+            remove_hook($namespace, $funref);
+            return 1;
+        }
+    }
+    return 1;
+}
+#}}}
+sub run_hook { #{{{
+    my ($namespace) = ($_[0]);
+    shift;
+
+    if (!defined $hooks{$namespace} || scalar @{ $hooks{$namespace} } == 0) {
+        return undef;
+    }
+
+    foreach my $funref (@{ $hooks{$namespace} }) {
+        $funref->(@_);
+    }
+}
+#}}}
+sub startup_hooks { #{{{
+    run_hook('startup', \$NAME, \$VERSION, \%conf, \@supported_tags);
+
+    if (get_opt('dry_run')) {
+        run_hook('startup_dry_run',
+            \$NAME, \$VERSION, \%conf, \@supported_tags);
+    }
+    if (get_opt('quiet')) {
+        run_hook('startup_quiet',
+            \$NAME, \$VERSION, \%conf, \@supported_tags);
+    }
+    if (get_opt('quiet_skip')) {
+        run_hook('startup_quiet_skip',
+            \$NAME, \$VERSION, \%conf, \@supported_tags);
+    }
+    if (get_opt('uselocalhooks')) {
+        run_hook('startup_uselocalhooks',
+            \$NAME, \$VERSION, \%conf, \@supported_tags);
+    }
+    if (get_opt('verbose')) {
+        run_hook('startup_verbose',
+            \$NAME, \$VERSION, \%conf, \@supported_tags);
+    }
 }
 #}}}
 

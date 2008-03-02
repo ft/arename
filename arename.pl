@@ -342,17 +342,32 @@ Please report bugs.
 
 my ( $NAME, $VERSION ) = ( 'arename.pl', 'v1.0+git' );
 
+# Initialisation {{{
+
 ARename::set_nameversion($NAME, $VERSION);
 ARename::set_default_options();
 ARename::read_cmdline_options();
 ARename::read_rcs();
 ARename::set_cmdline_options($#ARGV);
+ARename::read_hook_files();
 ARename::set_default_methods();
+ARename::startup_hooks();
+
+#}}}
+# customisation and cosmetics {{{
 
 # clear the line prefix, if we're running quietly.
+sub dv_newline {
+    if (ARename::get_opt("dryrun") || ARename::get_opt("verbose")) {
+        print "\n";
+    }
+}
+
 if (ARename::get_opt("quiet")) {
     ARename::set_opt("oprefix", "");
 }
+
+dv_newline();
 
 if (ARename::get_opt("dryrun")) {
     print "+++ We are on a dry run!\n";
@@ -362,12 +377,15 @@ if (ARename::get_opt("verbose")) {
     print "+++ Running verbosely.\n";
 }
 
-if (ARename::get_opt("dryrun") || ARename::get_opt("verbose")) {
-    print "\n";
-}
+dv_newline();
+
+# }}}
 
 foreach my $file (@ARGV) {
     my $done = 0;
+
+    ARename::run_hook('next_file_early', \$file, \@ARGV);
+
     if (!ARename::get_opt("quiet")) {
         print "Processing: $file\n";
     }
@@ -380,7 +398,14 @@ foreach my $file (@ARGV) {
         next;
     }
 
+    ARename::run_hook('next_file_late', \$file, \@ARGV);
+
     if (!ARename::apply_methods($file, 0)) {
+        ARename::run_hook('filetype_unknown', \$file, \@ARGV);
         ARename::process_warn($file);
+    } else {
+        ARename::run_hook('file_done', \$file, \@ARGV);
     }
 }
+
+ARename::run_hook('normal_quit', @ARGV);
