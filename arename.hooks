@@ -26,5 +26,14 @@ sub print_banner1 {
     print "ANOTHER BANNER! $$nameref $$verref\n";
 }
 
+sub replace_spaces_by_underscore {
+    # A simple way to post process generated file names, for
+    # people who dislike whitespace in file names.
+    my ($templateref, $datref) = @_;
+
+    $$templateref =~ s/\s+/_/g;
+}
+
 register_hook('startup', \&print_banner0);
 register_hook('startup', \&print_banner1);
+register_hook('post_expand_template', \&replace_spaces_by_underscore);

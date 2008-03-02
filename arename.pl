@@ -152,7 +152,9 @@ This allows you to define special hooks, that will only be applied for processes
 that run in the directory the local file is found (and if the I<uselocalhooks>
 option is set to B<true>).
 
-For details about hooks in arename.pl, see see L<arename(1)/HOOKS>) below.
+For details about hooks in arename.pl, see L<HOOKS|arename> below.
+
+=back
 
 =head1 SETTINGS
 
@@ -174,6 +176,12 @@ default_tracknumber, default_tracktitle, default_year
 
 Defines a default value, for the given tag in files, that lack this
 information. (default value: I<undefined>)
+
+=item B<hookerrfatal>
+
+If this is set to false, arename.pl will continue execution even if
+reading, parsing or compiling a hooks file failed. (default value:
+I<false>)
 
 =item B<prefix>
 
@@ -246,12 +254,16 @@ maximum length, to which the expression should be expanded.
 That means, if the Artist of a file reveals to be 'I<Frank Zappa>', then
 using 'B<&artist[1]>' will expand to 'I<F>'.
 
+=back
+
 =head2 Available expression identifiers
 
 The data, that is expanded is derived from tagging information in
 the audio files. For I<.ogg> and I<.flac> files, the tag checking
 B<arename.pl> does is case insensitive and the first matching tag
 will be used.
+
+=over 8
 
 =item B<album>
 
@@ -278,7 +290,7 @@ The number of the position of the track on the disc. Obviously. However, this
 can be in the form of '12' or '12/23'. In the second form, only the part left
 of the slash is used. The tracknumber is a little special, as you can define
 to what width it should be padded with zeros on the left (see I<tnpad> setting
-in L<arename(1)/SETTINGS>).
+in L<SETTINGS|arename>).
 
 =item B<tracktitle>
 
@@ -298,14 +310,29 @@ hook functions are B<references> to the B<actual data> in the script.
 If you write hooks carelessly, arename.pl will get back at you!
 HOOKS ARE A BIG HAMMER, THAT CAN CRUSH PROBLEMS AS WELL AS LIMBS!
 
-I<You have beed warned!>
+I<You have been warned!>
 
 =head2 Discussion
 
+The reason for implementing hooks was to have a simple way of post
+processing tags, filenames etc. without having to invent own magic in
+the configuration files, when Perl has regular expression on steriods
+anyway. Hooks can do more then pure pre and post processing, because
+they are called in numerous places and give broad access to the script's
+data structures. Still, post processing is probably the most useful
+feature they implement.
+
 Hooks are just Perl subroutines, which are defined in one of two files
-(see L<arename(1)/FILES>). They are run at certain events during the
+(see L<FILES|arename>). They are run at certain events during the
 execution of arename.pl. The contents of the argument list for each hook
 depends on what hook is called (see the list of hook events below).
+
+The global hooks file is read before the local one, which means, that
+this local file may overwrite and extend the definitions from the global
+file, as much as Perl permits. This also means, that hooks from the
+local file are run I<after> the ones from the global file (unless you
+are using your own method of registering hooks; but if you do so, you
+know what you are doing anyway).
 
 Subroutines must be registered to arename.pl, to be known as hooks.
 Once registered, a subroutine can be removed from the known hooks,
@@ -334,7 +361,240 @@ I<event>. Example: remove_hook('startup', \&custom_banner);
 
 If the coderef was added more than once, all entries are removed.
 
+=back
+
 =head2 List of hook events
+
+=head3 Hooks in the main loop
+
+These hooks are called at the highest level of the script.
+
+=over 4
+
+=item B<next_file_early>
+
+Called at the start of the main loop I<before> any file checks are done.
+
+I<Arguments>: B<0:> file name, B<1:> the program's argument list.
+
+=item B<next_file_late>
+
+Called in the main loop I<after> the file checks are done.
+
+I<Arguments>: B<0:> file name, B<1:> the program's argument list.
+
+=item B<file_done>
+
+Called in the main loop I<after> the file has been processed.
+
+I<Arguments>: B<0:> file name, B<1:> the program's argument list.
+
+=item B<filetype_unknown>
+
+Called in the main loop I<after> the file was tried to be processed but
+the file type (the extension, specifically) was unknown.
+
+I<Arguments>: B<0:> file name, B<1:> the program's argument list
+
+=back
+
+=head3 Hooks in the renaming procedure
+
+When all data has been gathered, arename.pl will go on to actually
+rename the files to their new destination name (which will be generated
+in the process, see L<Hooks when expanding the template> below).
+
+=over 4
+
+=item B<pre_apply_defaults>
+
+This is the first action to be taken in the renaming process. It is
+called even before the default values are applied.
+
+I<Arguments>: B<0:> file name, B<1:> data hash, B<2:> file extension
+
+=item B<pre_template>
+
+Called I<before> template expansions have been done.
+
+I<Arguments>: B<0:> file name, B<1:> data hash, B<2:> file extension
+
+=item B<post_template>
+
+Called I<after> the template has been expanded and the new file name
+has been completely generated (including the destination directory
+prefix).
+
+I<Arguments>: B<0:> file name, B<1:> data hash, B<2:> file extension
+B<3:> the generated new filename (including directory prefix and file
+extension)
+
+=item B<post_ensure_dir>
+
+The destnation directory for the new file name may contain sub directories,
+which currently do not exist. This hook is called I<after> it is ensured,
+every directory portion exists.
+
+I<Arguments>: B<0:> file name, B<1:> data hash, B<2:> file extension
+B<3:> the generated new filename (including directory prefix and file
+extension)
+
+=item B<post_rename>
+
+This is the final hook in the actual renaming process. The file has been
+renamed at this point.
+
+I<Arguments>: B<0:> file name, B<1:> data hash, B<2:> file extension
+B<3:> the generated new filename (including directory prefix and file
+extension)
+
+=back
+
+=head3 Hooks when expanding the template
+
+These hooks are called when the template string is filled with the data
+from tags in the audio files. All file type specific actions will have
+been taken care of already. That makes these hooks probably most useful
+for post processing tags, the template and file names.
+
+=over 4
+
+=item B<pre_expand_template>
+
+Called before any expansions are done.
+
+I<Arguments>: B<0:> the template string, B<1:> the data hash
+
+=item B<expand_template_next_tag>
+
+This hook is triggered when the next identifier in the template string
+is processed. At this point it is already verified, that there is an
+according tag in the data hash to fill in the identifier's space.
+
+I<Arguments>: B<0:> the template string, B<1:> the tag's name
+B<2:> the value of the length modifier in the template (zero, if
+unspecified) B<3:> the data hash
+
+=item B<expand_template_postprocess_tag>
+
+This hooks is triggered after all internal processing of the replacement
+token is done (directory seperators are replaced; tracknumbers are padded
+up).
+
+I<Arguments>: B<0:> the template string, B<1:> the text token, that will
+replace the identifier in the template, B<2:> the tag's name B<3:> the
+value of the length modifier, B<4:> the data hash
+
+=item B<post_expand_template>
+
+Called after all expansions have been done, right before the the resulting
+string is returned.
+
+I<Arguments>: B<0:> the template string, B<1:> the data hash
+
+=back
+
+=head3 Hooks when gathering information
+
+These hooks are triggered while the tag information is extracted from
+the audio files arename.pl is processing. Due to the differing nature
+of the the involved backends, these are slightly different from file type
+to file type.
+
+Specifically, the tag for .ogg and .flac files are read one after another
+(the tags in these files are pretty much the same, hence they are processed
+exactly the same), whereas tags in .mp3 files are read all at the same
+time.
+
+=over 4
+
+=item B<pre_process_flac>
+
+I<.flac only!>
+
+Called I<before> a flac file is processed.
+
+I<Arguments>: B<0:> file name
+
+=item B<post_process_flac>
+
+I<.flac only!>
+
+Called I<after> a flac file is processed.
+
+I<Arguments>: B<0:> file name
+
+=item B<pre_process_ogg>
+
+I<.ogg only!>
+
+Called I<before> an ogg file is processed.
+
+I<Arguments>: B<0:> file name
+
+=item B<post_process_ogg>
+
+I<.ogg only!>
+
+Called I<after> an ogg file is processed.
+
+I<Arguments>: B<0:> file name
+
+=item B<pre_handle_vorbistag>
+
+I<.ogg and .flac only!>
+
+Triggered I<before> any processing of a certain tag. It is not ensured
+that the tag is even among the supported tags at this point.
+
+I<Arguments>: B<0:> tag name, B<1:> tag value, B<2:> data hash
+
+=item B<pre_handle_vorbistag>
+
+I<.ogg and .flac only!>
+
+Triggered I<after> a certain tag was processed.
+
+I<Arguments>: B<0:> tag name, B<1:> tag value, B<2:> the internal name for
+the tag (also used as the key in the data hash), B<3:> data hash
+
+=item B<pre_process_mp3>
+
+I<.mp3 only!>
+
+Called I<before> an mp3 file is processed.
+
+I<Arguments>: B<0:> file name
+
+=item B<post_process_mp3>
+
+I<.mp3 only!>
+
+Called I<after> an mp3 file is processed.
+
+I<Arguments>: B<0:> file name
+
+=item B<pre_handle_mp3tag>
+
+I<.mp3 only!>
+
+Called I<before> data from the mp3 object is copied to the data hash.
+
+I<Arguments>: B<0:> the mp3 object, B<1:> data hash
+
+=item B<post_handle_mp3tag>
+
+I<.mp3 only!>
+
+Called I<after> data from the mp3 object has been copied to the data hash.
+
+I<Arguments>: B<0:> the mp3 object, B<1:> data hash
+
+=back
+
+=head3 Miscellaneous hooks
+
+=over 4
 
 =item B<apply_defaults>
 
@@ -342,23 +602,64 @@ This is triggered before values from the default_* settings are applied
 to missing values in the audio file. This hook is I<only> run if the
 default value for a tag will be used!
 
-I<Arguments>: 0: data hash, 1: defaults hash, 2: current key
+I<Arguments>: B<0:> data hash, B<1:> defaults hash, B<2:> current key
+
+=item B<pre_method>
+
+This hook is called after a method for a file type is choosen but
+I<before> the method was executed.
+
+I<Arguments>: B<0:> file name, B<1:> method name
+
+=item B<post_method>
+
+Called after a method for a file type was executed.
+
+I<Arguments>: B<0:> file name, B<1:> method name
+
+=item B<startup>
+
+Called directly after all the module initialisation is done, at the very
+start of the script. Configuration files will have been read, as well as
+hook files (obviously) and command line options will have been handled at
+this point already.
+
+This hook may be useful for postprocessing the configuration as well as
+for debugging.
+
+I<Arguments>: B<0:> program name, B<1:> its version, B<2:> configuration
+hash, B<3:> hash of extensions, that point the the according method for
+the file type B<4:> array of supported tags
+
+=item B<normal_quit>
+
+Called at the end of the script. This is reached if nothing fatal happened.
+
+I<Arguments>: B<0:> the program's argument list.
+
+=back
 
 =head2 Example
 
-A very simple example would be:
+This is a very simple example for a hook file, that prints a custom
+banner and replaces all whitespace in the expanded template with
+underscores:
 
   sub my_banner { oprint "Hello World.\n"; }
+  sub replace_spaces_by_underscore {
+      my ($templateref, $datref) = @_;
+      $$templateref =~ s/\s+/_/g;
+  }
   register_hook('startup', \&my_banner);
+  register_hook('post_expand_template',
+      \&replace_spaces_by_underscore);
 
 Further examples can be found in the arename.hook file of the
 distribution.
 
-=back
-
 =head1 SEE ALSO
 
-L<Ogg::Vorbis::Header(3)>, L<Audio::FLAC::Header(3)> and L<MP3::Tag(3)>.
+L<Ogg::Vorbis::Header>, L<Audio::FLAC::Header> and L<MP3::Tag>.
 
 =head1 AUTHOR
 
@@ -396,6 +697,7 @@ Please report bugs.
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =cut
+
 #}}}
 
 my ( $NAME, $VERSION ) = ( 'arename.pl', 'v1.0+git' );

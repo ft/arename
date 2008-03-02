@@ -360,6 +360,7 @@ err:
 #{{{
     '^comp_template$' => \&parse_generic,
     '^default_.*$'    => \&parse_default,
+    '^hookerrfatal$'  => \&parse_bool,
     '^prefix$'        => \&parse_generic,
     '^quiet$'         => \&parse_quiet,
     '^quiet_skip$'    => \&parse_quiet_skip,
@@ -591,6 +592,8 @@ sub process_ogg { #{{{
     my ($file) = @_;
     my ($ogg, %data, @tags);
 
+    run_hook('pre_process_ogg', \$file);
+
     $ogg = Ogg::Vorbis::Header->load($file);
 
     if (!defined $ogg) {
@@ -606,6 +609,8 @@ sub process_ogg { #{{{
     }
 
     $postproc->($file, \%data, 'ogg');
+
+    run_hook('post_process_ogg', \$file);
 }
 #}}}
 sub process_warn { #{{{
@@ -741,6 +746,7 @@ sub set_cmdline_options { #{{{
 sub set_default_options { #{{{
     $conf{dryrun}        = 0;
     $conf{force}         = 0;
+    $conf{hookerrfatal}  = 1;
     $conf{oprefix}       = '  -!- ';
     $conf{prefix}        = '.';
     $conf{sepreplace}    = '_';
@@ -821,11 +827,15 @@ sub __read_hook_file { #{{{
     $rc = do $file;
 
     if (!$rc && $@) {
-        owarn("Could not parse hooks file ($file):\n - $@\n");
-        exit 1; # XXX Make this optional
+        owarn("Could not parse hooks file ($file):\n   - $@\n");
+        if (get_opt('hookerrfatal')) {
+            exit 1;
+        }
     } elsif (!defined $rc) {
-        owarn("Could not read hooks file ($file):\n - $!\n");
-        exit 1; # XXX Make this optional
+        owarn("Could not read hooks file ($file):\n   - $!\n");
+        if (get_opt('hookerrfatal')) {
+            exit 1;
+        }
     }
 
     oprint("Hook file read ($file).\n");
@@ -881,7 +891,7 @@ sub run_hook { #{{{
 }
 #}}}
 sub startup_hook { #{{{
-    run_hook('startup', \$NAME, \$VERSION, \%conf, \@supported_tags);
+    run_hook('startup', \$NAME, \$VERSION, \%conf, \%methods, \@supported_tags);
 }
 #}}}
 
