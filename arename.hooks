@@ -1,8 +1,6 @@
 # vim:ft=perl
 # example arename global hooks file
 
-use ARename qw( register_hook );
-
 sub print_banner0 {
     # Yes, everything handed over to hooks are references.
     # This gives us simple two way communication, but it's

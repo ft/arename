@@ -169,7 +169,7 @@ I<va/&album/&tracknumber - &artist - &tracktitle>)
 
 =item B<default_*>
 
-default_artist, default_album, default_compilation, default_genre, 
+default_artist, default_album, default_compilation, default_genre,
 default_tracknumber, default_tracktitle, default_year
 
 Defines a default value, for the given tag in files, that lack this
@@ -246,16 +246,12 @@ maximum length, to which the expression should be expanded.
 That means, if the Artist of a file reveals to be 'I<Frank Zappa>', then
 using 'B<&artist[1]>' will expand to 'I<F>'.
 
-=back
-
 =head2 Available expression identifiers
 
 The data, that is expanded is derived from tagging information in
 the audio files. For I<.ogg> and I<.flac> files, the tag checking
 B<arename.pl> does is case insensitive and the first matching tag
 will be used.
-
-=over 8
 
 =item B<album>
 
@@ -296,7 +292,69 @@ Year (id3v1), TYER (id3v2) or DATE tag (.ogg/.flac).
 
 =head1 HOOKS
 
-TO BE WRITTEN!
+Before we start, a word of warning: Hooks can solve a lot of problems.
+That amount of flexibility comes with its price. All data passed to
+hook functions are B<references> to the B<actual data> in the script.
+If you write hooks carelessly, arename.pl will get back at you!
+HOOKS ARE A BIG HAMMER, THAT CAN CRUSH PROBLEMS AS WELL AS LIMBS!
+
+I<You have beed warned!>
+
+=head2 Discussion
+
+Hooks are just Perl subroutines, which are defined in one of two files
+(see L<arename(1)/FILES>). They are run at certain events during the
+execution of arename.pl. The contents of the argument list for each hook
+depends on what hook is called (see the list of hook events below).
+
+Subroutines must be registered to arename.pl, to be known as hooks.
+Once registered, a subroutine can be removed from the known hooks,
+if requested (see 'Utility subroutines' below).
+
+The keys in various data hashes passed to the hooks can be one of
+the following: I<album>, I<artist>, I<compilation>, I<genre>,
+I<tracknumber>, I<tracktitle>, I<year>.
+
+=head2 Utility subroutines
+
+There are two subroutines, that are used to tell arename.pl about
+subroutines, you defined that shall become hooks.
+
+=over 4
+
+=item B<register_hook>(I<event>, I<coderef>)
+
+Registers a I<code reference> (read: your subroutine) for the given
+I<event>. Example: register_hook('startup', \&custom_banner);
+
+=item B<remove_hook>(I<event>, I<coderef>)
+
+Removes B<all> entries of the I<code reference> for the given
+I<event>. Example: remove_hook('startup', \&custom_banner);
+
+If the coderef was added more than once, all entries are removed.
+
+=head2 List of hook events
+
+=item B<apply_defaults>
+
+This is triggered before values from the default_* settings are applied
+to missing values in the audio file. This hook is I<only> run if the
+default value for a tag will be used!
+
+I<Arguments>: 0: data hash, 1: defaults hash, 2: current key
+
+=head2 Example
+
+A very simple example would be:
+
+  sub my_banner { oprint "Hello World.\n"; }
+  register_hook('startup', \&my_banner);
+
+Further examples can be found in the arename.hook file of the
+distribution.
+
+=back
 
 =head1 SEE ALSO
 

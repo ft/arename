@@ -42,7 +42,7 @@ sub apply_defaults { #{{{
 
     foreach my $key (keys %defaults) {
         if (!defined $datref->{$key}) {
-            run_hook('apply_defaults', $datref, \$defaults, \$key);
+            run_hook('apply_defaults', $datref, \%defaults, \$key);
 
             if ($conf{verbose}) {
                 oprint("Setting ($key) to \"$defaults{$key}\".\n");
@@ -807,15 +807,9 @@ sub __read_hook_file { #{{{
 
     if (!$rc && $@) {
         owarn("Could not parse hooks file ($file):\n - $@\n");
+        exit 1; # XXX Make this optional
     } elsif (!defined $rc) {
         owarn("Could not read hooks file ($file):\n - $!\n");
-    } elsif ($rc == 0) {
-        owarn("Perl code in hooks file ($file) returns zero.\n");
-        owarn("This is deprecated, please add '1;' at the end of it.\n");
-        return;
-    }
-
-    if (!defined $rc || $rc == 0) {
         exit 1; # XXX Make this optional
     }
 
