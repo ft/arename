@@ -602,11 +602,11 @@ sub process_file { #{{{
     }
     if (-l $file) {
         owarn("Refusing to handle symbolic links ($file).\n");
-        next;
+        return;
     }
     if (! -r $file) {
         owarn("Can't read \"$file\": $!\n");
-        next;
+        return;
     }
 
     run_hook('next_file_late', \$file);
