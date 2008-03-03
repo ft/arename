@@ -539,7 +539,9 @@ sub process_mp3 { #{{{
         ($data{genre},       $info) = $mp3->{ID3v2}->get_frame("TCON");
         ($data{year},        $info) = $mp3->{ID3v2}->get_frame("TYER");
     } elsif (exists $mp3->{ID3v1}) {
-        oprint("Only found ID3v1 tag.\n");
+        if ($NAME eq 'arename.pl') {
+            oprint("Only found ID3v1 tag.\n");
+        }
         $data{artist}      = $mp3->{ID3v1}->artist;
         $data{album}       = $mp3->{ID3v1}->album;
         $data{tracktitle}  = $mp3->{ID3v1}->title;
