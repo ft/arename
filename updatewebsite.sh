@@ -49,6 +49,7 @@ esac
                     printf '  Latest version: %s\n' "$LATEST"
 [ -n "$PREREL" ] && printf '     pre-release: %s\n' "$PREREL"
 [ -n "$SNSHOT" ] && printf 'snapshot version: %s\n' "$SNSVER"
+printf '\n'
 
 ################################################################################
 
