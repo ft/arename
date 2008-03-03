@@ -2,7 +2,7 @@
 local arguments
 local -a supported_extensions
 
-supported_extensions=( 'mp3' 'ogg' 'flac')
+supported_extensions=( 'mp3' 'ogg' 'flac' )
 
 function _arename_files() {
     _path_files -g "(#i)*.(${(j:|:)supported_extensions})" -g "*(-/)"
