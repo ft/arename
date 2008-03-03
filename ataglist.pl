@@ -11,7 +11,7 @@ use warnings;
 use strict;
 use ARename;
 
-my ( $NAME, $VERSION ) = ( 'ataglist.pl', 'v0.4' );
+my ( $NAME, $VERSION ) = ( 'ataglist.pl', 'v0.5' );
 
 sub list {
     my ($file, $datref, $ext) = @_;
@@ -38,6 +38,7 @@ ARename::set_nameversion($NAME, $VERSION);
 ARename::set_postproc(\&main::list);
 ARename::set_default_methods();
 ARename::disable_hooks();
+ARename::set_opt("oprefix", "");
 ARename::apply_methods($file, 1);
 
 die "No method for handling \"$file\".\n";
