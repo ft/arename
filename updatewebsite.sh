@@ -84,13 +84,13 @@ SEDCOMMANDS='s/@@release@@/'"[arename $LATEST](\/comp\/arename\/arename-$LATEST.
 if [ -n "$PREREL" ] ; then
     SEDCOMMANDS="$SEDCOMMANDS"'s/@@prerelease@@/'"[arename $PREREL](\/comp\/arename\/arename-$PREREL.tar.gz)<br \/>"'/;'
 else
-    SEDCOMMANDS="$SEDCOMMANDS"'s/@@prerelease@@//;'
+    SEDCOMMANDS="$SEDCOMMANDS"'/@@prerelease@@/d;'
 fi
 
 if [ -n "$SNSHOT" ] ; then
     SEDCOMMANDS="$SEDCOMMANDS"'s/@@snapshot@@/'"[arename $SNSVER](\/comp\/arename\/arename-$SNSVER.tar.gz)<br \/>"'/'
 else
-    SEDCOMMANDS="$SEDCOMMANDS"'s/@@snapshot@@//'
+    SEDCOMMANDS="$SEDCOMMANDS"'/@@snapshot@@/d'
 fi
 
 sed -e "$SEDCOMMANDS" < ./website.mdwn.in > "$1/arename.mdwn"
