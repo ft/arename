@@ -40,6 +40,10 @@ else
 
 fi
 
+case "$PREREL" in
+    "$LATEST"-*) PREREL='' ;;
+esac
+
 [ -n "$SNSHOT" ] && SNSVER="snap-$(date +"%Y%m%d")-$SNSHOT"
 
                     printf '  Latest version: %s\n' "$LATEST"
