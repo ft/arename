@@ -45,7 +45,7 @@ sub apply_defaults { #{{{
         if (!defined $datref->{$key}) {
             run_hook('apply_defaults', $datref, \%defaults, \$key);
 
-            if ($conf{verbose}) {
+            if (get_opt("verbose")) {
                 oprint("Setting ($key) to \"$defaults{$key}\".\n");
             }
             $datref->{$key} = $defaults{$key};
@@ -67,13 +67,13 @@ sub arename { #{{{
     $t = choose_template($datref);
     $newname = expand_template($t, $datref);
     return if not defined $newname;
-    $newname = $conf{prefix} . '/' . $newname . '.' . $ext;
+    $newname = get_opt("prefix") . '/' . $newname . '.' . $ext;
 
     run_hook('post_template', \$file, $datref, \$ext, \$newname);
 
     if (file_eq($newname, $file)) {
-        if ($conf{quiet}) {
-            if (!$conf{quiet_skip}) {
+        if (get_opt("quiet")) {
+            if (!get_opt("quiet_skip")) {
                 print "Skipping: '$file'\n";
             }
         } else {
@@ -82,8 +82,8 @@ sub arename { #{{{
         return;
     }
 
-    if (-e $newname && !$conf{force}) {
-        oprint("'$newname' exists." . ($conf{quiet} ? " " : "\n      ")
+    if (-e $newname && !get_opt("force")) {
+        oprint("'$newname' exists." . (get_opt("quiet") ? " " : "\n      ")
             . "use '-f' to force overwriting.\n");
         return;
     }
@@ -92,13 +92,13 @@ sub arename { #{{{
 
     run_hook('post_ensure_dir', \$file, $datref, \$ext, \$newname);
 
-    if ($conf{quiet}) {
+    if (get_opt("quiet")) {
         print "'$newname'\n";
     } else {
         oprint("mv '$file' \\\n         '$newname'\n");
     }
 
-    if (!$conf{dryrun}) {
+    if (!get_opt("dryrun")) {
         xrename($file, $newname);
     }
 
@@ -108,7 +108,7 @@ sub arename { #{{{
 sub arename_verbosity { #{{{
     my ($datref) = @_;
 
-    if ($conf{verbose}) {
+    if (get_opt("verbose")) {
         oprint("Artist     : \"" . getdat($datref, "artist")      . "\"\n");
         oprint("Compilation: \"" . getdat($datref, "compilation") . "\"\n");
         oprint("Album      : \"" . getdat($datref, "album")       . "\"\n");
@@ -125,9 +125,9 @@ sub choose_template { #{{{
     if (defined $datref->{compilation}
         && $datref->{compilation} ne $datref->{artist}) {
 
-        return $conf{comp_template};
+        return get_opt("comp_template");
     } else {
-        return $conf{template};
+        return get_opt("template");
     }
 }
 #}}}
@@ -162,10 +162,10 @@ sub ensure_dir { #{{{
                  );
 
         if (!-d $sofar) {
-            if (($conf{dryrun} || $conf{verbose}) && !$conf{quiet}) {
+            if ((get_opt("dryrun") || get_opt("verbose")) && !get_opt("quiet")) {
                 oprint("mkdir \"$sofar\"\n");
             }
-            if (!$conf{dryrun}) {
+            if (!get_opt("dryrun")) {
                 mkdir($sofar) or die "Could not mkdir($sofar).\n" .
                                      "Reason: $!\n";
             }
@@ -179,7 +179,8 @@ sub expand_template { #{{{
     run_hook('pre_expand_template', \$template, $datref);
 
     foreach my $tag (@supported_tags) {
-        my ($len, $token);
+        my ($len, $token, $sr);
+        $sr = get_opt("sepreplace");
 
         while ($template =~ m/&$tag(\[(\d+)\]|)/) {
             $len = 0;
@@ -203,18 +204,19 @@ sub expand_template { #{{{
                     } else {
                         $val = $datref->{$tag};
                     }
-                    $token = sprintf "%0" . $conf{tnpad} . "d", $val;
+                    $token = sprintf "%0" . get_opt("tnpad") . "d", $val;
                 } else {
                     $token = $datref->{$tag};
                 }
             }
 
             if ($token =~ m!/!) {
-                if ($conf{verbose}) {
+                if (get_opt("verbose")) {
                     oprint("Found directory seperator in token.\n");
-                    oprint("Replacing with \"$conf{sepreplace}\".\n");
+                    oprint("Replacing with \""
+                        . get_opt("sepreplace") . "\".\n");
                 }
-                $token =~ s!/!$conf{sepreplace}!g;
+                $token =~ s!/!$sr!g;
             }
 
             run_hook('expand_template_postprocess_tag',
@@ -258,13 +260,13 @@ sub getdat { #{{{
 sub oprint { #{{{
     my ($string) = @_;
 
-    print $conf{oprefix} . $string;
+    print get_opt("oprefix") . $string;
 }
 #}}}
 sub owarn { #{{{
     my ($string) = @_;
 
-    warn $conf{oprefix} . $string;
+    warn get_opt("oprefix") . $string;
 }
 #}}}
 sub rcload { #{{{
@@ -403,8 +405,8 @@ sub parse_defaultvalues { #{{{
         die "$file,$lnum: Default for unsupported tag found: '$key'\n";
     }
 
-    if ($conf{verbose} > 0) {
-        oprint("\$defaults{$key} = '$val'\n");
+    if (get_opt("verbose")) {
+        oprint("default for \"$key\" = '$val'\n");
     }
 
     $defaults{$key} = $val;
@@ -413,11 +415,11 @@ sub parse_defaultvalues { #{{{
 sub parse_generic { #{{{
     my ($file, $lnum, $count, $key, $val) = @_;
 
-    if ($conf{verbose} > 0) {
-        oprint("\$conf{$key} = '$val'\n");
+    if (get_opt("verbose")) {
+        oprint("generic option \"$key\" = '$val'\n");
     }
 
-    $conf{$key} = $val;
+    set_opt($key, $val);
 }
 #}}}
 sub parse_bool { #{{{
@@ -431,11 +433,11 @@ sub parse_bool { #{{{
         $val = 0;
     }
 
-    if ($conf{verbose} > 0) {
-        oprint("\$conf{$key} = '" . ($val ? 'true' : 'false' ) . "'\n");
+    if (get_opt("verbose")) {
+        oprint("boolean option \"$key\" = '" . ($val ? 'true' : 'false' ) . "'\n");
     }
 
-    $conf{$key} = $val;
+    set_opt($key, $val);
 }
 #}}}
 
@@ -636,6 +638,38 @@ sub apply_methods { #{{{
     return 0;
 }
 #}}}
+sub checkstropts { #{{{
+    my (@o) = @_;
+
+    foreach my $opt (@o) {
+        if (exists $opts{$opt} && !defined $opts{$opt}) {
+            owarn(" -$opt *requires* a string argument!\n");
+        }
+    }
+}
+#}}}
+sub cmdopts { #{{{
+    foreach my $opt (@_) {
+        return 0 if (!defined $opts{$opt});
+    }
+
+    return 1;
+}
+#}}}
+sub cmdopts_or { #{{{
+    foreach my $opt (@_) {
+        return 1 if (defined $opts{$opt});
+    }
+
+    return 0;
+}
+#}}}
+sub cmdoptstr { #{{{
+    my ($opt) = @_;
+
+    return $opts{$opt};
+}
+#}}}
 sub read_rcs { #{{{
     my $rc = $ENV{HOME} . "/.arenamerc";
     my $retval = rcload($rc, "arename.pl configuration");
@@ -662,110 +696,87 @@ sub read_cmdline_options { #{{{
         $opts{h} = 1;
     } else {
         if (!getopts('dfhHQqsVvp:T:t:', \%opts)) {
-            if (exists $opts{t} && !defined $opts{t}) {
-                die " -t *requires* a string argument!\n";
-            } elsif (exists $opts{T} && !defined $opts{T}) {
-                die " -T *requires* a string argument!\n";
-            } elsif (exists $opts{p} && !defined $opts{p}) {
-                die " -p *requires* a string argument!\n";
-            } else {
-                die "    Try $NAME -h\n";
-            }
+            checkstropts('t', 'T', 'p');
+            die "    Try $NAME -h\n";
         }
     }
 
-    if (defined $opts{h}) {
+    if (cmdopts('h')) {
         usage();
         exit 0;
     }
 
-    if ((defined $opts{q} || defined $opts{Q}) && defined $opts{v}) {
+    if (cmdopts_or('q', 'Q') && cmdopts('v')) {
         print "Verbose *and* quiet? Please decide!\n";
         exit 1;
     }
 
-    if (defined $opts{V}) {
+    if (cmdopts('V')) {
         print " $NAME $VERSION\n";
         exit 0;
     }
+
+    set_opt("verbose", 1) if (cmdopts('v'));
+    set_opt("quiet", 1) if (cmdopts('q'));
+    set_opt("quiet_skip", 1) if (cmdopts('Q'));
+    set_opt("force", 1) if (cmdopts('f'));
 }
 #}}}
 sub set_cmdline_options { #{{{
     my ($argc) = @_;
 
-    if (defined $opts{s}) {
-        $conf{readstdin} = 1;
+    set_opt("readstdin", 1) if (cmdopts('s'));
+
+    die "No input files. See: $NAME -h\n"
+        if ($argc == -1 && !get_opt("readstdin"));
+
+    die "verbose and quiet set at the same time. Check your config.\n"
+        if (get_opt("verbose") && (get_opt("quiet") || get_opt("quiet_skip")));
+
+    if (cmdopts('v')) {
+        set_opt("verbose", 1);
+        set_opt("quiet", 0);
     }
 
-    if ($argc == -1 && $conf{readstdin} == 0) {
-        die "No input files. See: $NAME -h\n";
+    if (cmdopts('q')) {
+        set_opt("quiet", 1);
+        set_opt("verbose", 0);
     }
 
-    if (!$conf{verbose} && defined $opts{v}) {
-        $conf{verbose} = $opts{v};
-        $conf{quiet} = 0;
+    set_opt("quiet", 1) if (get_opt("quiet_skip") && !get_opt("quiet"));
+
+    if (cmdopts('Q')) {
+        set_opt("quiet", 1) if (!get_opt("quiet"));
+        set_opt("verbose", 0) if (get_opt("verbose"));
+        set_opt("quiet_skip", 1);
     }
 
-    if (defined $opts{q}) {
-        $conf{quiet} = $opts{q};
-        $conf{verbose} = 0;
-    }
-
-    if ($conf{quiet_skip} && !$conf{quiet}) {
-        $conf{quiet} = 1;
-    }
-
-    if (defined $opts{Q}) {
-        if (!$conf{quiet}) {
-            $conf{quiet} = 1;
-        }
-        if ($conf{verbose}) {
-            $conf{verbose} = 0;
-        }
-        $conf{quiet_skip} = $opts{Q};
-    }
-
-    if (defined $opts{f}) {
-        $conf{force} = $opts{f};
-    }
-
-    if (defined $opts{p}) {
-        $conf{prefix} = $opts{p};
-    }
-
-    if (defined $opts{t}) {
-        $conf{template} = $opts{t};
-    }
-
-    if (defined $opts{T}) {
-        $conf{comp_template} = $opts{T};
-    }
-
-    if (defined $opts{d}) {
-        $conf{dryrun} = $opts{d};
-    }
-
-    if (defined $opts{H}) {
-        disable_hooks();
-    }
+    set_opt("force", 1) if (cmdopts('f'));
+    set_opt("prefix", cmdoptstr('p')) if (cmdopts('p'));
+    set_opt("template", cmdoptstr('t')) if (cmdopts('t'));
+    set_opt("comp_template", cmdoptstr('T')) if (cmdopts('T'));
+    set_opt("dryrun", 1) if (cmdopts('d'));
+    disable_hooks() if (cmdopts('H'));
 
     undef %opts;
 }
 #}}}
 sub set_default_options { #{{{
-    $conf{dryrun}        = 0;
-    $conf{force}         = 0;
-    $conf{hookerrfatal}  = 1;
-    $conf{oprefix}       = '  -!- ';
-    $conf{prefix}        = '.';
-    $conf{readstdin}     = 0;
-    $conf{sepreplace}    = '_';
-    $conf{tnpad}         = 2;
-    $conf{usehooks}      = 1;
-    $conf{uselocalhooks} = 0;
-    $conf{verbose}       = 0;
-    $conf{comp_template} = "va/&album/&tracknumber - &artist - &tracktitle";
-    $conf{template}      = "&artist[1]/&artist/&album/&tracknumber - &tracktitle";
+    set_opt("dryrun",        0);
+    set_opt("force",         0);
+    set_opt("hookerrfatal",  1);
+    set_opt("oprefix",       '  -!- ');
+    set_opt("prefix" ,       '.');
+    set_opt("quiet",         0);
+    set_opt("quiet_skip",    0);
+    set_opt("readstdin",     0);
+    set_opt("sepreplace",    '_');
+    set_opt("tnpad",         2);
+    set_opt("usehooks",      1);
+    set_opt("uselocalhooks", 0);
+    set_opt("verbose",       0);
+    set_opt("comp_template", "va/&album/&tracknumber - &artist - &tracktitle");
+    set_opt("template",      "&artist[1]/&artist/&album/&tracknumber - &tracktitle");
 }
 #}}}
 sub set_default_methods { #{{{
@@ -820,8 +831,8 @@ sub set_opt { #{{{
 #}}}
 
 sub disable_hooks { #{{{
-    $conf{usehooks} = 0;
-    $conf{uselocalhooks} = 0;
+    set_opt("usehooks", 0);
+    set_opt("uselocalhooks", 0);
 }
 #}}}
 sub __read_hook_file { #{{{
@@ -839,12 +850,12 @@ sub __read_hook_file { #{{{
 
     if (!$rc && $@) {
         owarn("Could not parse hooks file ($file):\n   - $@\n");
-        if (get_opt('hookerrfatal')) {
+        if (get_opt("hookerrfatal")) {
             exit 1;
         }
     } elsif (!defined $rc) {
         owarn("Could not read hooks file ($file):\n   - $!\n");
-        if (get_opt('hookerrfatal')) {
+        if (get_opt("hookerrfatal")) {
             exit 1;
         }
     }
