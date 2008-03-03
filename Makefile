@@ -44,28 +44,34 @@ distclean: clean
 	rm -f *.tar.gz
 
 install:
-	@printf 'Installing arename.pl   to %s\n' "$(prefix)/bin"
-	@cp arename.pl   "$(prefix)/bin/"
-	@printf 'Installing ataglist.pl  to %s\n' "$(prefix)/bin"
-	@cp ataglist.pl  "$(prefix)/bin/"
-	@chown root:root "$(prefix)/bin/arename.pl" "$(prefix)/bin/ataglist.pl"
-	@chmod 0755      "$(prefix)/bin/arename.pl" "$(prefix)/bin/ataglist.pl"
-	@printf 'Installing ARename.pm   to %s\n' "$(prefix)/$(libpath)/"
+	@printf 'Installing arename.pl    to %s\n' "$(prefix)/bin"
+	@cp arename.pl    "$(prefix)/bin/"
+	@printf 'Installing ataglist.pl   to %s\n' "$(prefix)/bin"
+	@cp ataglist.pl   "$(prefix)/bin/"
+	@chown root:root  "$(prefix)/bin/arename.pl" "$(prefix)/bin/ataglist.pl"
+	@chmod 0755       "$(prefix)/bin/arename.pl" "$(prefix)/bin/ataglist.pl"
+	@printf 'Installing ARename.pm    to %s\n' "$(prefix)/$(libpath)/"
 	@[ ! -d "$(prefix)/$(libpath)" ] && (mkdir -p "$(prefix)/$(libpath)" && chmod 0755 "$(prefix)/$(libpath)" ) || true
-	@cp ARename.pm   "$(prefix)/$(libpath)"
-	@chmod 0644      "$(prefix)/$(libpath)/ARename.pm"
+	@cp ARename.pm    "$(prefix)/$(libpath)"
+	@chmod 0644       "$(prefix)/$(libpath)/ARename.pm"
 
 install-doc: doc
-	@printf 'Installing arename.1    to %s\n' "$(prefix)/share/man/man1"
-	@cp arename.1    "$(prefix)/share/man/man1/"
-	@chown root:root "$(prefix)/share/man/man1/arename.1"
-	@chmod 0644      "$(prefix)/share/man/man1/arename.1"
-	@printf 'Installing arename.html to %s\n' "$(prefix)/share/doc/arename"
-	@mkdir -p        "$(prefix)/share/doc/arename"
-	@chmod 0755      "$(prefix)/share/doc/arename"
-	@cp arename.html "$(prefix)/share/doc/arename/"
-	@chown root:root "$(prefix)/share/doc/arename/arename.html"
-	@chmod 0644      "$(prefix)/share/doc/arename/arename.html"
+	@printf 'Installing arename.1     to %s\n' "$(prefix)/share/man/man1"
+	@cp arename.1     "$(prefix)/share/man/man1/"
+	@chown root:root  "$(prefix)/share/man/man1/arename.1"
+	@chmod 0644       "$(prefix)/share/man/man1/arename.1"
+	@printf 'Installing arename.html  to %s\n' "$(prefix)/share/doc/arename"
+	@mkdir -p         "$(prefix)/share/doc/arename"
+	@chmod 0755       "$(prefix)/share/doc/arename"
+	@cp arename.html  "$(prefix)/share/doc/arename/"
+	@chown root:root  "$(prefix)/share/doc/arename/arename.html"
+	@chmod 0644       "$(prefix)/share/doc/arename/arename.html"
+	@printf 'Installing arename.hooks to %s\n' "$(prefix)/share/doc/arename/examples"
+	@mkdir -p         "$(prefix)/share/doc/arename/examples"
+	@chmod 0755       "$(prefix)/share/doc/arename/examples"
+	@cp arename.hooks "$(prefix)/share/doc/arename/examples"
+	@chown root:root  "$(prefix)/share/doc/arename/examples/arename.hooks"
+	@chmod 0644       "$(prefix)/share/doc/arename/examples/arename.hooks"
 
 updateweb:
 	@printf 'Updating webpages...\n'
