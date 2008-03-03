@@ -40,7 +40,7 @@ sub remove_empty_subdirs {
     # become empty. arename.pl itself will not remove such directories
     # and it will not in the future. If you want such house keeping,
     # you can achieve that by a hook, like this one.
-    # Note, that this an example; there a probably better solutions.
+    # Note, that this an example; there are probably better solutions.
     my ($fileref) = @_;
     my $dir = dirname($$fileref);
     my $rc;
