@@ -18,7 +18,7 @@ sub print_banner0 {
     $$nameref =~ s/name/blame/;
 }
 sub print_banner1 {
-    my ($nameref, $verref, $confref, $suptagsref) = @_;
+    my ($nameref, $verref, $confref, $extref, $suptagsref, $argvref) = @_;
 
     # Since $NAME used to be 'arename.pl', the substitution
     # in print_banner0() will have changed $NAME to 'areblame.pl',
