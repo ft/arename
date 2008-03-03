@@ -706,7 +706,7 @@ Please report bugs.
 
 #}}}
 
-my ( $NAME, $VERSION ) = ( 'arename.pl', 'v1.1-rc1' );
+my ( $NAME, $VERSION ) = ( 'arename.pl', 'v1.1-rc2' );
 
 # Initialisation {{{
 
