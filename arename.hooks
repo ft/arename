@@ -2,10 +2,10 @@
 # example arename global hooks file
 
 sub print_banner0 {
-    # Yes, everything handed over to hooks are references.
-    # This gives us simple two way communication, but it's
-    # also a pretty big hammer. Think before screwing up. :)
-    my ($nameref, $verref, $confref, $extref, $suptagsref, $argvref) = @_;
+    # Yes, everything handed over to hooks (except for the namespace)
+    # are references. This gives us simple two way communication, but
+    # it's also a pretty big hammer. Think before screwing up. :)
+    my ($namespace, $nameref, $verref, $confref, $extref, $suptagsref, $argvref) = @_;
 
     print "BANNER! $$nameref $$verref $argvref->[0]\n";
 
@@ -18,7 +18,7 @@ sub print_banner0 {
     $$nameref =~ s/name/blame/;
 }
 sub print_banner1 {
-    my ($nameref, $verref, $confref, $extref, $suptagsref, $argvref) = @_;
+    my ($namespace, $nameref, $verref, $confref, $extref, $suptagsref, $argvref) = @_;
 
     # Since $NAME used to be 'arename.pl', the substitution
     # in print_banner0() will have changed $NAME to 'areblame.pl',
@@ -29,7 +29,7 @@ sub print_banner1 {
 sub replace_spaces_by_underscore {
     # A simple way to post process generated file names, for
     # people who dislike whitespace in file names.
-    my ($templateref, $datref) = @_;
+    my ($namespace, $templateref, $datref) = @_;
 
     $$templateref =~ s/\s+/_/g;
 }
@@ -41,7 +41,7 @@ sub remove_empty_subdirs {
     # and it will not in the future. If you want such house keeping,
     # you can achieve that by a hook, like this one.
     # Note, that this an example; there are probably better solutions.
-    my ($fileref) = @_;
+    my ($namespace, $fileref) = @_;
     my $dir = dirname($$fileref);
     my $rc;
 

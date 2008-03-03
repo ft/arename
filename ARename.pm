@@ -899,7 +899,7 @@ sub run_hook { #{{{
     }
 
     foreach my $funref (@{ $hooks{$namespace} }) {
-        $funref->(@_);
+        $funref->($namespace, @_);
     }
 
     return 1

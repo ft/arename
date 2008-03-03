@@ -311,9 +311,10 @@ Year (id3v1), TYER (id3v2) or DATE tag (.ogg/.flac).
 
 Before we start, a word of warning: Hooks can solve a lot of problems.
 That amount of flexibility comes with its price. All data passed to
-hook functions are B<references> to the B<actual data> in the script.
-If you write hooks carelessly, arename.pl will get back at you!
-HOOKS ARE A BIG HAMMER, THAT CAN CRUSH PROBLEMS AS WELL AS LIMBS!
+hook functions are B<references> to the B<actual data> in the script
+(except for the namespace argument, which is a copy). If you write
+hooks carelessly, arename.pl will get back at you! HOOKS ARE A BIG
+HAMMER, THAT CAN CRUSH PROBLEMS AS WELL AS LIMBS!
 
 I<You have been warned!>
 
@@ -331,6 +332,8 @@ Hooks are just Perl subroutines, which are defined in one of two files
 (see L<FILES|arename>). They are run at certain events during the
 execution of arename.pl. The contents of the argument list for each hook
 depends on what hook is called (see the list of hook events below).
+However, the first argument (argument zero aka. $_[0]) to all hooks is
+the namespace, the hook is called in.
 
 The global hooks file is read before the local one, which means, that
 this local file may overwrite and extend the definitions from the global
@@ -380,26 +383,26 @@ These hooks are called at the highest level of the script.
 
 Called at the start of the main loop I<before> any file checks are done.
 
-I<Arguments>: B<0:> file name
+I<Arguments>: B<1:> file name
 
 =item B<next_file_late>
 
 Called in the main loop I<after> the file checks are done.
 
-I<Arguments>: B<0:> file name
+I<Arguments>: B<1:> file name
 
 =item B<file_done>
 
 Called in the main loop I<after> the file has been processed.
 
-I<Arguments>: B<0:> file name
+I<Arguments>: B<1:> file name
 
 =item B<filetype_unknown>
 
 Called in the main loop I<after> the file was tried to be processed but
 the file type (the extension, specifically) was unknown.
 
-I<Arguments>: B<0:> file name
+I<Arguments>: B<1:> file name
 
 =back
 
@@ -416,13 +419,13 @@ in the process, see L<Hooks when expanding the template> below).
 This is the first action to be taken in the renaming process. It is
 called even before the default values are applied.
 
-I<Arguments>: B<0:> file name, B<1:> data hash, B<2:> file extension
+I<Arguments>: B<1:> file name, B<2:> data hash, B<3:> file extension
 
 =item B<pre_template>
 
 Called I<before> template expansions have been done.
 
-I<Arguments>: B<0:> file name, B<1:> data hash, B<2:> file extension
+I<Arguments>: B<1:> file name, B<2:> data hash, B<3:> file extension
 
 =item B<post_template>
 
@@ -430,8 +433,8 @@ Called I<after> the template has been expanded and the new file name
 has been completely generated (including the destination directory
 prefix).
 
-I<Arguments>: B<0:> file name, B<1:> data hash, B<2:> file extension
-B<3:> the generated new filename (including directory prefix and file
+I<Arguments>: B<1:> file name, B<2:> data hash, B<3:> file extension
+B<4:> the generated new filename (including directory prefix and file
 extension)
 
 =item B<post_ensure_dir>
@@ -440,8 +443,8 @@ The destnation directory for the new file name may contain sub directories,
 which currently do not exist. This hook is called I<after> it is ensured,
 every directory portion exists.
 
-I<Arguments>: B<0:> file name, B<1:> data hash, B<2:> file extension
-B<3:> the generated new filename (including directory prefix and file
+I<Arguments>: B<1:> file name, B<2:> data hash, B<3:> file extension
+B<4:> the generated new filename (including directory prefix and file
 extension)
 
 =item B<post_rename>
@@ -449,8 +452,8 @@ extension)
 This is the final hook in the actual renaming process. The file has been
 renamed at this point.
 
-I<Arguments>: B<0:> file name, B<1:> data hash, B<2:> file extension
-B<3:> the generated new filename (including directory prefix and file
+I<Arguments>: B<1:> file name, B<2:> data hash, B<3:> file extension
+B<4:> the generated new filename (including directory prefix and file
 extension)
 
 =back
@@ -468,7 +471,7 @@ for post processing tags, the template and file names.
 
 Called before any expansions are done.
 
-I<Arguments>: B<0:> the template string, B<1:> the data hash
+I<Arguments>: B<1:> the template string, B<2:> the data hash
 
 =item B<expand_template_next_tag>
 
@@ -476,9 +479,9 @@ This hook is triggered when the next identifier in the template string
 is processed. At this point it is already verified, that there is an
 according tag in the data hash to fill in the identifier's space.
 
-I<Arguments>: B<0:> the template string, B<1:> the tag's name
-B<2:> the value of the length modifier in the template (zero, if
-unspecified) B<3:> the data hash
+I<Arguments>: B<1:> the template string, B<2:> the tag's name
+B<3:> the value of the length modifier in the template (zero, if
+unspecified) B<4:> the data hash
 
 =item B<expand_template_postprocess_tag>
 
@@ -486,16 +489,16 @@ This hooks is triggered after all internal processing of the replacement
 token is done (directory seperators are replaced; tracknumbers are padded
 up).
 
-I<Arguments>: B<0:> the template string, B<1:> the text token, that will
-replace the identifier in the template, B<2:> the tag's name B<3:> the
-value of the length modifier, B<4:> the data hash
+I<Arguments>: B<1:> the template string, B<2:> the text token, that will
+replace the identifier in the template, B<3:> the tag's name B<4:> the
+value of the length modifier, B<5:> the data hash
 
 =item B<post_expand_template>
 
 Called after all expansions have been done, right before the the resulting
 string is returned.
 
-I<Arguments>: B<0:> the template string, B<1:> the data hash
+I<Arguments>: B<1:> the template string, B<2:> the data hash
 
 =back
 
@@ -519,7 +522,7 @@ I<.flac only!>
 
 Called I<before> a flac file is processed.
 
-I<Arguments>: B<0:> file name
+I<Arguments>: B<1:> file name
 
 =item B<post_process_flac>
 
@@ -527,7 +530,7 @@ I<.flac only!>
 
 Called I<after> a flac file is processed.
 
-I<Arguments>: B<0:> file name
+I<Arguments>: B<1:> file name
 
 =item B<pre_process_ogg>
 
@@ -535,7 +538,7 @@ I<.ogg only!>
 
 Called I<before> an ogg file is processed.
 
-I<Arguments>: B<0:> file name
+I<Arguments>: B<1:> file name
 
 =item B<post_process_ogg>
 
@@ -543,7 +546,7 @@ I<.ogg only!>
 
 Called I<after> an ogg file is processed.
 
-I<Arguments>: B<0:> file name
+I<Arguments>: B<1:> file name
 
 =item B<pre_handle_vorbistag>
 
@@ -552,7 +555,7 @@ I<.ogg and .flac only!>
 Triggered I<before> any processing of a certain tag. It is not ensured
 that the tag is even among the supported tags at this point.
 
-I<Arguments>: B<0:> tag name, B<1:> tag value, B<2:> data hash
+I<Arguments>: B<1:> tag name, B<2:> tag value, B<3:> data hash
 
 =item B<pre_handle_vorbistag>
 
@@ -560,8 +563,8 @@ I<.ogg and .flac only!>
 
 Triggered I<after> a certain tag was processed.
 
-I<Arguments>: B<0:> tag name, B<1:> tag value, B<2:> the internal name for
-the tag (also used as the key in the data hash), B<3:> data hash
+I<Arguments>: B<1:> tag name, B<2:> tag value, B<3:> the internal name for
+the tag (also used as the key in the data hash), B<4:> data hash
 
 =item B<pre_process_mp3>
 
@@ -569,7 +572,7 @@ I<.mp3 only!>
 
 Called I<before> an mp3 file is processed.
 
-I<Arguments>: B<0:> file name
+I<Arguments>: B<1:> file name
 
 =item B<post_process_mp3>
 
@@ -577,7 +580,7 @@ I<.mp3 only!>
 
 Called I<after> an mp3 file is processed.
 
-I<Arguments>: B<0:> file name
+I<Arguments>: B<1:> file name
 
 =item B<pre_handle_mp3tag>
 
@@ -585,7 +588,7 @@ I<.mp3 only!>
 
 Called I<before> data from the mp3 object is copied to the data hash.
 
-I<Arguments>: B<0:> the mp3 object, B<1:> data hash
+I<Arguments>: B<1:> the mp3 object, B<2:> data hash
 
 =item B<post_handle_mp3tag>
 
@@ -593,7 +596,7 @@ I<.mp3 only!>
 
 Called I<after> data from the mp3 object has been copied to the data hash.
 
-I<Arguments>: B<0:> the mp3 object, B<1:> data hash
+I<Arguments>: B<1:> the mp3 object, B<2:> data hash
 
 =back
 
@@ -607,20 +610,20 @@ This is triggered before values from the default_* settings are applied
 to missing values in the audio file. This hook is I<only> run if the
 default value for a tag will be used!
 
-I<Arguments>: B<0:> data hash, B<1:> defaults hash, B<2:> current key
+I<Arguments>: B<1:> data hash, B<2:> defaults hash, B<3:> current key
 
 =item B<pre_method>
 
 This hook is called after a method for a file type is choosen but
 I<before> the method was executed.
 
-I<Arguments>: B<0:> file name, B<1:> method name
+I<Arguments>: B<1:> file name, B<2:> method name
 
 =item B<post_method>
 
 Called after a method for a file type was executed.
 
-I<Arguments>: B<0:> file name, B<1:> method name
+I<Arguments>: B<1:> file name, B<2:> method name
 
 =item B<startup>
 
@@ -632,16 +635,16 @@ this point already.
 This hook may be useful for postprocessing the configuration as well as
 for debugging.
 
-I<Arguments>: B<0:> program name, B<1:> its version, B<2:> configuration
-hash, B<3:> hash of extensions, that point the the according method for
-the file type B<4:> array of supported tags, B<5:> the program's argument
+I<Arguments>: B<1:> program name, B<2:> its version, B<3:> configuration
+hash, B<4:> hash of extensions, that point the the according method for
+the file type B<5:> array of supported tags, B<6:> the program's argument
 list
 
 =item B<normal_quit>
 
 Called at the end of the script. This is reached if nothing fatal happened.
 
-I<Arguments>: B<0:> the program's argument list
+I<Arguments>: B<1:> the program's argument list
 
 =back
 
