@@ -1,0 +1,5 @@
+1.0 -> 1.1
+    + introduce hooks
+    + read filenames from stdin (if requested)
+    = quiet_skip does not require quiet to be set anymore
+      it'll force quiet on itself
