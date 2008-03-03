@@ -725,7 +725,6 @@ ARename::startup_hook();
 #}}}
 # customisation and cosmetics {{{
 
-# clear the line prefix, if we're running quietly.
 sub dvr_newline {
     if (   ARename::get_opt("dryrun")
         || ARename::get_opt("readstdin")
@@ -734,6 +733,7 @@ sub dvr_newline {
     }
 }
 
+# clear the line prefix, if we're running quietly.
 if (ARename::get_opt("quiet")) {
     ARename::set_opt("oprefix", "");
 }
