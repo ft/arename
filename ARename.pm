@@ -863,6 +863,10 @@ sub read_hook_files { #{{{
 sub register_hook { #{{{
     my ($namespace, $funref) = @_;
 
+    if (!defined &{ $funref }) {
+        owarn("Trying to register undefined subroutine in namespace: $namespace; Ignoring.\n");
+        return 1;
+    }
     push @{ $hooks{$namespace} }, $funref;
 
     return 1;
