@@ -321,7 +321,7 @@ I<You have been warned!>
 
 The reason for implementing hooks was to have a simple way of post
 processing tags, filenames etc. without having to invent own magic in
-the configuration files, when Perl has regular expression on steriods
+the configuration files, when Perl has regular expressions on steriods
 anyway. Hooks can do more then pure pre and post processing, because
 they are called in numerous places and give broad access to the script's
 data structures. Still, post processing is probably the most useful
