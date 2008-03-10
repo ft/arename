@@ -1,4 +1,3 @@
-
   arename.pl - audio file renaming using Perl
 
 
@@ -25,6 +24,7 @@ SCRIPTS
 
     If you wonder what that zsh function is about, see:
     <http://ft.bewatermyfriend.org/comp/zsh/functions/atag.html>
+    <http://ft.bewatermyfriend.org/comp/zsh/atag-functions.tar.gz>
 
 
 INSTALLATION
