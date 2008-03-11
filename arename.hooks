@@ -17,6 +17,8 @@ sub print_banner0 {
     # -d (dry-run) is your friend!
     $$nameref =~ s/name/blame/;
 }
+register_hook('startup', \&print_banner0);
+
 sub print_banner1 {
     my ($namespace, $nameref, $verref, $confref, $extref, $suptagsref, $argvref) = @_;
 
@@ -25,6 +27,7 @@ sub print_banner1 {
     # which $$nameref below will reveal.
     print "ANOTHER BANNER! $$nameref $$verref\n";
 }
+register_hook('startup', \&print_banner1);
 
 sub replace_spaces_by_underscore {
     # A simple way to post process generated file names, for
@@ -33,6 +36,7 @@ sub replace_spaces_by_underscore {
 
     $$templateref =~ s/\s+/_/g;
 }
+register_hook('post_expand_template', \&replace_spaces_by_underscore);
 
 sub remove_empty_subdirs {
     # When arename.pl renames files, it can be quite likely, that
@@ -53,8 +57,4 @@ sub remove_empty_subdirs {
 
     } while ($rc);
 }
-
-register_hook('startup', \&print_banner0);
-register_hook('startup', \&print_banner1);
-register_hook('post_expand_template', \&replace_spaces_by_underscore);
 register_hook('file_done', \&remove_empty_subdirs);
