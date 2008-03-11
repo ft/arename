@@ -58,3 +58,15 @@ sub remove_empty_subdirs {
     } while ($rc);
 }
 register_hook('file_done', \&remove_empty_subdirs);
+
+sub fix_template_albumless {
+    # This hook was submitted by Maximilian Gaﬂ <mxey@cloudconnected.org>.
+    # It applies another template, if arename.pl could not read an album
+    # tag in file, that is currently processed.
+    my($namespace, $templateref, $datref) = @_;
+
+    unless($datref->{album}) {
+        $$templateref = "&artist/&tracktitle";
+    }
+}
+register_hook('pre_expand_template', \&fix_template_albumless);
