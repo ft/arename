@@ -235,6 +235,24 @@ Switches on verbosity by default. (default value: I<off>)
 
 =back
 
+=head2 User defined variables
+
+You can use the B<set> command in arenamerc files. This way the user can
+define his own variables. The namespace is seperate from B<arename.pl's>
+normal settings. (That means, you cannot, for example,  overwrite the
+internal I<template> variable with this command.)
+
+B<set> I<varname> = I<value>
+
+There may be an arbitrary amount of whitespace around the equal sign
+(including no whitespace at all). If you want to have a value that
+starts in a whitespace character, you may start the value with a
+backslash character (just like with the template settings, a leading
+backslash is always ignored).
+
+User defined variables are useful to make hooks configurable (see
+L<HOOKS|arename> below).
+
 =head1 TEMPLATE FORMAT
 
 B<arename.pl>'s templates are quite simple, yet powerful.
@@ -349,6 +367,15 @@ if requested (see 'Utility subroutines' below).
 The keys in various data hashes passed to the hooks can be one of
 the following: I<album>, I<artist>, I<compilation>, I<genre>,
 I<tracknumber>, I<tracktitle>, I<year>.
+
+Hooks can also use the data from user defined variables, by using
+their Perl interface (I<user_get>() and I<user_set>()):
+
+  # Assume, the user set the myvar-variable to "bar"
+  my $foo = user_get('myvar');    # $foo is now "bar"
+  user_set('foo', "bar, baz");
+  my $foo = user_get('myvar');    # $foo is now "bar, baz"
+
 
 =head2 Utility subroutines
 
