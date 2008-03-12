@@ -1,3 +1,10 @@
+1.3 -> 1.4
+    + Fix installation procedure
+1.2 -> 1.3
+    + Fix reaction to broken 'set' calls
+1.1 -> 1.2
+    + fix_template_albumless() hook supplied by Maximilian Gaß
+    + user defined variables via 'set' command
 1.0 -> 1.1
     + introduce hooks
     + read filenames from stdin (if requested)
