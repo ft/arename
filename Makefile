@@ -14,7 +14,7 @@ all:
 	@printf 'Makefile targets intended for users:\n'
 	@printf '  all            this text\n'
 	@printf '  install        install both scripts and the module\n'
-	@printf '  install-doc    install html and nroff manual\n'
+	@printf '  install-doc    install all documentation\n'
 	@printf '\nAll other targets are not for you. Stay away!\n'
 
 dev-help: all
@@ -53,12 +53,20 @@ install:
 	@$(install) -oroot -groot -m0755 -D ARename.pm "$(prefix)/$(libpath)"
 
 install-doc: doc
+	@printf 'Installing README        to %s\n' "$(prefix)/share/doc/arename"
+	@$(install) -oroot -groot -m0644 -D README "$(prefix)/share/doc/arename"
+	@printf 'Installing LICENCE       to %s\n' "$(prefix)/share/doc/arename"
+	@$(install) -oroot -groot -m0644 -D LICENCE "$(prefix)/share/doc/arename"
+	@printf 'Installing CHANGES       to %s\n' "$(prefix)/share/doc/arename"
+	@$(install) -oroot -groot -m0644 -D CHANGES "$(prefix)/share/doc/arename"
 	@printf 'Installing arename.1     to %s\n' "$(prefix)/share/man/man1"
 	@$(install) -oroot -groot -m0644 -D arename.1 "$(prefix)/share/man/man1/"
 	@printf 'Installing arename.html  to %s\n' "$(prefix)/share/doc/arename"
 	@$(install) -oroot -groot -m0644 -D arename.html "$(prefix)/share/doc/arename/examples"
 	@printf 'Installing arename.hooks to %s\n' "$(prefix)/share/doc/arename/examples"
 	@$(install) -oroot -groot -m0644 -D arename.hooks "$(prefix)/share/doc/arename/examples"
+	@printf 'Installing _arename      to %s\n' "$(prefix)/share/doc/arename/examples"
+	@$(install) -oroot -groot -m0644 -D _arename "$(prefix)/share/doc/arename/examples"
 
 updateweb:
 	@printf 'Updating webpages...\n'
