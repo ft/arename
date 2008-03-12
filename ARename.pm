@@ -24,7 +24,7 @@ use Audio::FLAC::Header;
 
 #}}}
 # variables {{{
-my ( %conf, %defaults, %hooks, %methods, %opts, %parsers, $postproc, @supported_tags );
+my ( %conf, %defaults, %hooks, %methods, %opts, %sets, %parsers, $postproc, @supported_tags );
 my ( $NAME, $VERSION ) = ( 'unset', 'unset' );
 
 @supported_tags = (
@@ -368,6 +368,7 @@ err:
     '^quiet$'         => \&parse_bool,
     '^quiet_skip$'    => \&parse_bool,
     '^sepreplace$'    => \&parse_generic,
+    '^set$'           => \&parse_set,
     '^template$'      => \&parse_generic,
     '^tnpad$'         => \&parse_generic,
     '^usehooks$'      => \&parse_bool,
@@ -438,6 +439,18 @@ sub parse_bool { #{{{
     }
 
     set_opt($key, $val);
+}
+#}}}
+sub parse_set { #{{{
+    my ($file, $lnum, $count, $key, $val) = @_;
+
+    my ($name, $value) = $val =~ m/\s*(\w+)\s*=\s*\\?(.*)/;
+
+    if (get_opt("verbose")) {
+        oprint("user setting \"$name\" = '$value'\n");
+    }
+
+    user_set($name, $value);
 }
 #}}}
 
@@ -827,6 +840,18 @@ sub set_opt { #{{{
     my ($opt, $val) = @_;
 
     $conf{$opt} = $val;
+}
+#}}}
+sub user_get { #{{{
+    my ($opt) = @_;
+
+    return $sets{$opt}
+}
+#}}}
+sub user_set { #{{{
+    my ($opt, $val) = @_;
+
+    $sets{$opt} = $val;
 }
 #}}}
 
