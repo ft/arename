@@ -397,6 +397,24 @@ sub parse { #{{{
     return 0;
 }
 #}}}
+sub parse_bool { #{{{
+    my ($file, $lnum, $count, $key, $val) = @_;
+
+    if (!defined $val || $val eq ''
+       || $val =~ m/^true$/i || $val eq '1') {
+
+        $val = 1;
+    } else {
+        $val = 0;
+    }
+
+    if (get_opt("verbose")) {
+        oprint("boolean option \"$key\" = '" . ($val ? 'true' : 'false' ) . "'\n");
+    }
+
+    set_opt($key, $val);
+}
+#}}}
 sub parse_defaultvalues { #{{{
     my ($file, $lnum, $count, $key, $val) = @_;
 
@@ -418,24 +436,6 @@ sub parse_generic { #{{{
 
     if (get_opt("verbose")) {
         oprint("generic option \"$key\" = '$val'\n");
-    }
-
-    set_opt($key, $val);
-}
-#}}}
-sub parse_bool { #{{{
-    my ($file, $lnum, $count, $key, $val) = @_;
-
-    if (!defined $val || $val eq ''
-       || $val =~ m/^true$/i || $val eq '1') {
-
-        $val = 1;
-    } else {
-        $val = 0;
-    }
-
-    if (get_opt("verbose")) {
-        oprint("boolean option \"$key\" = '" . ($val ? 'true' : 'false' ) . "'\n");
     }
 
     set_opt($key, $val);
