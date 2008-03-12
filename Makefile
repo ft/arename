@@ -46,27 +46,32 @@ distclean: clean
 
 install:
 	@printf 'Installing arename.pl    to %s\n' "$(prefix)/bin"
-	@$(install) -oroot -groot -m0755 -D arename.pl "$(prefix)/bin"
+	@$(install) -oroot -groot -m0755 -d "$(prefix)/bin"
+	@$(install) -oroot -groot -m0755 arename.pl "$(prefix)/bin"
 	@printf 'Installing ataglist.pl   to %s\n' "$(prefix)/bin"
-	@$(install) -oroot -groot -m0755 -D ataglist.pl "$(prefix)/bin"
+	@$(install) -oroot -groot -m0755 ataglist.pl "$(prefix)/bin"
 	@printf 'Installing ARename.pm    to %s\n' "$(prefix)/$(libpath)/"
-	@$(install) -oroot -groot -m0755 -D ARename.pm "$(prefix)/$(libpath)"
+	@$(install) -oroot -groot -m0755 -d "$(prefix)/$(libpath)"
+	@$(install) -oroot -groot -m0644 ARename.pm "$(prefix)/$(libpath)"
 
 install-doc: doc
 	@printf 'Installing README        to %s\n' "$(prefix)/share/doc/arename"
-	@$(install) -oroot -groot -m0644 -D README "$(prefix)/share/doc/arename"
+	@$(install) -oroot -groot -m0755 -d "$(prefix)/share/doc/arename"
+	@$(install) -oroot -groot -m0644 README "$(prefix)/share/doc/arename"
 	@printf 'Installing LICENCE       to %s\n' "$(prefix)/share/doc/arename"
-	@$(install) -oroot -groot -m0644 -D LICENCE "$(prefix)/share/doc/arename"
+	@$(install) -oroot -groot -m0644 LICENCE "$(prefix)/share/doc/arename"
 	@printf 'Installing CHANGES       to %s\n' "$(prefix)/share/doc/arename"
-	@$(install) -oroot -groot -m0644 -D CHANGES "$(prefix)/share/doc/arename"
-	@printf 'Installing arename.1     to %s\n' "$(prefix)/share/man/man1"
-	@$(install) -oroot -groot -m0644 -D arename.1 "$(prefix)/share/man/man1/"
+	@$(install) -oroot -groot -m0644 CHANGES "$(prefix)/share/doc/arename"
 	@printf 'Installing arename.html  to %s\n' "$(prefix)/share/doc/arename"
-	@$(install) -oroot -groot -m0644 -D arename.html "$(prefix)/share/doc/arename/examples"
+	@$(install) -oroot -groot -m0644 arename.html "$(prefix)/share/doc/arename"
+	@printf 'Installing arename.1     to %s\n' "$(prefix)/share/man/man1"
+	@$(install) -oroot -groot -m0755 -d "$(prefix)/share/man/man1"
+	@$(install) -oroot -groot -m0644 arename.1 "$(prefix)/share/man/man1"
 	@printf 'Installing arename.hooks to %s\n' "$(prefix)/share/doc/arename/examples"
-	@$(install) -oroot -groot -m0644 -D arename.hooks "$(prefix)/share/doc/arename/examples"
+	@$(install) -oroot -groot -m0755 -d "$(prefix)/share/doc/arename/examples"
+	@$(install) -oroot -groot -m0644 arename.hooks "$(prefix)/share/doc/arename/examples"
 	@printf 'Installing _arename      to %s\n' "$(prefix)/share/doc/arename/examples"
-	@$(install) -oroot -groot -m0644 -D _arename "$(prefix)/share/doc/arename/examples"
+	@$(install) -oroot -groot -m0644 _arename "$(prefix)/share/doc/arename/examples"
 
 updateweb:
 	@printf 'Updating webpages...\n'
