@@ -63,10 +63,19 @@ sub fix_template_albumless {
     # This hook was submitted by Maximilian Gaﬂ <mxey@cloudconnected.org>.
     # It applies another template, if arename.pl could not read an album
     # tag in file, that is currently processed.
+    #
+    # ft: adding support user defined variable 'albumless_template'.
+    # That way, you can do in your arenamerc file:
+    #    set albumless_template = &artist/&tracknumber - &tracktitle
+    # While '&artist/&tracktitle' remains the default, if you didn't.
     my($namespace, $templateref, $datref) = @_;
 
     unless($datref->{album}) {
-        $$templateref = "&artist/&tracktitle";
+        my $altemplate = user_get('albumless_template');
+
+        $$templateref = defined $altemplate
+                            ? $altemplate
+                            : "&artist/&tracktitle";
     }
 }
 register_hook('pre_expand_template', \&fix_template_albumless);
