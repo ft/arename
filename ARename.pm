@@ -445,6 +445,10 @@ sub parse_set { #{{{
     my ($file, $lnum, $count, $key, $val) = @_;
 
     my ($name, $value) = $val =~ m/\s*(\w+)\s*=\s*\\?(.*)/;
+    if (!defined $name || !defined $value) {
+        owarn("Broken user setting: ($val)\n");
+        return;
+    }
 
     if (get_opt("verbose")) {
         oprint("user setting \"$name\" = '$value'\n");
