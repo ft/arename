@@ -24,10 +24,11 @@ use Audio::FLAC::Header;
 
 #}}}
 # variables {{{
-my ( %conf, %defaults, %hooks, %methods, %opts, %sets, %parsers, $postproc, $shutup, @supported_tags, @settables );
+my ( %conf, %defaults, %hooks, %methods, %opts, %sets, %parsers, $postproc, $sect, $shutup, @settables, @supported_tags );
 my ( $NAME, $VERSION ) = ( 'unset', 'unset' );
 
 $shutup = 0;
+$sect = undef;
 
 @supported_tags = (
     'album',        'artist',
@@ -376,6 +377,7 @@ err:
 
 %parsers = (
 #{{{
+    '^\s*\[.*\]\s*$'  => \&parse_new_section,
     '^comp_template$' => \&parse_generic,
     '^default_.*$'    => \&parse_defaultvalues,
     '^hookerrfatal$'  => \&parse_bool,
@@ -454,6 +456,23 @@ sub parse_generic { #{{{
     }
 
     set_opt($key, $val);
+}
+#}}}
+sub parse_new_section { #{{{
+    my ($file, $lnum, $count, $key, $val) = @_;
+
+    my ($s) = $key =~ m/^\s*\[(.*)\]\s*$/;
+
+    if (!defined $s) {
+        owarn("Broken section start: ($key)\n");
+        return;
+    }
+
+    $sect = $s;
+
+    if (get_opt("verbose")) {
+        oprint("Switching section: \"$sect\"\n");
+    }
 }
 #}}}
 sub parse_set { #{{{
