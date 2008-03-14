@@ -933,7 +933,9 @@ sub section_matches { #{{{
         return undef;
     }
 
-    foreach my $section (keys %sectconf) {
+    # The block in the sort call makes sure we always get the longest
+    # section names first; that way /foo/bar/ supersedes /foo/.
+    foreach my $section (sort { length $b <=> length $a } keys %sectconf) {
         my $substring = substr($filename, 0, length $section);
         #print "DEBUG: <$section> ($filename) eq [generated from $filename] ($substring)\n";
 
