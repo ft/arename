@@ -81,22 +81,24 @@ sub apply_defaults { #{{{
 }
 #}}}
 sub arename { #{{{
-    my ($file, $datref, $ext) = @_;
+    my ($datref, $ext) = @_;
     my ($t, $newname);
 
-    run_hook('pre_apply_defaults', \$file, $datref, \$ext);
+    my $file = get_file();
+
+    run_hook('pre_apply_defaults', $datref, \$ext);
 
     apply_defaults($datref);
     arename_verbosity($datref);
 
-    run_hook('pre_template', \$file, $datref, \$ext);
+    run_hook('pre_template', $datref, \$ext);
 
     $t = choose_template($datref);
     $newname = expand_template($t, $datref);
     return if not defined $newname;
     $newname = get_opt("prefix") . '/' . $newname . '.' . $ext;
 
-    run_hook('post_template', \$file, $datref, \$ext, \$newname);
+    run_hook('post_template', $datref, \$ext, \$newname);
 
     if (file_eq($newname, $file)) {
         if (get_opt("quiet")) {
@@ -117,7 +119,7 @@ sub arename { #{{{
 
     ensure_dir(dirname($newname));
 
-    run_hook('post_ensure_dir', \$file, $datref, \$ext, \$newname);
+    run_hook('post_ensure_dir', $datref, \$ext, \$newname);
 
     if (get_opt("quiet")) {
         print "'$newname'\n";
@@ -129,7 +131,7 @@ sub arename { #{{{
         xrename($file, $newname);
     }
 
-    run_hook('post_rename', \$file, $datref, \$ext, \$newname);
+    run_hook('post_rename', $datref, \$ext, \$newname);
 }
 #}}}
 sub arename_verbosity { #{{{
@@ -550,10 +552,11 @@ sub handle_vorbistag { #{{{
 }
 #}}}
 sub process_flac { #{{{
-    my ($file) = @_;
     my ($flac, %data, $tags);
 
-    run_hook('pre_process_flac', \$file);
+    my $file = get_file();
+
+    run_hook('pre_process_flac');
 
     $flac = Audio::FLAC::Header->new($file);
 
@@ -569,16 +572,17 @@ sub process_flac { #{{{
         handle_vorbistag(\%data, $tag, $tags->{$tag});
     }
 
-    $postproc->($file, \%data, 'flac');
+    $postproc->(\%data, 'flac');
 
-    run_hook('post_process_flac', \$file);
+    run_hook('post_process_flac');
 }
 #}}}
 sub process_mp3 { #{{{
-    my ($file) = @_;
     my ($mp3, %data, $info);
 
-    run_hook('pre_process_mp3', \$file);
+    my $file = get_file();
+
+    run_hook('pre_process_mp3');
 
     $mp3 = MP3::Tag->new($file);
 
@@ -620,16 +624,17 @@ sub process_mp3 { #{{{
 
     $mp3->close();
 
-    $postproc->($file, \%data, 'mp3');
+    $postproc->(\%data, 'mp3');
 
-    run_hook('post_process_mp3', \$file);
+    run_hook('post_process_mp3');
 }
 #}}}
 sub process_ogg { #{{{
-    my ($file) = @_;
     my ($ogg, %data, @tags);
 
-    run_hook('pre_process_ogg', \$file);
+    my $file = get_file();
+
+    run_hook('pre_process_ogg');
 
     $ogg = Ogg::Vorbis::Header->load($file);
 
@@ -645,13 +650,13 @@ sub process_ogg { #{{{
         handle_vorbistag(\%data, $tag, join(' ', $ogg->comment($tag)));
     }
 
-    $postproc->($file, \%data, 'ogg');
+    $postproc->(\%data, 'ogg');
 
-    run_hook('post_process_ogg', \$file);
+    run_hook('post_process_ogg');
 }
 #}}}
 sub process_warn { #{{{
-    my ($file) = @_;
+    my $file = get_file();
 
     owarn("No method for handling \"$file\".\n");
 }
@@ -660,7 +665,9 @@ sub process_warn { #{{{
 sub process_file { #{{{
     my ($file) = @_;
 
-    run_hook('next_file_early', \$file);
+    set_file($file);
+
+    run_hook('next_file_early');
 
     if (!get_opt("quiet")) {
         print "Processing: $file\n";
@@ -674,26 +681,27 @@ sub process_file { #{{{
         return;
     }
 
-    set_file($file);
-    run_hook('next_file_late', \$file);
+    run_hook('next_file_late');
 
-    if (!apply_methods($file, 0)) {
-        run_hook('filetype_unknown', \$file);
-        process_warn($file);
+    if (!apply_methods(0)) {
+        run_hook('filetype_unknown');
+        process_warn();
     } else {
-        run_hook('file_done', \$file);
+        run_hook('file_done');
     }
 }
 #}}}
 
 sub apply_methods { #{{{
-    my ($file, $exit) = @_;
+    my ($exit) = @_;
+
+    my $file = get_file();
 
     foreach my $method (sort keys %methods) {
         if ($file =~ m/$method/i) {
-            run_hook('pre_method', \$file, \$method);
+            run_hook('pre_method', \$method);
             $methods{$method}->($file);
-            run_hook('post_method', \$file, \$method);
+            run_hook('post_method', \$method);
             if ($exit) {
                 exit 0;
             } else {
@@ -791,60 +799,15 @@ sub read_cmdline_options { #{{{
         exit 0;
     }
 
-    set_opt("verbose", 1) if (cmdopts('v'));
-    set_opt("quiet", 1) if (cmdopts('q'));
-    set_opt("quiet_skip", 1) if (cmdopts('Q'));
-    set_opt("force", 1) if (cmdopts('f'));
-}
-#}}}
-sub set_cmdline_options { #{{{
-    my ($argc) = @_;
-
-    set_opt("readstdin", 1) if (cmdopts('s'));
-
-    die "No input files. See: $NAME -h\n"
-        if ($argc == -1 && !get_opt("readstdin") && !cmdopts('L'));
-
-    die "verbose and quiet set at the same time. Check your config.\n"
-        if (get_opt("verbose") && (get_opt("quiet") || get_opt("quiet_skip")));
-
-    if (cmdopts('v')) {
-        set_opt("verbose", 1);
-        set_opt("quiet", 0);
-    }
-
-    if (cmdopts('q')) {
-        set_opt("quiet", 1);
-        set_opt("verbose", 0);
-    }
-
-    set_opt("quiet", 1) if (get_opt("quiet_skip") && !get_opt("quiet"));
-
-    if (cmdopts('Q')) {
-        set_opt("quiet", 1) if (!get_opt("quiet"));
-        set_opt("verbose", 0) if (get_opt("verbose"));
-        set_opt("quiet_skip", 1);
-    }
-
-    # XXX:
-    # cmdline options, if given, should overwrite the values in *all*
-    # subsections from the config files!
-    #
-    # Make set_opt() check appropriate cmdopts() before actually setting
-    # things. That should greatly improve the option setting logics.
-    set_opt("force", 1) if (cmdopts('f'));
-    set_opt("prefix", cmdoptstr('p')) if (cmdopts('p'));
-    set_opt("template", cmdoptstr('t')) if (cmdopts('t'));
-    set_opt("comp_template", cmdoptstr('T')) if (cmdopts('T'));
-    set_opt("dryrun", 1) if (cmdopts('d'));
+    __set_opt("verbose", 1) if (cmdopts('v'));
+    __set_opt("quiet", 1) if (cmdopts('q'));
+    __set_opt("quiet_skip", 1) if (cmdopts('Q'));
+    __set_opt("force", 1) if (cmdopts('f'));
+    __set_opt("dryrun", 1) if (cmdopts('d'));
+    __set_opt("template", cmdoptstr('t')) if (cmdopts('t'));
+    __set_opt("comp_template", cmdoptstr('T')) if (cmdopts('T'));
+    __set_opt("prefix", cmdoptstr('p')) if (cmdopts('p'));
     disable_hooks() if (cmdopts('H'));
-
-    if (cmdopts('L')) {
-        dump_config();
-        exit 0;
-    }
-
-    undef %opts;
 }
 #}}}
 sub set_default_options { #{{{
@@ -875,8 +838,6 @@ sub set_default_methods { #{{{
 }
 #}}}
 sub get_file { #{{{
-    # XXX: This should get used from now.
-    #      This requires a lot of clean up;
     return $__arename_file;
 }
 #}}}
@@ -982,6 +943,45 @@ sub get_opt { #{{{
 sub set_opt { #{{{
     my ($opt, $val) = @_;
 
+    my %opttab = (
+        force         => "f",
+        quiet         => "q",
+        quiet_skip    => "Q",
+        usehooks      => "H",
+        uselocalhooks => "H",
+        verbose       => "v"
+    );
+
+    if (
+        ($opt eq 'verbose' && $val == 1 && get_opt('quiet')) ||
+        ($opt eq 'quiet' && $val == 1 && get_opt('verbose'))
+       ) {
+
+        return if ($opt eq 'quiet' && cmdopts('v'));
+        return if ($opt eq 'verbose' && (cmdopts('q') || cmdopts('Q')));
+
+        die "verbose and quiet set at the same time. Check your config.\n";
+    }
+
+    if (!defined $opttab{$opt} || !cmdopts($opttab{$opt})) {
+        __set_opt($opt, $val);
+
+        if ($opt eq 'quiet_skip' && $val == 1 && !get_opt('quiet')) {
+            __set_opt('quiet', 1);
+        }
+    } else {
+        #print "DEBUG: (-$opttab{$opt}) given on the cmdline, not touching $opt (will not set to $val).\n";
+    }
+}
+#}}}
+sub __set_opt { #{{{
+    my ($opt, $val) = @_;
+
+    if (defined $sect && !is_locopt($opt)) {
+        owarn("\"$opt\" is *not* a localizable setting (will not set to $val).\n");
+        return;
+    }
+
     my $s = sect_get();
     if (!defined $s) {
         #print "DEBUG: set_opt() ($opt) = ($val)\n";
@@ -1007,8 +1007,8 @@ sub user_set { #{{{
 #}}}
 
 sub disable_hooks { #{{{
-    set_opt("usehooks", 0);
-    set_opt("uselocalhooks", 0);
+    __set_opt("usehooks", 0);
+    __set_opt("uselocalhooks", 0);
 }
 #}}}
 sub __read_hook_file { #{{{

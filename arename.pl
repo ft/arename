@@ -748,7 +748,12 @@ ARename::set_nameversion($NAME, $VERSION);
 ARename::set_default_options();
 ARename::read_cmdline_options();
 ARename::read_rcs();
-ARename::set_cmdline_options($#ARGV);
+
+if (ARename::cmdopts('L')) {
+    ARename::dump_config();
+    exit 0;
+}
+
 ARename::read_hook_files();
 ARename::set_default_methods();
 ARename::startup_hook();

@@ -11,10 +11,10 @@ use warnings;
 use strict;
 use ARename;
 
-my ( $NAME, $VERSION ) = ( 'ataglist.pl', 'v0.5' );
+my ( $NAME, $VERSION ) = ( 'ataglist.pl', 'v0.6' );
 
 sub list {
-    my ($file, $datref, $ext) = @_;
+    my ($datref, $ext) = @_;
 
     foreach my $tag (sort keys %$datref) {
         if (defined $datref->{$tag} && $datref->{$tag} ne '') {
@@ -39,6 +39,7 @@ ARename::set_postproc(\&main::list);
 ARename::set_default_methods();
 ARename::disable_hooks();
 ARename::set_opt("oprefix", "");
-ARename::apply_methods($file, 1);
+ARename::set_file($file);
+ARename::apply_methods(1);
 
 die "No method for handling \"$file\".\n";
