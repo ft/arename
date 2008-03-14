@@ -24,11 +24,25 @@ use Audio::FLAC::Header;
 
 #}}}
 # variables {{{
-my ( %conf, %defaults, %hooks, %methods, %opts, %sets, %parsers, $postproc, $sect, $shutup, @settables, @supported_tags );
+my (
+    %conf, %defaults, %hooks, %methods, %parsers, %opts, %sectconf, %sets,
+    $__arename_file, $postproc, $sect, $shutup,
+    @localizables, @settables, @supported_tags
+);
 my ( $NAME, $VERSION ) = ( 'unset', 'unset' );
 
 $shutup = 0;
-$sect = undef;
+sect_reset();
+
+# settings that may occur in [sections]
+@localizables = (
+    "force",
+    "prefix",
+    "sepreplace",
+    "tnpad",
+    "comp_template",
+    "template"
+);
 
 @supported_tags = (
     'album',        'artist',
@@ -468,10 +482,10 @@ sub parse_new_section { #{{{
         return;
     }
 
-    $sect = $s;
+    sect_set($s);
 
     if (get_opt("verbose")) {
-        oprint("Switching section: \"$sect\"\n");
+        oprint("Switching section: \"$s\"\n");
     }
 }
 #}}}
@@ -660,6 +674,7 @@ sub process_file { #{{{
         return;
     }
 
+    set_file($file);
     run_hook('next_file_late', \$file);
 
     if (!apply_methods($file, 0)) {
@@ -704,6 +719,7 @@ sub cmdopts { #{{{
         return 0 if (!defined $opts{$opt});
     }
 
+    #print "DEBUG: @_ options given!\n";
     return 1;
 }
 #}}}
@@ -732,6 +748,7 @@ sub read_rcs { #{{{
     }
 
     if (-r "./.arename.local") {
+        sect_reset();
         $rc = "./.arename.local";
         $retval = rcload($rc, "local configuration");
         if ($retval < 0) {
@@ -740,6 +757,8 @@ sub read_rcs { #{{{
             warn "Error opening local configuration.\n";
         }
     }
+
+    sect_reset();
 }
 #}}}
 sub read_cmdline_options { #{{{
@@ -804,6 +823,9 @@ sub set_cmdline_options { #{{{
         set_opt("quiet_skip", 1);
     }
 
+    # XXX:
+    # cmdline options, if given, should overwrite the values in *all*
+    # subsections from the config files!
     set_opt("force", 1) if (cmdopts('f'));
     set_opt("prefix", cmdoptstr('p')) if (cmdopts('p'));
     set_opt("template", cmdoptstr('t')) if (cmdopts('t'));
@@ -846,6 +868,16 @@ sub set_default_methods { #{{{
     );
 }
 #}}}
+sub get_file { #{{{
+    # XXX: This should get used from now.
+    #      This requires a lot of clean up;
+    return $__arename_file;
+}
+#}}}
+sub set_file { #{{{
+    $__arename_file = $_[0];
+}
+#}}}
 sub set_nameversion { #{{{
     my ($n, $v) = @_;
 
@@ -876,18 +908,83 @@ sub usage { #{{{
 }
 #}}}
 
-sub get_opt { #{{{
+sub is_locopt { #{{{
     my ($opt) = @_;
 
-    return $conf{$opt}
+    foreach my $lo (@localizables) {
+        if ($lo eq $opt) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+#}}}
+sub section_matches { #{{{
+    my ($filename) = @_;
+
+    if (!defined $filename) {
+        return undef;
+    }
+
+    foreach my $section (keys %sectconf) {
+        my $substring = substr($filename, 0, length $section);
+        #print "DEBUG: <$section> ($filename) eq [generated from $filename] ($substring)\n";
+
+        if ($substring eq $section) {
+            #print "DEBUG: $section MATCHED! returning it.\n";
+            return $section;
+        }
+    }
+
+    return undef;
+}
+#}}}
+sub sect_get { #{{{
+    return $sect;
+}
+#}}}
+sub sect_set { #{{{
+    $sect = $_[0];
+}
+#}}}
+sub sect_reset { #{{{
+    $sect = undef;
+}
+#}}}
+
+sub get_opt { #{{{
+    my ($opt) = @_;
+    my ($section) = (undef);
+
+    #print "DEBUG: GET OPTION ($opt)\n";
+    if (is_locopt($opt)) {
+        $section = section_matches(get_file());
+    }
+
+    if (defined $section && $sectconf{$section}{$opt}) {
+        #print "DEBUG: returning $conf{$opt} (section: $section)\n";
+        return $sectconf{$section}{$opt};
+    } else {
+        #print "DEBUG: returning $conf{$opt}\n";
+        return $conf{$opt};
+    }
 }
 #}}}
 sub set_opt { #{{{
     my ($opt, $val) = @_;
 
-    $conf{$opt} = $val;
+    my $s = sect_get();
+    if (!defined $s) {
+        #print "DEBUG: set_opt() ($opt) = ($val)\n";
+        $conf{$opt} = $val;
+    } else {
+        #print "DEBUG: set_opt() ($opt) = ($val) [$s]\n";
+        $sectconf{$s}{$opt} = $val;
+    }
 }
 #}}}
+
 sub user_get { #{{{
     my ($opt) = @_;
 
