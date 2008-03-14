@@ -32,7 +32,6 @@ my (
 my ( $NAME, $VERSION ) = ( 'unset', 'unset' );
 
 $shutup = 0;
-sect_reset();
 
 # settings that may occur in [sections]
 @localizables = (
@@ -763,6 +762,9 @@ sub read_rcs { #{{{
 }
 #}}}
 sub read_cmdline_options { #{{{
+
+    sect_reset();
+
     if ($#main::ARGV == -1) {
         $opts{h} = 1;
     } else {
@@ -827,6 +829,9 @@ sub set_cmdline_options { #{{{
     # XXX:
     # cmdline options, if given, should overwrite the values in *all*
     # subsections from the config files!
+    #
+    # Make set_opt() check appropriate cmdopts() before actually setting
+    # things. That should greatly improve the option setting logics.
     set_opt("force", 1) if (cmdopts('f'));
     set_opt("prefix", cmdoptstr('p')) if (cmdopts('p'));
     set_opt("template", cmdoptstr('t')) if (cmdopts('t'));
