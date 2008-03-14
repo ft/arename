@@ -482,6 +482,7 @@ sub parse_new_section { #{{{
         return;
     }
 
+    $s =~ s/^~\//$ENV{HOME}\//;
     sect_set($s);
 
     if (get_opt("verbose")) {
