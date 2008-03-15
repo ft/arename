@@ -808,6 +808,10 @@ sub read_cmdline_options { #{{{
     __set_opt("comp_template", cmdoptstr('T')) if (cmdopts('T'));
     __set_opt("prefix", cmdoptstr('p')) if (cmdopts('p'));
     disable_hooks() if (cmdopts('H'));
+
+    if ($#main::ARGV < 0 && !cmdopts('L')) {
+        die "No input files given; try " . basename($main::0) . " -h.\n";
+    }
 }
 #}}}
 sub set_default_options { #{{{
@@ -1125,14 +1129,13 @@ sub dump_config { #{{{
         print "set $key = " . dump_string($sets{$key}) . "\n";
     }
 
-    # Support for ini-like sections (currently in a topic branch).
-    #foreach my $sect (sort keys %sectconf) {
-    #    print "\n[$sect]\n";
-    #
-    #    foreach my $key (sort keys %{ $sectconf{$sect} }) {
-    #        print "$key " . dump_string($sectconf{$sect}{$key}) . "\n";
-    #    }
-    #}
+    foreach my $sect (sort keys %sectconf) {
+        print "\n[$sect]\n";
+
+        foreach my $key (sort keys %{ $sectconf{$sect} }) {
+            print "$key " . dump_string($sectconf{$sect}{$key}) . "\n";
+        }
+    }
 
     exit 0;
 }
