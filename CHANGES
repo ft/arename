@@ -1,3 +1,17 @@
+1.4 -> 1.5
+    + adding section support in the configuration file (see manual
+      for details).
+    + The audio file's name is not handed around in subroutine arguments
+      anymore. It's available via get_file() and set_file() now. Thus
+      *all* hooks can access it now.
+    + Hooks for hanged arguments:
+        - pre_apply_defaults, pre_template, post_template, post_ensure_dir,
+          post_rename, pre_process_flac, post_process_flac,
+          pre_process_mp3, post_process_mp3, pre_process_ogg,
+          post_process_ogg, next_file_early, next_file_late,
+          filetype_unknown, file_done, pre_method, post_method
+        - All don't get the file name handed over anymore
+    + Adding -L option, which dumps the current configuration if supplied.
 1.3 -> 1.4
     + Fix installation procedure
 1.2 -> 1.3
