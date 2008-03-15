@@ -14,6 +14,7 @@ arguments=(
     '-t[define a generic template]:template:'
     '-f[overwrite file(s) if needed]'
     '-H[disable all hooks]'
+    '-L[list current configuration]'
     '-d[go into dry-run mode]'
     '-q[enable quiet output]'
     '-s[read filenames from stdin]'

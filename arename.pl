@@ -34,6 +34,10 @@ Display a short help text.
 
 Do not make use of hooks of any sort (neither global nor local ones).
 
+=item B<-L>
+
+List the current configuration in the actual configuration format.
+
 =item B<-q>
 
 Make the output way more quiet, when processing files.

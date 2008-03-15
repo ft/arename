@@ -24,8 +24,10 @@ use Audio::FLAC::Header;
 
 #}}}
 # variables {{{
-my ( %conf, %defaults, %hooks, %methods, %opts, %sets, %parsers, $postproc, @supported_tags );
+my ( %conf, %defaults, %hooks, %methods, %opts, %sets, %parsers, $postproc, $shutup, @supported_tags, @settables );
 my ( $NAME, $VERSION ) = ( 'unset', 'unset' );
+
+$shutup = 0;
 
 @supported_tags = (
     'album',        'artist',
@@ -33,6 +35,17 @@ my ( $NAME, $VERSION ) = ( 'unset', 'unset' );
     'genre',
     'tracknumber',  'tracktitle',
     'year'
+);
+
+@settables = (
+    'comp_template',
+    'hookerrfatal',
+    'prefix',
+    'quiet', 'quiet_skip',
+    'sepreplace',
+    'template', 'tnpad',
+    'usehooks', 'uselocalhooks',
+    'verbose'
 );
 
 $postproc = \&arename;
@@ -260,12 +273,14 @@ sub getdat { #{{{
 sub oprint { #{{{
     my ($string) = @_;
 
+    return if ($shutup);
     print get_opt("oprefix") . $string;
 }
 #}}}
 sub owarn { #{{{
     my ($string) = @_;
 
+    return if ($shutup);
     warn get_opt("oprefix") . $string;
 }
 #}}}
@@ -281,7 +296,7 @@ sub rcload { #{{{
         return 1;
     }
 
-    print "Reading \"$file\"...\n";
+    print "Reading \"$file\"...\n" if (!$shutup);
 
     while (my $line = <$fh>) {
         chomp($line);
@@ -712,11 +727,13 @@ sub read_cmdline_options { #{{{
     if ($#main::ARGV == -1) {
         $opts{h} = 1;
     } else {
-        if (!getopts('dfhHQqsVvp:T:t:', \%opts)) {
+        if (!getopts('dfhHLQqsVvp:T:t:', \%opts)) {
             checkstropts('t', 'T', 'p');
             die "    Try $NAME -h\n";
         }
     }
+
+    $shutup = 1 if (cmdopts('L'));
 
     if (cmdopts('h')) {
         usage();
@@ -745,7 +762,7 @@ sub set_cmdline_options { #{{{
     set_opt("readstdin", 1) if (cmdopts('s'));
 
     die "No input files. See: $NAME -h\n"
-        if ($argc == -1 && !get_opt("readstdin"));
+        if ($argc == -1 && !get_opt("readstdin") && !cmdopts('L'));
 
     die "verbose and quiet set at the same time. Check your config.\n"
         if (get_opt("verbose") && (get_opt("quiet") || get_opt("quiet_skip")));
@@ -774,6 +791,11 @@ sub set_cmdline_options { #{{{
     set_opt("comp_template", cmdoptstr('T')) if (cmdopts('T'));
     set_opt("dryrun", 1) if (cmdopts('d'));
     disable_hooks() if (cmdopts('H'));
+
+    if (cmdopts('L')) {
+        dump_config();
+        exit 0;
+    }
 
     undef %opts;
 }
@@ -822,6 +844,7 @@ sub usage { #{{{
     print "    -f                Overwrite files if needed.\n";
     print "    -H                Disable *all* hooks.\n";
     print "    -h                Display this help text.\n";
+    print "    -L                List current configuration.\n";
     print "    -Q                Don't display skips in quiet mode.\n";
     print "    -q                Enable quiet output.\n";
     print "    -s                Read file names from stdin.\n";
@@ -952,6 +975,42 @@ sub startup_hook { #{{{
         \%conf, \%methods,
         \@supported_tags, \@main::ARGV
     );
+}
+#}}}
+
+sub dump_string { #{{{
+    my ($s) = @_;
+
+    if ($s =~ m/^\s/) {
+        return "\\$s";
+    } else {
+        return "$s";
+    }
+}
+#}}}
+sub dump_config { #{{{
+    foreach my $setting (sort @settables) {
+        print "$setting " . dump_string($conf{$setting}) . "\n";
+    }
+
+    foreach my $default (sort keys %defaults) {
+        print "default_$default " . dump_string($defaults{$default}) . "\n";
+    }
+
+    foreach my $key (sort keys %sets) {
+        print "set $key = " . dump_string($sets{$key}) . "\n";
+    }
+
+    # Support for ini-like sections (currently in a topic branch).
+    #foreach my $sect (sort keys %sectconf) {
+    #    print "\n[$sect]\n";
+    #
+    #    foreach my $key (sort keys %{ $sectconf{$sect} }) {
+    #        print "$key " . dump_string($sectconf{$sect}{$key}) . "\n";
+    #    }
+    #}
+
+    exit 0;
 }
 #}}}
 
