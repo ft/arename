@@ -736,7 +736,7 @@ Please report bugs.
 
 #}}}
 
-my ( $NAME, $VERSION ) = ( 'arename.pl', 'v1.4' );
+my ( $NAME, $VERSION ) = ( 'arename.pl', 'v1.4+git' );
 
 # Initialisation {{{
 
