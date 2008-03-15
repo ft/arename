@@ -137,6 +137,18 @@ value. That makes it possible to define templates with leading whitespace.
 
 If a line consists of only one part, that means the setting is switched on.
 
+If a line contains only a string within square brackets, that string is the
+start of a section. Section names are matches for starts of file names.
+That means, the following settings are will only applied for input file
+names that start with the same string as the section name. Where file name
+means the string, handed over to B<arename.pl>. The string I<~/> at the
+beginning of a section name is expanded to the user's home directory.
+
+You may start as many sections as you would like.
+
+A section named I</foo/bar/> supersedes a section named I</foo/> for a file
+named I</foo/bar/baz.ogg>. So, the longest match wins.
+
 =head2 Configuration file example
 
   # switch on verbosity
@@ -144,6 +156,10 @@ If a line consists of only one part, that means the setting is switched on.
 
   # the author is crazy! use a sane template by default. :-)
   template &artist - &album (&year) - &tracknumber. &tracktitle
+
+  # force files from /foo/bar/ to stay below that directory
+  [/foo/bar/]
+  prefix /foo/bar
 
 =head2 Hook definition files
 
@@ -414,26 +430,26 @@ These hooks are called at the highest level of the script.
 
 Called at the start of the main loop I<before> any file checks are done.
 
-I<Arguments>: B<1:> file name
+I<Arguments>:
 
 =item B<next_file_late>
 
 Called in the main loop I<after> the file checks are done.
 
-I<Arguments>: B<1:> file name
+I<Arguments>:
 
 =item B<file_done>
 
 Called in the main loop I<after> the file has been processed.
 
-I<Arguments>: B<1:> file name
+I<Arguments>:
 
 =item B<filetype_unknown>
 
 Called in the main loop I<after> the file was tried to be processed but
 the file type (the extension, specifically) was unknown.
 
-I<Arguments>: B<1:> file name
+I<Arguments>:
 
 =back
 
@@ -450,13 +466,13 @@ in the process, see L<Hooks when expanding the template> below).
 This is the first action to be taken in the renaming process. It is
 called even before the default values are applied.
 
-I<Arguments>: B<1:> file name, B<2:> data hash, B<3:> file extension
+I<Arguments>: B<1:> data hash, B<2:> file extension
 
 =item B<pre_template>
 
 Called I<before> template expansions have been done.
 
-I<Arguments>: B<1:> file name, B<2:> data hash, B<3:> file extension
+I<Arguments>: B<1:> data hash, B<2:> file extension
 
 =item B<post_template>
 
@@ -464,7 +480,7 @@ Called I<after> the template has been expanded and the new file name
 has been completely generated (including the destination directory
 prefix).
 
-I<Arguments>: B<1:> file name, B<2:> data hash, B<3:> file extension
+I<Arguments>: B<1:> data hash, B<2:> file extension
 B<4:> the generated new filename (including directory prefix and file
 extension)
 
@@ -474,7 +490,7 @@ The destnation directory for the new file name may contain sub directories,
 which currently do not exist. This hook is called I<after> it is ensured,
 every directory portion exists.
 
-I<Arguments>: B<1:> file name, B<2:> data hash, B<3:> file extension
+I<Arguments>: B<1:> data hash, B<2:> file extension
 B<4:> the generated new filename (including directory prefix and file
 extension)
 
@@ -483,7 +499,7 @@ extension)
 This is the final hook in the actual renaming process. The file has been
 renamed at this point.
 
-I<Arguments>: B<1:> file name, B<2:> data hash, B<3:> file extension
+I<Arguments>: B<1:> data hash, B<2:> file extension
 B<4:> the generated new filename (including directory prefix and file
 extension)
 
@@ -553,7 +569,7 @@ I<.flac only!>
 
 Called I<before> a flac file is processed.
 
-I<Arguments>: B<1:> file name
+I<Arguments>:
 
 =item B<post_process_flac>
 
@@ -561,7 +577,7 @@ I<.flac only!>
 
 Called I<after> a flac file is processed.
 
-I<Arguments>: B<1:> file name
+I<Arguments>:
 
 =item B<pre_process_ogg>
 
@@ -569,7 +585,7 @@ I<.ogg only!>
 
 Called I<before> an ogg file is processed.
 
-I<Arguments>: B<1:> file name
+I<Arguments>:
 
 =item B<post_process_ogg>
 
@@ -577,7 +593,7 @@ I<.ogg only!>
 
 Called I<after> an ogg file is processed.
 
-I<Arguments>: B<1:> file name
+I<Arguments>:
 
 =item B<pre_handle_vorbistag>
 
@@ -603,7 +619,7 @@ I<.mp3 only!>
 
 Called I<before> an mp3 file is processed.
 
-I<Arguments>: B<1:> file name
+I<Arguments>:
 
 =item B<post_process_mp3>
 
@@ -611,7 +627,7 @@ I<.mp3 only!>
 
 Called I<after> an mp3 file is processed.
 
-I<Arguments>: B<1:> file name
+I<Arguments>:
 
 =item B<pre_handle_mp3tag>
 
@@ -648,13 +664,13 @@ I<Arguments>: B<1:> data hash, B<2:> defaults hash, B<3:> current key
 This hook is called after a method for a file type is choosen but
 I<before> the method was executed.
 
-I<Arguments>: B<1:> file name, B<2:> method name
+I<Arguments>: B<1:> method name
 
 =item B<post_method>
 
 Called after a method for a file type was executed.
 
-I<Arguments>: B<1:> file name, B<2:> method name
+I<Arguments>: B<1:> method name
 
 =item B<startup>
 
