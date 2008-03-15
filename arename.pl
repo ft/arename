@@ -396,6 +396,10 @@ their Perl interface (I<user_get>() and I<user_set>()):
   user_set('foo', "bar, baz");
   my $foo = user_get('myvar');    # $foo is now "bar, baz"
 
+The currently processed file name can be accessed via two subroutines:
+I<get_file()> and I<set_file()>. That way, you could even change the
+file name of the processed file, while I<arename.pl> works on it (which
+you really should only do, if you know what you are doing).
 
 =head2 Utility subroutines
 
