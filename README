@@ -50,3 +50,11 @@ ZSH COMPLETION
     % exec zsh
 
   Done.
+
+
+TODO
+    + -C and -c for additional config file/file instead of
+      ~/.arenamerc (v1.5)
+    + uselocalrc setting (v1.5)
+    + code refactoring; possible split of ARename.pm (v2.0)
+    + test suite (v1.6)
