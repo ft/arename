@@ -421,6 +421,7 @@ err:
     '^tnpad$'         => \&parse_generic,
     '^usehooks$'      => \&parse_bool,
     '^uselocalhooks$' => \&parse_bool,
+    '^uselocalrc$'    => \&parse_bool,
     '^verbose$'       => \&parse_bool
 );
 #}}}
