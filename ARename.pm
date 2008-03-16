@@ -300,7 +300,7 @@ sub owarn { #{{{
     warn get_opt("oprefix") . $string;
 }
 #}}}
-sub rcload { #{{{
+sub __rcload { #{{{
     my ($file, $desc) = @_;
     my ($fh, $retval);
     my $count = 0;
@@ -344,6 +344,20 @@ sub rcload { #{{{
     oprint("Read $desc.\n");
     oprint("$count valid items.\n");
     return 0;
+}
+#}}}
+sub rcload { #{{{
+    my ($file, $desc) = @_;
+    my ($retval);
+
+    $retval = __rcload($rc, $desc);
+
+    if ($retval < 0) {
+        die "Error(s) in \"$rc\". Aborting.\n";
+    } elsif ($retval > 0) {
+        warn "Error opening configuration; using defaults.\n";
+    }
+
 }
 #}}}
 sub tag_supported { #{{{
@@ -751,7 +765,7 @@ sub read_rcs { #{{{
     $rc = $ENV{HOME} . "/.arenamerc";
     $rc = cmdoptstr('c') if (cmdopts('c'));
 
-    $retval = rcload($rc, "arename.pl configuration");
+    $retval = rcload($rc, "main configuration");
 
     if ($retval < 0) {
         die "Error(s) in \"$rc\". Aborting.\n";
@@ -763,23 +777,12 @@ sub read_rcs { #{{{
         sect_reset();
         $rc = cmdoptstr('C');
         $retval = rcload($rc, "additional configuration");
-
-        if ($retval < 0) {
-            die "Error(s) in \"$rc\". Aborting.\n";
-        } elsif ($retval > 0) {
-            warn "Error opening additional configuration.\n";
-        }
     }
 
     if (-r "./.arename.local") {
         sect_reset();
         $rc = "./.arename.local";
         $retval = rcload($rc, "local configuration");
-        if ($retval < 0) {
-            die "Error(s) in \"$rc\". Aborting.\n";
-        } elsif ($retval > 0) {
-            warn "Error opening local configuration.\n";
-        }
     }
 
     sect_reset();
