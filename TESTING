@@ -1,0 +1,57 @@
+arename.pl's test suite
+
+
+ PRELIMINARIES
+
+  To use this test suite, you will (in addition to the modules arename.pl
+  needs anyway) need the Perl modules Make::More and Make:Exception.
+
+  In addition to that, you will need a few audio related tools (because the
+  testsuite generates audio data to do tests with):
+      + arecord        - record a wav file
+      + oggenc         - encode to ogg vorbis
+      + flac           - encode to flac
+      + lame           - encode to mp3
+      + vorbiscomment  - manipulate tags in ogg vorbis files
+      + metaflac       - manipulate tags in flac files
+      + id3v2          - manipulate tags in mp3 files
+      + fakeroot (opt) - fake root previleges
+
+
+  This test suite should run without failing tests on all systems. If
+  you see any failures, report it. Include arename.pl's version,
+  Perl's version, your system's version information (e.g. the output
+  of 'uname -a') and anything else you consider important. Plus the
+  output of the failing test, of course.
+
+
+ RUNNING THE SUITE
+
+  To prepare needed data files to play with:
+    % make prepare-test-data
+
+  That step needed *once* (or after you cleaned the working directory).
+
+  You can run the complete test suite by simply doing:
+    % make test
+
+  If you want to run tests by hand, you can use the 'prove' utility,
+  from Test::Harness (if you want to look at a problem in detail, for
+  example):
+    % prove -I. -v tests/data.t
+
+
+ TESTING THE INSTALLATION PROCESS
+
+  The installation procedure test case needs the 'fakeroot' utility to
+  be installed on the system. By default, the test suite looks for
+  '/usr/bin/fakeroot'. If you installed it in another location do:
+
+    % make test fakeroot=/usr/local/bin/fakeroot
+
+  If the test suite cannot find fakeroot at all, the installation test
+  will be skipped. Thus, fakeroot is optional for the testsuite.
+
+  To run the installation tests by hand, do (from the source's root):
+
+    % fakeroot /bin/sh ./tests/inst_t.sh
