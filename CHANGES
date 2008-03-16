@@ -1,3 +1,31 @@
+1.4 -> 1.5
+    + Adding section support in the configuration file (see manual
+      for details).
+    + The audio file's name is not handed around in subroutine arguments
+      anymore. It's available via get_file() and set_file() now. Thus
+      *all* hooks can access it now.
+    + Hooks with changed API:
+        - pre_apply_defaults, pre_template, post_template, post_ensure_dir,
+          post_rename, pre_process_flac, post_process_flac,
+          pre_process_mp3, post_process_mp3, pre_process_ogg,
+          post_process_ogg, next_file_early, next_file_late,
+          filetype_unknown, file_done, pre_method, post_method
+        - All of these don't get the file name handed over anymore.
+    + Adding -L option, which dumps the current configuration if supplied.
+    + Adding -c: read a config file instead of ~/.arenamerc
+    + Adding -C: read another config file between ~/.arenamerc and
+      ./.arename.local
+    + Local config files (.arename.local in the current working directory)
+      are *not* read by default any more. If you want to enable that
+      behaviour again, set the new 'uselocalrc' setting to 'true'.
+    + Adding -l: set 'uselocalrc' to 'true' via the command line.
+    + Adding canonicalize setting: Even if a relative path name is given
+      on the command line, use its absolute file name for processing.
+    + Adding canonicalize hook: Only executed if the setting of the same
+      name is set to true (see docs for details).
+    + Changed API for apply_defaults hook: the %defaults hash is not handed
+      over as a reference anymore; Use get_default_keys(), get_defaults()
+      and set_defaults() to access it in hooks now.
 1.3 -> 1.4
     + Fix installation procedure
 1.2 -> 1.3
