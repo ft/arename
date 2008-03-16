@@ -16,7 +16,7 @@ arguments=(
     '-C[read a file in addition to ~/.arenamerc]:config file:_files'
     '-f[overwrite file(s) if needed]'
     '-H[disable all hooks]'
-    '-L[list current configuration]'
+    '-L[list current configuration]:'
     '-l[read local config file]'
     '-d[go into dry-run mode]'
     '-q[enable quiet output]'
@@ -25,7 +25,7 @@ arguments=(
     '-Q[do not display skips in quiet mode]'
     '-h[display help information]:'
     '-V[display version infomation]:'
-    '*::audio files:_arename_files'
+    '*:audio files:_arename_files'
 )
 
 _arguments -s $arguments
