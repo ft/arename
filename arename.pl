@@ -63,6 +63,14 @@ Display version infomation.
 
 Enable verbose output.
 
+=item B<-c> E<lt>fileE<gt>
+
+Read I<file> instead of ~/.arenamerc.
+
+=item B<-C> E<lt>fileE<gt>
+
+Read I<file> in B<after> ~/.arenamerc and B<before> ./.arename.local.
+
 =item B<-p> E<lt>prefixE<gt>
 
 Define a prefix for destination files.

@@ -746,13 +746,29 @@ sub cmdoptstr { #{{{
 }
 #}}}
 sub read_rcs { #{{{
-    my $rc = $ENV{HOME} . "/.arenamerc";
-    my $retval = rcload($rc, "arename.pl configuration");
+    my ($rc, $retval);
+
+    $rc = $ENV{HOME} . "/.arenamerc";
+    $rc = cmdoptstr('c') if (cmdopts('c'));
+
+    $retval = rcload($rc, "arename.pl configuration");
 
     if ($retval < 0) {
         die "Error(s) in \"$rc\". Aborting.\n";
     } elsif ($retval > 0) {
         warn "Error opening configuration; using defaults.\n";
+    }
+
+    if (cmdopts('C')) {
+        sect_reset();
+        $rc = cmdoptstr('C');
+        $retval = rcload($rc, "additional configuration");
+
+        if ($retval < 0) {
+            die "Error(s) in \"$rc\". Aborting.\n";
+        } elsif ($retval > 0) {
+            warn "Error opening additional configuration.\n";
+        }
     }
 
     if (-r "./.arename.local") {
@@ -776,7 +792,7 @@ sub read_cmdline_options { #{{{
     if ($#main::ARGV == -1) {
         $opts{h} = 1;
     } else {
-        if (!getopts('dfhHLQqsVvp:T:t:', \%opts)) {
+        if (!getopts('dfhHLQqsVvc:C:p:T:t:', \%opts)) {
             checkstropts('t', 'T', 'p');
             die "    Try $NAME -h\n";
         }
@@ -872,6 +888,8 @@ sub usage { #{{{
     print "    -s                Read file names from stdin.\n";
     print "    -V                Display version infomation.\n";
     print "    -v                Enable verbose output.\n";
+    print "    -c <file>         Read file instead of ~/.arenamerc.\n";
+    print "    -C <file>         Read file after ~/.arenamerc.\n";
     print "    -p <prefix>       Define a prefix for destination files.\n";
     print "    -T <template>     Define a compilation template.\n";
     print "    -t <template>     Define a generic template.\n";

@@ -12,6 +12,8 @@ arguments=(
     '-p[define a directory prefix for destination file(s)]:directory prefix:_path_files -g '\''*(-/)'\'
     '-T[define a compilation template]:compilation template:'
     '-t[define a generic template]:template:'
+    '-c[read a file instead of ~/.arenamerc]:config file:_files'
+    '-C[read a file in addition to ~/.arenamerc]:config file:_files'
     '-f[overwrite file(s) if needed]'
     '-H[disable all hooks]'
     '-L[list current configuration]'
