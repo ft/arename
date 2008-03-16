@@ -10,6 +10,7 @@ use strict;
 use Getopt::Std;
 use File::Basename;
 use File::Copy;
+use Cwd 'abs_path';
 
 # These are external modules. On debian systems, do:
 #   % aptitude install libogg-vorbis-header-perl \
@@ -52,7 +53,7 @@ $shutup = 0;
 );
 
 @settables = (
-    'comp_template',
+    'canonicalize', 'comp_template',
     'hookerrfatal',
     'prefix',
     'quiet', 'quiet_skip',
@@ -407,6 +408,7 @@ err:
 %parsers = (
 #{{{
     '^\s*\[.*\]\s*$'  => \&parse_new_section,
+    '^canonicalize$'  => \&parse_bool,
     '^comp_template$' => \&parse_generic,
     '^default_.*$'    => \&parse_defaultvalues,
     '^hookerrfatal$'  => \&parse_bool,
@@ -695,6 +697,12 @@ sub process_file { #{{{
         return;
     }
 
+    if (get_opt('canonicalize')) {
+        my $f = abs_path($file);
+        run_hook('canonicalize', \$f);
+        set_file($f);
+    }
+
     run_hook('next_file_late');
 
     if (!apply_methods(0)) {
@@ -835,6 +843,7 @@ sub read_cmdline_options { #{{{
 }
 #}}}
 sub set_default_options { #{{{
+    set_opt("canonicalize",  0);
     set_opt("dryrun",        0);
     set_opt("force",         0);
     set_opt("hookerrfatal",  1);

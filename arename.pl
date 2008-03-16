@@ -199,6 +199,13 @@ The following settings are supported in all configuration files:
 
 =over 8
 
+=item B<canonicalize>
+
+If set, a given file name will be transformed to its cleaned up absolute
+path. You may want to set this, if you are using sections in the
+configuration. If you do not use sections, all this will give you is a
+performance penalty. (default value: I<false>)
+
 =item B<comp_template>
 
 Defines a template to use with files that provide a compilation tag
@@ -447,6 +454,18 @@ If the coderef was added more than once, all entries are removed.
 These hooks are called at the highest level of the script.
 
 =over 4
+
+=item B<canonicalize>
+
+This is called in the middle of the file name canonicalization process
+(but B<only> it is enabled via the I<canonicalize> setting).
+
+Get the current file name via I<get_file()>. The canonicalized file name
+is handed to you via the hook's arguments. The value from this argument
+will be assigned to the processed filename after the execution of this
+hook.
+
+I<Arguments>: B<1:> canonicalized file name
 
 =item B<next_file_early>
 
