@@ -58,7 +58,7 @@ $shutup = 0;
     'quiet', 'quiet_skip',
     'sepreplace',
     'template', 'tnpad',
-    'usehooks', 'uselocalhooks',
+    'usehooks', 'uselocalhooks', 'uselocalrc',
     'verbose'
 );
 
@@ -347,7 +347,7 @@ sub __rcload { #{{{
 }
 #}}}
 sub rcload { #{{{
-    my ($file, $desc) = @_;
+    my ($rc, $desc) = @_;
     my ($retval);
 
     $retval = __rcload($rc, $desc);
@@ -779,7 +779,7 @@ sub read_rcs { #{{{
         $retval = rcload($rc, "additional configuration");
     }
 
-    if (-r "./.arename.local") {
+    if (get_opt('uselocalrc') && -r "./.arename.local") {
         sect_reset();
         $rc = "./.arename.local";
         $retval = rcload($rc, "local configuration");
@@ -795,7 +795,7 @@ sub read_cmdline_options { #{{{
     if ($#main::ARGV == -1) {
         $opts{h} = 1;
     } else {
-        if (!getopts('dfhHLQqsVvc:C:p:T:t:', \%opts)) {
+        if (!getopts('dfhHLlQqsVvc:C:p:T:t:', \%opts)) {
             checkstropts('t', 'T', 'p');
             die "    Try $NAME -h\n";
         }
@@ -818,6 +818,7 @@ sub read_cmdline_options { #{{{
         exit 0;
     }
 
+    __set_opt("uselocalrc", 1) if (cmdopts('l'));
     __set_opt("verbose", 1) if (cmdopts('v'));
     __set_opt("quiet", 1) if (cmdopts('q'));
     __set_opt("quiet_skip", 1) if (cmdopts('Q'));
@@ -846,6 +847,7 @@ sub set_default_options { #{{{
     set_opt("tnpad",         2);
     set_opt("usehooks",      1);
     set_opt("uselocalhooks", 0);
+    set_opt("uselocalrc",    0);
     set_opt("verbose",       0);
     set_opt("comp_template", "va/&album/&tracknumber - &artist - &tracktitle");
     set_opt("template",      "&artist[1]/&artist/&album/&tracknumber - &tracktitle");
@@ -886,6 +888,7 @@ sub usage { #{{{
     print "    -H                Disable *all* hooks.\n";
     print "    -h                Display this help text.\n";
     print "    -L                List current configuration.\n";
+    print "    -l                Read local rc, if it exists.\n";
     print "    -Q                Don't display skips in quiet mode.\n";
     print "    -q                Enable quiet output.\n";
     print "    -s                Read file names from stdin.\n";

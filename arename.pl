@@ -38,6 +38,11 @@ Do not make use of hooks of any sort (neither global nor local ones).
 
 List the current configuration in the actual configuration format.
 
+=item B<-l>
+
+Read a local config file (./.arename.local). Overwrites the B<uselocalrc>
+rc setting.
+
 =item B<-q>
 
 Make the output way more quiet, when processing files.
@@ -256,6 +261,11 @@ If set to true use hooks defined in B<~/.arename.hooks>.
 
 If set to true use hooks defined in B<./.arename.hooks.local>.
 (default value: I<false>)
+
+=item B<uselocalrc>
+
+If set to true, read a local configuration file (B<./.arename.local>),
+if it exists. (default value: I<false>)
 
 =item B<verbose>
 

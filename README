@@ -53,6 +53,5 @@ ZSH COMPLETION
 
 
 TODO
-    + uselocalrc setting (v1.5)
     + code refactoring; possible split of ARename.pm (v2.0)
     + test suite (v1.6)

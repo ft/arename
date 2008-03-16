@@ -17,6 +17,7 @@ arguments=(
     '-f[overwrite file(s) if needed]'
     '-H[disable all hooks]'
     '-L[list current configuration]'
+    '-l[read local config file]'
     '-d[go into dry-run mode]'
     '-q[enable quiet output]'
     '-s[read filenames from stdin]'
