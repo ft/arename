@@ -827,6 +827,7 @@ sub read_cmdline_options { #{{{
         exit 0;
     }
 
+    __set_opt("readstdin", 1) if (cmdopts('s'));
     __set_opt("uselocalrc", 1) if (cmdopts('l'));
     __set_opt("verbose", 1) if (cmdopts('v'));
     __set_opt("quiet", 1) if (cmdopts('q'));
@@ -838,7 +839,7 @@ sub read_cmdline_options { #{{{
     __set_opt("prefix", cmdoptstr('p')) if (cmdopts('p'));
     disable_hooks() if (cmdopts('H'));
 
-    if ($#main::ARGV < 0 && !cmdopts('L')) {
+    if ($#main::ARGV < 0 && !cmdopts('L') && !get_opt('readstdin')) {
         die "No input files given; try " . basename($main::0) . " -h.\n";
     }
 }
