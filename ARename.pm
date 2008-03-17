@@ -68,15 +68,17 @@ $postproc = \&arename;
 
 sub apply_defaults { #{{{
     my ($datref) = @_;
+    my ($value);
 
-    foreach my $key (keys %defaults) {
+    foreach my $key (get_default_keys()) {
         if (!defined $datref->{$key}) {
-            run_hook('apply_defaults', $datref, \%defaults, \$key);
+            run_hook('apply_defaults', $datref, \$key);
 
+            $value = get_defaults($key);
             if (get_opt("verbose")) {
-                oprint("Setting ($key) to \"$defaults{$key}\".\n");
+                oprint("Setting ($key) to \"$value\".\n");
             }
-            $datref->{$key} = $defaults{$key};
+            $datref->{$key} = $value;
         }
     }
 }
@@ -477,7 +479,7 @@ sub parse_defaultvalues { #{{{
         oprint("default for \"$key\" = '$val'\n");
     }
 
-    $defaults{$key} = $val;
+    set_defaults($key, $val);
 }
 #}}}
 sub parse_generic { #{{{
@@ -1029,6 +1031,24 @@ sub __set_opt { #{{{
         #print "DEBUG: set_opt() ($opt) = ($val) [$s]\n";
         $sectconf{$s}{$opt} = $val;
     }
+}
+#}}}
+
+sub get_defaults { #{{{
+    my ($key) = @_;
+
+    return $defaults{$key};
+}
+#}}}
+sub get_default_keys { #{{{
+
+    return sort keys %defaults;
+}
+#}}}
+sub set_defaults { #{{{
+    my ($key, $val) = @_;
+
+    $defaults{$key} = $val;
 }
 #}}}
 
