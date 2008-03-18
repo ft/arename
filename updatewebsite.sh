@@ -49,7 +49,6 @@ esac
                     printf '  Latest version: %s\n' "$LATEST"
 [ -n "$PREREL" ] && printf '     pre-release: %s\n' "$PREREL"
 [ -n "$SNSHOT" ] && printf 'snapshot version: %s\n' "$SNSVER"
-printf '\n'
 
 ################################################################################
 
@@ -61,7 +60,7 @@ createtargz() {
         git branch -D createtargz
     fi
 
-    printf 'Creating tarball for %s (%s).\n' "$tag" "$ver"
+    printf '\n  ----- Creating tarball for %s (%s) -----\n\n' "$tag" "$ver"
     git checkout -b createtargz "$tag"
     make distclean
     for file in $EXCLUDE ; do
