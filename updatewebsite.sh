@@ -63,6 +63,7 @@ createtargz() {
 
     printf 'Creating tarball for %s (%s).\n' "$tag" "$ver"
     git checkout -b createtargz "$tag"
+    make distclean
     for file in $EXCLUDE ; do
         rm -f "${file}" ; echo "deleting $file"
     done
