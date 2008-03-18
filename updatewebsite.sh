@@ -19,6 +19,17 @@ elif [ ! -e arename.pl ] ; then
     exit 1
 fi
 
+curbranch () {
+    local b=$(git symbolic-ref HEAD)
+    b=${b##refs/heads/}
+    printf '%s' "${b}"
+}
+
+if [ $(curbranch) != 'master' ] ; then
+    printf 'master is currently *not* checked out. Abort.\n'
+    exit 1
+fi
+
 EXCLUDE='.gitignore TODO updatewebsite.sh website.mdwn.in'
 
 LATEST="$(git tag | grep -v -- '-' | tail -n 1)"
