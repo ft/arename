@@ -6,3 +6,4 @@
 *.log
 arename.1
 arename.html
+tests/data/*
