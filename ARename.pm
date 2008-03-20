@@ -32,6 +32,22 @@ my (
 );
 my ( $NAME, $VERSION ) = ( 'unset', 'unset' );
 
+# a helper for the testsuite
+sub data_reset { #{{{
+    undef %conf;
+    undef %defaults;
+    undef %hooks;
+    undef %methods;
+    undef %parsers;
+    undef %opts;
+    undef %sectconf;
+    undef %sets;
+    undef @localizables;
+    undef @settables;
+    undef @supported_tags;
+}
+#}}}
+
 $shutup = 0;
 
 # settings that may occur in [sections]
@@ -831,7 +847,7 @@ sub read_cmdline_options { #{{{
     __set_opt("readstdin", 1) if (cmdopts('s'));
     __set_opt("uselocalrc", 1) if (cmdopts('l'));
     __set_opt("verbose", 1) if (cmdopts('v'));
-    __set_opt("quiet", 1) if (cmdopts('q'));
+    __set_opt("quiet", 1) if (cmdopts_or('q', 'Q'));
     __set_opt("quiet_skip", 1) if (cmdopts('Q'));
     __set_opt("force", 1) if (cmdopts('f'));
     __set_opt("dryrun", 1) if (cmdopts('d'));
