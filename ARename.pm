@@ -820,8 +820,7 @@ sub read_cmdline_options { #{{{
     }
 
     if (cmdopts_or('q', 'Q') && cmdopts('v')) {
-        print "Verbose *and* quiet? Please decide!\n";
-        exit 1;
+        die "Verbose *and* quiet? Please decide!\n";
     }
 
     if (cmdopts('V')) {
