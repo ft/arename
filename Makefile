@@ -15,6 +15,8 @@ all:
 	@printf '  all            this text\n'
 	@printf '  install        install both scripts and the module\n'
 	@printf '  install-doc    install all documentation\n'
+	@printf '  uninstall      remove both scripts and the module again\n'
+	@printf '  uninstall-doc  remove the documentation\n'
 	@printf '\nAll other targets are not for you. Stay away!\n'
 
 dev-help: all
@@ -72,6 +74,20 @@ install-doc: doc
 	@$(install) -oroot -groot -m0644 arename.hooks "$(prefix)/share/doc/arename/examples"
 	@printf 'Installing _arename      to %s\n' "$(prefix)/share/doc/arename/examples"
 	@$(install) -oroot -groot -m0644 _arename "$(prefix)/share/doc/arename/examples"
+
+uninstall:
+	@(f="$(prefix)/bin/arename.pl"; printf 'Removing   file: '\''%s'\''\n' "$$f" ; \
+	  rm "$$f" || { printf '  Need to become root or file not there?\n' ; exit 1 ; } ; )
+	@(f="$(prefix)/bin/ataglist.pl"; printf 'Removing   file: '\''%s'\''\n' "$$f" ; \
+	  rm "$$f" || { printf '  Need to become root or file not there?\n' ; exit 1 ; } ; )
+	@(f="$(prefix)/$(libpath)/ARename.pm"; printf 'Removing   file: '\''%s'\''\n' "$$f" ; \
+	  rm "$$f" || { printf '  Need to become root or file not there?\n' ; exit 1 ; } ; )
+
+uninstall-doc:
+	@(d="$(prefix)/share/doc/arename"; printf 'Removing subdir: '\''%s'\''\n' "$$d" ; \
+	  rm -R "$$d" || { printf '  Need to become root or directory not there?\n' ; exit 1 ; } ; )
+	@(f="$(prefix)/share/man/man1/arename.1"; printf 'Removing   file: '\''%s'\''\n' "$$f" ; \
+	  rm "$$f" || { printf '  Need to become root or file not there?\n' ; exit 1 ; } ; )
 
 updateweb:
 	@printf 'Updating webpages...\n'
