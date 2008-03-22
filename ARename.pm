@@ -27,7 +27,7 @@ use Audio::FLAC::Header;
 # variables {{{
 my (
     %conf, %defaults, %hooks, %methods, %parsers, %opts, %sectconf, %sets,
-    $__arename_file, $postproc, $sect, $shutup,
+    $__arename_file, $postproc, $sect,
     @localizables, @settables, @supported_tags
 );
 my ( $NAME, $VERSION ) = ( 'unset', 'unset' );
@@ -48,7 +48,7 @@ sub data_reset { #{{{
 }
 #}}}
 
-$shutup = 0;
+set_opt('shutup', 0);
 
 # settings that may occur in [sections]
 @localizables = (
@@ -308,14 +308,14 @@ sub getdat { #{{{
 sub oprint { #{{{
     my ($string) = @_;
 
-    return if ($shutup);
+    return if (get_opt('shutup'));
     print get_opt("oprefix") . $string;
 }
 #}}}
 sub owarn { #{{{
     my ($string) = @_;
 
-    return if ($shutup);
+    return if (get_opt('shutup'));
     warn get_opt("oprefix") . $string;
 }
 #}}}
@@ -331,7 +331,7 @@ sub __rcload { #{{{
         return 1;
     }
 
-    print "Reading \"$file\"...\n" if (!$shutup);
+    print "Reading \"$file\"...\n" if (!get_opt('shutup'));
 
     while (my $line = <$fh>) {
         chomp($line);
@@ -828,7 +828,7 @@ sub read_cmdline_options { #{{{
         }
     }
 
-    $shutup = 1 if (cmdopts('L'));
+    set_opt('shutup', 1) if (cmdopts('L'));
 
     if (cmdopts('h')) {
         usage();
