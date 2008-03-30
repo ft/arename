@@ -141,7 +141,7 @@ sub arename { #{{{
     run_hook('post_ensure_dir', $datref, \$ext, \$newname);
 
     if (get_opt("quiet")) {
-        print "'$newname'\n";
+        print "'$newname'\n" if (!get_opt('shutup'));
     } else {
         oprint("mv '$file' \\\n         '$newname'\n");
     }
