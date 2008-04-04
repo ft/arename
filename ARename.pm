@@ -1093,7 +1093,7 @@ sub __read_hook_file { #{{{
         if (get_opt("verbose")) {
             owarn("Hook file not found ($file).\n");
         }
-        return;
+        return 1;
     }
 
     $rc = do $file;
@@ -1102,15 +1102,20 @@ sub __read_hook_file { #{{{
         owarn("Could not parse hooks file ($file):\n   - $@\n");
         if (get_opt("hookerrfatal")) {
             exit 1;
+        } else {
+            return 0;
         }
     } elsif (!defined $rc) {
         owarn("Could not read hooks file ($file):\n   - $!\n");
         if (get_opt("hookerrfatal")) {
             exit 1;
+        } else {
+            return 0;
         }
     }
 
     oprint("Hook file read ($file).\n");
+    return 1;
 }
 #}}}
 sub read_hook_files { #{{{

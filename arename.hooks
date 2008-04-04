@@ -5,9 +5,9 @@ sub print_banner0 {
     # Yes, everything handed over to hooks (except for the namespace)
     # are references. This gives us simple two way communication, but
     # it's also a pretty big hammer. Think before screwing up. :)
-    my ($namespace, $nameref, $verref, $confref, $extref, $suptagsref, $argvref) = @_;
+    my ($namespace, $nameref, $verref, $confref, $methref, $suptagsref, $argvref) = @_;
 
-    print "BANNER! $$nameref $$verref $argvref->[0]\n";
+    oprint "BANNER! $$nameref $$verref " . $argvref->[0] . "\n";
 
     # The following actually changes the $NAME variable, used
     # in ARename.pm, which doesn't hurt, because it is only the
@@ -20,12 +20,12 @@ sub print_banner0 {
 register_hook('startup', \&print_banner0);
 
 sub print_banner1 {
-    my ($namespace, $nameref, $verref, $confref, $extref, $suptagsref, $argvref) = @_;
+    my ($namespace, $nameref, $verref, $confref, $methref, $suptagsref, $argvref) = @_;
 
     # Since $NAME used to be 'arename.pl', the substitution
     # in print_banner0() will have changed $NAME to 'areblame.pl',
     # which $$nameref below will reveal.
-    print "ANOTHER BANNER! $$nameref $$verref\n";
+    oprint "ANOTHER BANNER! $$nameref $$verref\n";
 }
 register_hook('startup', \&print_banner1);
 
