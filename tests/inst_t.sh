@@ -137,8 +137,8 @@ cleanup "${ROOT}"
 ######################################################################
 ######################################################################
 
-PREFIX="${ROOT}/home"
-LIBDIR="lib/perl/perl_x.y.z"
+PREFIX="${ROOT}/home with spaces"
+LIBDIR="lib/perl/perl x.y.z"
 make install install-doc prefix="${PREFIX}" libpath="${LIBDIR}"
 
 if [ "${?}" -ne 0 ] ; then
