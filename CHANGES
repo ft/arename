@@ -1,3 +1,6 @@
+1.5 -> 1.6
+    + Introducing a testsuite, that should catch stupid bugs, which
+      I overlooked in the past.
 1.4 -> 1.5
     + Adding section support in the configuration file (see manual
       for details).
