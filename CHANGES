@@ -1,6 +1,8 @@
 1.5 -> 1.6
+    = No big user-visible changes in this release...
     + Introducing a testsuite, that should catch stupid bugs, which
       I overlooked in the past.
+    + Cleanups in the Makefile.
 1.4 -> 1.5
     + Adding section support in the configuration file (see manual
       for details).
@@ -39,5 +41,5 @@
 1.0 -> 1.1
     + introduce hooks
     + read filenames from stdin (if requested)
-    = quiet_skip does not require quiet to be set anymore
+    + quiet_skip does not require quiet to be set anymore
       it'll force quiet on itself
