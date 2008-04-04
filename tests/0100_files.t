@@ -3,10 +3,10 @@
 use strict;
 use warnings;
 
-use Test::More tests => 7;
+use Test::More tests => 6;
 use Test::Exception;
 
-BEGIN { use_ok('ARename') };
+use ARename;
 
 # checking file_eq(), which returns 1 for same files {{{
 # and 0 for files, that are not the same file.

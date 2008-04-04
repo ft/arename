@@ -3,10 +3,10 @@
 use strict;
 use warnings;
 
-use Test::More tests => 21;
+use Test::More tests => 20;
 use Test::Exception;
 
-BEGIN { use_ok('ARename') };
+use ARename;
 
 # set_file() may *never* *ever* die {{{
 

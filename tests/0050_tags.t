@@ -3,9 +3,9 @@
 use strict;
 use warnings;
 
-use Test::More tests => 8;
+use Test::More tests => 7;
 
-BEGIN { use_ok('ARename') };
+use ARename;
 
 # just check if all tags mentioned in the docs are recognized
 # by ARename.pm

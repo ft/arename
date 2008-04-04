@@ -3,10 +3,10 @@
 use strict;
 use warnings;
 
-use Test::More tests => 11;
+use Test::More tests => 10;
 use Test::Exception;
 
-BEGIN { use_ok('ARename') };
+use ARename;
 
 # feed some parse_defaultvalues() {{{
 

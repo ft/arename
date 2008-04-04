@@ -5,10 +5,10 @@ use strict;
                 # disable else, because we redefine xrename() and
                 # ensure_dir(); we know that, so don't warn us.
 
-use Test::More tests => 6;
+use Test::More tests => 5;
 use Test::Exception;
 
-BEGIN { use_ok('ARename') };
+use ARename;
 
 # test if the template is correctly choosen {{{
 

@@ -3,10 +3,10 @@
 use strict;
 use warnings;
 
-use Test::More tests => 9;
+use Test::More tests => 8;
 use Test::Exception;
 
-BEGIN { use_ok('ARename') };
+use ARename;
 
 # Test if -v and -q are given. {{{
 # read_cmdline_options() should fail in that case.
