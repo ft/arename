@@ -3,8 +3,8 @@
 #   module  : /usr/local/lib/site_perl
 prefix="/usr/local"
 libpath="lib/site_perl"
-install=install
 fakeroot="/usr/bin/fakeroot"
+maxwidth="13"
 
 # the place where *I* keep the sources of arename's "website".
 # The whole updatewebsite-fu is probably not useful for anybody else.
@@ -58,33 +58,18 @@ distclean: clean
 	rm -f *.tar.gz
 
 install:
-	@printf 'Installing arename.pl    to %s\n' "$(prefix)/bin"
-	@$(install) -oroot -groot -m0755 -d "$(prefix)/bin"
-	@$(install) -oroot -groot -m0755 arename.pl "$(prefix)/bin"
-	@printf 'Installing ataglist.pl   to %s\n' "$(prefix)/bin"
-	@$(install) -oroot -groot -m0755 ataglist.pl "$(prefix)/bin"
-	@printf 'Installing ARename.pm    to %s\n' "$(prefix)/$(libpath)/"
-	@$(install) -oroot -groot -m0755 -d "$(prefix)/$(libpath)"
-	@$(install) -oroot -groot -m0644 ARename.pm "$(prefix)/$(libpath)"
+	@./install.sh arename.pl    "$(prefix)/bin"                        $(maxwidth)
+	@./install.sh ataglist.pl   "$(prefix)/bin"                        $(maxwidth)
+	@./install.sh ARename.pm    "$(prefix)/$(libpath)/"                $(maxwidth)
 
 install-doc: doc
-	@printf 'Installing README        to %s\n' "$(prefix)/share/doc/arename"
-	@$(install) -oroot -groot -m0755 -d "$(prefix)/share/doc/arename"
-	@$(install) -oroot -groot -m0644 README "$(prefix)/share/doc/arename"
-	@printf 'Installing LICENCE       to %s\n' "$(prefix)/share/doc/arename"
-	@$(install) -oroot -groot -m0644 LICENCE "$(prefix)/share/doc/arename"
-	@printf 'Installing CHANGES       to %s\n' "$(prefix)/share/doc/arename"
-	@$(install) -oroot -groot -m0644 CHANGES "$(prefix)/share/doc/arename"
-	@printf 'Installing arename.html  to %s\n' "$(prefix)/share/doc/arename"
-	@$(install) -oroot -groot -m0644 arename.html "$(prefix)/share/doc/arename"
-	@printf 'Installing arename.1     to %s\n' "$(prefix)/share/man/man1"
-	@$(install) -oroot -groot -m0755 -d "$(prefix)/share/man/man1"
-	@$(install) -oroot -groot -m0644 arename.1 "$(prefix)/share/man/man1"
-	@printf 'Installing arename.hooks to %s\n' "$(prefix)/share/doc/arename/examples"
-	@$(install) -oroot -groot -m0755 -d "$(prefix)/share/doc/arename/examples"
-	@$(install) -oroot -groot -m0644 arename.hooks "$(prefix)/share/doc/arename/examples"
-	@printf 'Installing _arename      to %s\n' "$(prefix)/share/doc/arename/examples"
-	@$(install) -oroot -groot -m0644 _arename "$(prefix)/share/doc/arename/examples"
+	@./install.sh README        "$(prefix)/share/doc/arename"          $(maxwidth)
+	@./install.sh LICENCE       "$(prefix)/share/doc/arename"          $(maxwidth)
+	@./install.sh CHANGES       "$(prefix)/share/doc/arename"          $(maxwidth)
+	@./install.sh arename.html  "$(prefix)/share/doc/arename"          $(maxwidth)
+	@./install.sh arename.1     "$(prefix)/share/man/man1"             $(maxwidth)
+	@./install.sh arename.hooks "$(prefix)/share/doc/arename/examples" $(maxwidth)
+	@./install.sh _arename      "$(prefix)/share/doc/arename/examples" $(maxwidth)
 
 uninstall:
 	@(f="$(prefix)/bin/arename.pl"; printf 'Removing   file: '\''%s'\''\n' "$$f" ; \
