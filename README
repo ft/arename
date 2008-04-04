@@ -50,8 +50,3 @@ ZSH COMPLETION
     % exec zsh
 
   Done.
-
-
-TODO
-    + code refactoring; possible split of ARename.pm (v2.0)
-    + test suite (v1.6)
