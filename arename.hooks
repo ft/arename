@@ -46,7 +46,7 @@ sub remove_empty_subdirs {
     # you can achieve that by a hook, like this one.
     # Note, that this an example; there are probably better solutions.
     my ($namespace) = @_;
-    my $file = getfile();
+    my $file = get_file();
     my $dir = dirname($file);
     my $rc;
 
