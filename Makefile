@@ -115,7 +115,7 @@ test: doc
 	 fi ; \
 	 "$(fakeroot)" /bin/sh ./tests/inst_t.sh ; \
 	)
-	perl -MExtUtils::Command::MM -e "test_harness(1, '.')" tests/*.t
+	prove -I. -v tests/*.t
 
 prepare-test-data: input.wav
 	@(cd tests/data ; \
