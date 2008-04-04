@@ -19,7 +19,7 @@ arename.pl's test suite
 
 
   This test suite should run without failing tests on all systems. If
-  you see any failures, report it. Include arename.pl's version,
+  you see any failures, report them. Include arename.pl's version,
   Perl's version, your system's version information (e.g. the output
   of 'uname -a') and anything else you consider important. Plus the
   output of the failing test, of course.
