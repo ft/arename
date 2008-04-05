@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# sanity checks
 if [ -z "$2" ] ; then
     printf 'usage: %s <ikiwikidir> <ikisubpagesdir>\n' "$0"
     exit 1
@@ -30,77 +31,34 @@ if [ $(curbranch) != 'master' ] ; then
     exit 1
 fi
 
-EXCLUDE='.gitignore TODO updatewebsite.sh website.mdwn.in'
+################################################################################
 
-LATEST="$(git tag | grep -v -- '-' | tail -n 1)"
-PREREL="$(git tag | tail -n 1)"
-SNSHOT="$(git-rev-list --abbrev=12 --abbrev-commit --max-count=1 HEAD)"
+RELEASE="$(./getversion.sh release)"
+PRERELEASE="$(./getversion.sh prerelease)"
+SNAPSHOT="$(./getversion.sh snapshot)"
 
-LATSHA=$(git-rev-list --abbrev=12 --abbrev-commit --max-count=1 $LATEST)
-PRESHA=$(git-rev-list --abbrev=12 --abbrev-commit --max-count=1 $PREREL)
+[ -n "${SNAPSHOT}" ] && SNAPSHOT_ver="snap-$(date +"%Y%m%d")-${SNAPSHOT}"
 
-    [ "$LATSHA" = "$PRESHA" ] && PREREL=''
-
-if [ -n "$PREREL" ] ; then
-
-    [ "$PRESHA" = "$SNSHOT" ] && SNSHOT=''
-
-else
-
-    [ "$LATSHA" = "$SNSHOT" ] && SNSHOT=''
-
-fi
-
-case "$PREREL" in
-    "$LATEST"-*) PREREL='' ;;
-esac
-
-[ -n "$SNSHOT" ] && SNSVER="snap-$(date +"%Y%m%d")-$SNSHOT"
-
-                    printf '  Latest version: %s\n' "$LATEST"
-[ -n "$PREREL" ] && printf '     pre-release: %s\n' "$PREREL"
-[ -n "$SNSHOT" ] && printf 'snapshot version: %s\n' "$SNSVER"
+                          printf '  Latest version: %s\n' "${RELEASE}"
+[ -n "${PRERELEASE}" ] && printf '     pre-release: %s\n' "${PRERELEASE}"
+[ -n "${SNAPSHOT}" ]   && printf 'snapshot version: %s\n' "${SNAPSHOT_ver}"
 
 ################################################################################
 
-createtargz() {
-    tag=$1 ; shift
-    ver=$1 ; shift
-
-    if git branch | grep '^.*createtargz$' >/dev/null 2>&1 ; then
-        git branch -D createtargz
-    fi
-
-    printf '\n  ----- Creating tarball for %s (%s) -----\n\n' "$tag" "$ver"
-    git checkout -b createtargz "$tag"
-    make distclean
-    for file in $EXCLUDE ; do
-        rm -f "${file}" ; echo "deleting $file"
-    done
-    make doc
-    git add .
-    git commit -a -m 'createtargz'
-    git-archive --format=tar --prefix="arename-${ver}/" "createtargz" | gzip -c -  > "../arename-${ver}.tar.gz"
-    git checkout master
-    git branch -D createtargz
-}
-
-################################################################################
-
-                    createtargz "$LATEST" "$LATEST"
-[ -n "$PREREL" ] && createtargz "$PREREL" "$PREREL"
-[ -n "$SNSHOT" ] && createtargz "$SNSHOT" "$SNSVER"
+                          ./gentarball.sh "${RELEASE}"    "${RELEASE}"
+[ -n "${PRERELEASE}" ] && ./gentarball.sh "${PRERELEASE}" "${PRERELEASE}"
+[ -n "${SNAPSHOT}" ]   && ./gentarball.sh "${SNAPSHOT}"   "${SNAPSHOT_ver}"
 
 SEDCOMMANDS='s/@@release@@/'"[arename $LATEST](\/comp\/arename\/arename-$LATEST.tar.gz)<br \/>"'/;'
 
-if [ -n "$PREREL" ] ; then
-    SEDCOMMANDS="$SEDCOMMANDS"'s/@@prerelease@@/'"[arename $PREREL](\/comp\/arename\/arename-$PREREL.tar.gz)<br \/>"'/;'
+if [ -n "${PRERELEASE}" ] ; then
+    SEDCOMMANDS="$SEDCOMMANDS"'s/@@prerelease@@/'"[arename ${PRERELEASE}](\/comp\/arename\/arename-${PRERELEASE}.tar.gz)<br \/>"'/;'
 else
     SEDCOMMANDS="$SEDCOMMANDS"'/@@prerelease@@/d;'
 fi
 
-if [ -n "$SNSHOT" ] ; then
-    SEDCOMMANDS="$SEDCOMMANDS"'s/@@snapshot@@/'"[arename $SNSVER](\/comp\/arename\/arename-$SNSVER.tar.gz)<br \/>"'/'
+if [ -n "${SNAPSHOT}" ] ; then
+    SEDCOMMANDS="$SEDCOMMANDS"'s/@@snapshot@@/'"[arename ${SNAPSHOT_ver}](\/comp\/arename\/arename-${SNAPSHOT_ver}.tar.gz)<br \/>"'/'
 else
     SEDCOMMANDS="$SEDCOMMANDS"'/@@snapshot@@/d'
 fi
