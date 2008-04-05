@@ -50,7 +50,7 @@ rm -f "$2"/*.tar.gz
 [ -n "${PRERELEASE}" ] && ./gentarball.sh "${PRERELEASE}" "${PRERELEASE}"   && mv ./arename-*.tar.gz "$2/"
 [ -n "${SNAPSHOT}" ]   && ./gentarball.sh "${SNAPSHOT}"   "${SNAPSHOT_ver}" && mv ./arename-*.tar.gz "$2/"
 
-SEDCOMMANDS='s/@@release@@/'"[arename $LATEST](\/comp\/arename\/arename-$LATEST.tar.gz)<br \/>"'/;'
+SEDCOMMANDS='s/@@release@@/'"[arename ${RELEASE}](\/comp\/arename\/arename-${RELEASE}.tar.gz)<br \/>"'/;'
 
 if [ -n "${PRERELEASE}" ] ; then
     SEDCOMMANDS="$SEDCOMMANDS"'s/@@prerelease@@/'"[arename ${PRERELEASE}](\/comp\/arename\/arename-${PRERELEASE}.tar.gz)<br \/>"'/;'
