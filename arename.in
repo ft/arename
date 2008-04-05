@@ -20,7 +20,8 @@ arename [OPTION(s)] FILE(s)...
 
 =item B<-d>
 
-Go into dryrun mode.
+Go into dryrun mode. This means, that no action will be taken. B<arename>
+will print what it would do, if called without L<-d>.
 
 =item B<-f>
 
@@ -41,7 +42,7 @@ List the current configuration in the actual configuration format.
 =item B<-l>
 
 Read a local config file (./.arename.local). Overwrites the B<uselocalrc>
-rc setting.
+configuration setting.
 
 =item B<-q>
 
@@ -51,18 +52,20 @@ This option conflicts with the verbose option.
 
 =item B<-Q>
 
-Be even more quiet (this option will surpress, if a file is skipped.
-except for files, that are skipped because they would overwrite something).
+Be even more quiet (this option will suppress, if a file is skipped.
+Except for files, that are skipped because they would overwrite something).
 
 This option implies '-q'.
 
 =item B<-s>
 
-Read filenames from stdin after processing files given on the commandline.
+Read filenames from stdin after processing files given on the command line.
+It reads one file name per line, which means that file names containing
+newlines are not supported.
 
 =item B<-V>
 
-Display version infomation.
+Display version information.
 
 =item B<-v>
 
@@ -74,7 +77,7 @@ Read I<file> instead of ~/.arenamerc.
 
 =item B<-C> E<lt>fileE<gt>
 
-Read I<file> in B<after> ~/.arenamerc and B<before> ./.arename.local.
+Read I<file> B<after> ~/.arenamerc and B<before> ./.arename.local.
 
 =item B<-p> E<lt>prefixE<gt>
 
@@ -82,11 +85,13 @@ Define a prefix for destination files.
 
 =item B<-T> E<lt>templateE<gt>
 
-Define a compilation template.
+Define a template, that will be used for files that contain a compilation
+tag.
 
 =item B<-t> E<lt>templateE<gt>
 
-Define a generic template.
+Define a generic template (for all files that do L<not> contain a
+compilation tag).
 
 =item I<FILE(s)...>
 
