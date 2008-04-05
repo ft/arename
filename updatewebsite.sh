@@ -15,8 +15,8 @@ fi
 if [ ! -d .git ] ; then
     printf 'This is not a git repo, giving up.\n'
     exit 1
-elif [ ! -e arename.pl ] ; then
-    printf 'This is not a arename.pl repo, giving up.\n'
+elif [ ! -e arename.in ] ; then
+    printf 'This is not a arename repo, giving up.\n'
     exit 1
 fi
 
@@ -45,9 +45,10 @@ SNAPSHOT="$(./getversion.sh snapshot)"
 
 ################################################################################
 
-                          ./gentarball.sh "${RELEASE}"    "${RELEASE}"
-[ -n "${PRERELEASE}" ] && ./gentarball.sh "${PRERELEASE}" "${PRERELEASE}"
-[ -n "${SNAPSHOT}" ]   && ./gentarball.sh "${SNAPSHOT}"   "${SNAPSHOT_ver}"
+rm -f "$2"/*.tar.gz
+                          ./gentarball.sh "${RELEASE}"    "${RELEASE}"      && mv ./arename-*.tar.gz "$2/"
+[ -n "${PRERELEASE}" ] && ./gentarball.sh "${PRERELEASE}" "${PRERELEASE}"   && mv ./arename-*.tar.gz "$2/"
+[ -n "${SNAPSHOT}" ]   && ./gentarball.sh "${SNAPSHOT}"   "${SNAPSHOT_ver}" && mv ./arename-*.tar.gz "$2/"
 
 SEDCOMMANDS='s/@@release@@/'"[arename $LATEST](\/comp\/arename\/arename-$LATEST.tar.gz)<br \/>"'/;'
 
@@ -65,7 +66,5 @@ fi
 
 sed -e "$SEDCOMMANDS" < ./website.mdwn.in > "$1/arename.mdwn"
 
-rm -f "$2"/*.tar.gz
-mv ../arename-*.tar.gz "$2/"
 make doc
 cp "arename.1" "arename.html" "$2"
