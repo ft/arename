@@ -73,7 +73,7 @@ checkinstall () {
 
     local subd='bin'
     printf 'Checking %s/ installation...\n' "${subd}"
-    for file in arename.pl ataglist.pl ; do
+    for file in arename ataglist ; do
         file_exists_and_exec "$p/${subd}" "${file}"
     done
 
@@ -96,7 +96,7 @@ checkuninstall () {
 
     local subd='bin'
     printf 'Checking %s/ uninstallation...\n' "${subd}"
-    for file in arename.pl ataglist.pl ; do
+    for file in arename ataglist ; do
         file_notexists "$p/${subd}" "${file}"
     done
 

@@ -8,11 +8,11 @@ use ARename;
 
 =head1 NAME
 
-arename.pl - automatically rename audio files by tagging information
+arename - automatically rename audio files by tagging information
 
 =head1 SYNOPSIS
 
-arename.pl [OPTION(s)] FILE(s)...
+arename [OPTION(s)] FILE(s)...
 
 =head1 OPTIONS AND ARGUMENTS
 
@@ -96,17 +96,17 @@ Input files, that are subject for renaming.
 
 =head1 DESCRIPTION
 
-B<arename.pl> is a tool that is able to rename audio files by looking at
+B<arename> is a tool that is able to rename audio files by looking at
 a file's tagging information, from which it will assemble a consistent
 destination file name. The format of that filename is configurable for the
 user by the use of template strings.
 
-B<arename.pl> currently supports three widely used audio formats, namely
-MPEG Layer3, ogg vorbis and flac. The format, that B<arename.pl> will
+B<arename> currently supports three widely used audio formats, namely
+MPEG Layer3, ogg vorbis and flac. The format, that B<arename> will
 assume for each input file is determined by the file's filename-extension
 (I<.mp3> vs. I<.ogg> vs. I<.flac>). The extension check is case-insensitive.
 
-By default, B<arename.pl> will refuse to overwrite destination files,
+By default, B<arename> will refuse to overwrite destination files,
 if the file in question already exists. You can force overwriting by
 supplying the B<-f> option.
 
@@ -114,7 +114,7 @@ supplying the B<-f> option.
 
 =head2 Configuration files
 
-B<arename.pl> uses up to two configuration files. As for most programs,
+B<arename> uses up to two configuration files. As for most programs,
 the script will try to read a configuration file, that is located in the
 user's I<home directory>. In addition to that, it will try to load I<local>
 configuration files, if it finds appropriately named files in the
@@ -154,7 +154,7 @@ If a line contains only a string within square brackets, that string is the
 start of a section. Section names are matches for starts of file names.
 That means, the following settings are will only applied for input file
 names that start with the same string as the section name. Where file name
-means the string, handed over to B<arename.pl>. The string I<~/> at the
+means the string, handed over to B<arename>. The string I<~/> at the
 beginning of a section name is expanded to the user's home directory.
 
 You may start as many sections as you would like.
@@ -189,7 +189,7 @@ This allows you to define special hooks, that will only be applied for processes
 that run in the directory the local file is found (and if the I<uselocalhooks>
 option is set to B<true>).
 
-For details about hooks in arename.pl, see L<HOOKS|arename> below.
+For details about hooks in arename, see L<HOOKS|arename> below.
 
 =back
 
@@ -223,7 +223,7 @@ information. (default value: I<undefined>)
 
 =item B<hookerrfatal>
 
-If this is set to false, arename.pl will continue execution even if
+If this is set to false, arename will continue execution even if
 reading, parsing or compiling a hooks file failed. (default value:
 I<false>)
 
@@ -283,7 +283,7 @@ Switches on verbosity by default. (default value: I<off>)
 =head2 User defined variables
 
 You can use the B<set> command in arenamerc files. This way the user can
-define his own variables. The namespace is seperate from B<arename.pl's>
+define his own variables. The namespace is seperate from B<arename's>
 normal settings. (That means, you cannot, for example,  overwrite the
 internal I<template> variable with this command.)
 
@@ -300,7 +300,7 @@ L<HOOKS|arename> below).
 
 =head1 TEMPLATE FORMAT
 
-B<arename.pl>'s templates are quite simple, yet powerful.
+B<arename>'s templates are quite simple, yet powerful.
 
 At simplest, a template is just a fixed character string. However, that would
 not be exactly useful. So, the script is able to expand certain expressions
@@ -328,7 +328,7 @@ using 'B<&artist[1]>' will expand to 'I<F>'.
 
 The data, that is expanded is derived from tagging information in
 the audio files. For I<.ogg> and I<.flac> files, the tag checking
-B<arename.pl> does is case insensitive and the first matching tag
+B<arename> does is case insensitive and the first matching tag
 will be used.
 
 =over 8
@@ -376,7 +376,7 @@ Before we start, a word of warning: Hooks can solve a lot of problems.
 That amount of flexibility comes with its price. All data passed to
 hook functions are B<references> to the B<actual data> in the script
 (except for the namespace argument, which is a copy). If you write
-hooks carelessly, arename.pl will get back at you! HOOKS ARE A BIG
+hooks carelessly, arename will get back at you! HOOKS ARE A BIG
 HAMMER, THAT CAN CRUSH PROBLEMS AS WELL AS LIMBS!
 
 I<You have been warned!>
@@ -393,7 +393,7 @@ feature they implement.
 
 Hooks are just Perl subroutines, which are defined in one of two files
 (see L<FILES|arename>). They are run at certain events during the
-execution of arename.pl. The contents of the argument list for each hook
+execution of arename. The contents of the argument list for each hook
 depends on what hook is called (see the list of hook events below).
 However, the first argument (argument zero aka. $_[0]) to all hooks is
 the namespace, the hook is called in.
@@ -405,7 +405,7 @@ local file are run I<after> the ones from the global file (unless you
 are using your own method of registering hooks; but if you do so, you
 know what you are doing anyway).
 
-Subroutines must be registered to arename.pl, to be known as hooks.
+Subroutines must be registered to arename, to be known as hooks.
 Once registered, a subroutine can be removed from the known hooks,
 if requested (see 'Utility subroutines' below).
 
@@ -423,12 +423,12 @@ their Perl interface (I<user_get>() and I<user_set>()):
 
 The currently processed file name can be accessed via two subroutines:
 I<get_file()> and I<set_file()>. That way, you could even change the
-file name of the processed file, while I<arename.pl> works on it (which
+file name of the processed file, while I<arename> works on it (which
 you really should only do, if you know what you are doing).
 
 =head2 Utility subroutines
 
-There are two subroutines, that are used to tell arename.pl about
+There are two subroutines, that are used to tell arename about
 subroutines, you defined that shall become hooks.
 
 =over 4
@@ -496,7 +496,7 @@ I<Arguments>:
 
 =head3 Hooks in the renaming procedure
 
-When all data has been gathered, arename.pl will go on to actually
+When all data has been gathered, arename will go on to actually
 rename the files to their new destination name (which will be generated
 in the process, see L<Hooks when expanding the template> below).
 
@@ -593,7 +593,7 @@ I<Arguments>: B<1:> the template string, B<2:> the data hash
 =head3 Hooks when gathering information
 
 These hooks are triggered while the tag information is extracted from
-the audio files arename.pl is processing. Due to the differing nature
+the audio files arename is processing. Due to the differing nature
 of the the involved backends, these are slightly different from file type
 to file type.
 
@@ -797,7 +797,7 @@ Please report bugs.
 
 #}}}
 
-my ( $NAME, $VERSION ) = ( 'arename.pl', '@@arenameversioninfo@@' );
+my ( $NAME, $VERSION ) = ( 'arename', '@@arenameversioninfo@@' );
 
 # Initialisation {{{
 

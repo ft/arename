@@ -1,9 +1,9 @@
-arename.pl's test suite
+arename's test suite
 
 
  PRELIMINARIES
 
-  To use this test suite, you will (in addition to the modules arename.pl
+  To use this test suite, you will (in addition to the modules arename
   needs anyway) need the Perl modules Make::More and Make:Exception.
 
   In addition to that, you will need a few audio related tools (because the
@@ -19,7 +19,7 @@ arename.pl's test suite
 
 
   This test suite should run without failing tests on all systems. If
-  you see any failures, report them. Include arename.pl's version,
+  you see any failures, report them. Include arename's version,
   Perl's version, your system's version information (e.g. the output
   of 'uname -a') and anything else you consider important. Plus the
   output of the failing test, of course.

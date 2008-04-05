@@ -5,12 +5,12 @@ if [ ! -e "arename.in" ] ; then
     exit 0
 fi
 
-if [ "arename.pl" -nt "arename.in" ] ; then
-    printf 'genperlscript.sh: arename.pl newer than the input file, do nothing...\n'
+if [ "arename" -nt "arename.in" ] ; then
+    printf 'genperlscript.sh: arename newer than the input file, do nothing...\n'
     exit 0
 fi
 
-printf 'Generating arename.pl... '
+printf 'Generating arename... '
 pre="$(./bin/getversion.sh prerelease)"
 if [ -n "${pre}" ] ; then
     snap="$(./bin/getversion.sh snapshot)"
@@ -27,6 +27,6 @@ if [ -z "${version}" ] ; then
     fi
 fi
 
-sed -e 's/@@arenameversioninfo@@/'"${version}"'/' < "arename.in" > "arename.pl"
-chmod +x "arename.pl"
+sed -e 's/@@arenameversioninfo@@/'"${version}"'/' < "arename.in" > "arename"
+chmod +x "arename"
 printf 'done.\n'

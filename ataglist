@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-### ataglist.pl takes only one argument, a filename. *.ogg, *.mp3
+### ataglist takes only one argument, a filename. *.ogg, *.mp3
 ### or *.flac. It outputs a number of lines, that can be easily used
 ### to create a hash of tag->tag_value pairs in zsh. This program's
 ### main use is to help implement a functionality in atag, that makes
@@ -11,7 +11,7 @@ use warnings;
 use strict;
 use ARename;
 
-my ( $NAME, $VERSION ) = ( 'ataglist.pl', 'v0.6' );
+my ( $NAME, $VERSION ) = ( 'ataglist', 'v0.6' );
 
 sub list {
     my ($datref, $ext) = @_;

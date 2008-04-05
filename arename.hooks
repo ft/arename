@@ -22,7 +22,7 @@ register_hook('startup', \&print_banner0);
 sub print_banner1 {
     my ($namespace, $nameref, $verref, $confref, $methref, $suptagsref, $argvref) = @_;
 
-    # Since $NAME used to be 'arename.pl', the substitution
+    # Since $NAME used to be 'arename', the substitution
     # in print_banner0() will have changed $NAME to 'areblame.pl',
     # which $$nameref below will reveal.
     oprint "ANOTHER BANNER! $$nameref $$verref\n";
@@ -39,9 +39,9 @@ sub replace_spaces_by_underscore {
 register_hook('post_expand_template', \&replace_spaces_by_underscore);
 
 sub remove_empty_subdirs {
-    # When arename.pl renames files, it can be quite likely, that
+    # When arename renames files, it can be quite likely, that
     # due to the rename the directory a file was in previously will
-    # become empty. arename.pl itself will not remove such directories
+    # become empty. arename itself will not remove such directories
     # and it will not in the future. If you want such house keeping,
     # you can achieve that by a hook, like this one.
     # Note, that this an example; there are probably better solutions.
@@ -62,7 +62,7 @@ register_hook('file_done', \&remove_empty_subdirs);
 
 sub fix_template_albumless {
     # This hook was submitted by Maximilian Gaﬂ <mxey@cloudconnected.org>.
-    # It applies another template, if arename.pl could not read an album
+    # It applies another template, if arename could not read an album
     # tag in file, that is currently processed.
     #
     # ft: adding support user defined variable 'albumless_template'.

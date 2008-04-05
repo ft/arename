@@ -1,4 +1,4 @@
-#compdef arename arename.pl
+#compdef arename
 local arguments
 local -a supported_extensions
 
