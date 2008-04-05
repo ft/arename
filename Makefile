@@ -72,18 +72,13 @@ install-doc: doc
 	@./install.sh _arename      "$(prefix)/share/doc/arename/examples" $(maxwidth)
 
 uninstall:
-	@(f="$(prefix)/bin/arename.pl"; printf 'Removing   file: '\''%s'\''\n' "$$f" ; \
-	  rm "$$f" || { printf '  Need to become root or file not there?\n' ; exit 1 ; } ; )
-	@(f="$(prefix)/bin/ataglist.pl"; printf 'Removing   file: '\''%s'\''\n' "$$f" ; \
-	  rm "$$f" || { printf '  Need to become root or file not there?\n' ; exit 1 ; } ; )
-	@(f="$(prefix)/$(libpath)/ARename.pm"; printf 'Removing   file: '\''%s'\''\n' "$$f" ; \
-	  rm "$$f" || { printf '  Need to become root or file not there?\n' ; exit 1 ; } ; )
+	@./uninstall.sh f "$(prefix)/bin/arename.pl"
+	@./uninstall.sh f "$(prefix)/bin/ataglist.pl"
+	@./uninstall.sh f "$(prefix)/$(libpath)/ARename.pm"
 
 uninstall-doc:
-	@(d="$(prefix)/share/doc/arename"; printf 'Removing subdir: '\''%s'\''\n' "$$d" ; \
-	  rm -R "$$d" || { printf '  Need to become root or directory not there?\n' ; exit 1 ; } ; )
-	@(f="$(prefix)/share/man/man1/arename.1"; printf 'Removing   file: '\''%s'\''\n' "$$f" ; \
-	  rm "$$f" || { printf '  Need to become root or file not there?\n' ; exit 1 ; } ; )
+	@./uninstall.sh d "$(prefix)/share/doc/arename"
+	@./uninstall.sh f "$(prefix)/share/man/man1/arename.1"
 
 test: doc
 	@[ ! -e tests/data/input.wav ] && { \
