@@ -27,7 +27,7 @@ n)
     chmod 0644 "${DST}/${SRC##*/}"
     ;;
 x)
-    chmod 0644 "${DST}/${SRC##*/}"
+    chmod 0755 "${DST}/${SRC##*/}"
     ;;
 *)
     printf 'Unknown mode '\''%s'\'', ABORT.\n' "${MODE}"
