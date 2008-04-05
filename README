@@ -39,6 +39,26 @@ INSTALLATION
     # make install install-doc
 
 
+USING arename.pl FROM ITS GIT REPOSITORY
+
+  If you prefer to use arename.pl from its git repo, you are welcome
+  to do so. To clone the repo:
+
+    % git clone http://git.bewatermyfriend.org/arename.git
+
+  Remember, that this is development in progress. Please be more
+  careful with these versions.
+
+  To get the actual perl script, do:
+
+    % make genperlscript
+
+  And to generate the documentation, do:
+
+    % make doc
+
+  After these make calls, the installation works as described above.
+
 ZSH COMPLETION
 
   arename.pl comes with a completion function for zsh.
