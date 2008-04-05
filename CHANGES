@@ -3,6 +3,7 @@
     + Introducing a testsuite, that should catch stupid bugs, which
       I overlooked in the past.
     + Cleanups in the Makefile.
+    + Greatly improved the infrastructure of the project.
 1.4 -> 1.5
     + Adding section support in the configuration file (see manual
       for details).
