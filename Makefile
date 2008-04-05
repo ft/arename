@@ -47,11 +47,11 @@ genperlscript:
 
 doc: arename.1 arename.html
 
-arename.1: arename.in
-	pod2man  ./arename.in > arename.1    2>/dev/null
+arename.1:
+	[ -e arename.in ] && pod2man  ./arename.in > arename.1    2>/dev/null || true
 
-arename.html: arename.in
-	pod2html ./arename.in > arename.html 2>/dev/null
+arename.html:
+	[ -e arename.in ] && pod2html ./arename.in > arename.html 2>/dev/null || true
 	@rm -f *.tmp
 
 clean:
@@ -66,7 +66,8 @@ install: genperlscript
 	@./install.sh x ataglist.pl   "$(prefix)/bin"                        $(maxwidth)
 	@./install.sh x ARename.pm    "$(prefix)/$(libpath)/"                $(maxwidth)
 
-install-doc: doc
+install-doc:
+	@[ -e arename.in ] && $(MAKE) doc || true
 	@./install.sh n README        "$(prefix)/share/doc/arename"          $(maxwidth)
 	@./install.sh n LICENCE       "$(prefix)/share/doc/arename"          $(maxwidth)
 	@./install.sh n CHANGES       "$(prefix)/share/doc/arename"          $(maxwidth)
