@@ -10,6 +10,7 @@ if [ "arename.pl" -nt "arename.in" ] ; then
     exit 0
 fi
 
+printf 'Generating arename.pl... '
 pre="$(./bin/getversion.sh prerelease)"
 if [ -n "${pre}" ] ; then
     snap="$(./bin/getversion.sh snapshot)"
@@ -28,3 +29,4 @@ fi
 
 sed -e 's/@@arenameversioninfo@@/'"${version}"'/' < "arename.in" > "arename.pl"
 chmod +x "arename.pl"
+printf 'done.\n'
