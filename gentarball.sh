@@ -9,7 +9,7 @@ fi
 tag=$1 ; shift
 ver=$1 ; shift
 
-EXCLUDE='.gitignore TODO updatewebsite.sh website.mdwn.in'
+EXCLUDE='.gitignore TODO arename.in gentarball.sh getversion.sh updatewebsite.sh website.mdwn.in'
 
 if git branch | grep '^.*createtargz$' >/dev/null 2>&1 ; then
     git branch -D createtargz
