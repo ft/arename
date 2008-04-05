@@ -51,7 +51,7 @@ arename.html: arename.pl
 	@rm -f *.tmp
 
 clean:
-	rm -f arename.html arename.1 *.tmp .*~ *~ tests/*~
+	rm -f arename.html arename.1 *.tmp .*~ *~ tests/*~ arename.pl
 	rm -Rf tests/data
 
 distclean: clean
