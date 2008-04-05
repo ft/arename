@@ -23,6 +23,8 @@ if ! git checkout -b createtargz "${tag}" ; then
     exit 1
 fi
 
+make genperlscript
+
 for file in ${EXCLUDE} ; do
     rm -f "${file}"
     printf 'deleting %s\n' "${file}"
