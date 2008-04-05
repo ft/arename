@@ -34,6 +34,20 @@ file_fail () {
     exit 1
 }
 
+file_exists_and_exec () {
+    local d="$1" local f="$2"
+
+    if [ -e "$d/$f" ] ; then
+        if [ ! -x "$d/$f" ] ; then
+            printf '  + %s ... not executable.\n' "$d/$f"
+            file_fail "$d/$f"
+        fi
+        file_ok "$d/$f"
+    else
+        file_fail "$d/$f"
+    fi
+}
+
 file_exists () {
     local d="$1" local f="$2"
 
@@ -60,7 +74,7 @@ checkinstall () {
     local subd='bin'
     printf 'Checking %s/ installation...\n' "${subd}"
     for file in arename.pl ataglist.pl ; do
-        file_exists "$p/${subd}" "${file}"
+        file_exists_and_exec "$p/${subd}" "${file}"
     done
 
     local subd="$l"
