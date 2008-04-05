@@ -24,13 +24,12 @@ if ! git checkout -b createtargz "${tag}" ; then
 fi
 
 make genperlscript
+make doc
 
 for file in ${EXCLUDE} ; do
     rm -f "${file}"
     printf 'deleting %s\n' "${file}"
 done
-
-make doc
 
 git add .
 git commit -a -m 'createtargz'
