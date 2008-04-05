@@ -4,6 +4,7 @@
 *.tmp
 *.orig
 *.log
+*.tar.gz
 arename.1
 arename.html
 tests/data/*

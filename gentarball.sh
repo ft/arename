@@ -33,7 +33,7 @@ make doc
 git add .
 git commit -a -m 'createtargz'
 
-git-archive --format=tar --prefix="arename-${ver}/" "createtargz" | gzip -c -  > "../arename-${ver}.tar.gz"
+git-archive --format=tar --prefix="arename-${ver}/" "createtargz" | gzip -c -  > "./arename-${ver}.tar.gz"
 
 git checkout master
 git branch -D createtargz
