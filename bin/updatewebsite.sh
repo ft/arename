@@ -33,9 +33,9 @@ fi
 
 ################################################################################
 
-RELEASE="$(./getversion.sh release)"
-PRERELEASE="$(./getversion.sh prerelease)"
-SNAPSHOT="$(./getversion.sh snapshot)"
+RELEASE="$(./bin/getversion.sh release)"
+PRERELEASE="$(./bin/getversion.sh prerelease)"
+SNAPSHOT="$(./bin/getversion.sh snapshot)"
 
 [ -n "${SNAPSHOT}" ] && SNAPSHOT_ver="snap-$(date +"%Y%m%d")-${SNAPSHOT}"
 
@@ -46,9 +46,9 @@ SNAPSHOT="$(./getversion.sh snapshot)"
 ################################################################################
 
 rm -f "$2"/*.tar.gz
-                          ./gentarball.sh "${RELEASE}"    "${RELEASE}"      && mv ./arename-*.tar.gz "$2/"
-[ -n "${PRERELEASE}" ] && ./gentarball.sh "${PRERELEASE}" "${PRERELEASE}"   && mv ./arename-*.tar.gz "$2/"
-[ -n "${SNAPSHOT}" ]   && ./gentarball.sh "${SNAPSHOT}"   "${SNAPSHOT_ver}" && mv ./arename-*.tar.gz "$2/"
+                          ./bin/gentarball.sh "${RELEASE}"    "${RELEASE}"      && mv ./arename-*.tar.gz "$2/"
+[ -n "${PRERELEASE}" ] && ./bin/gentarball.sh "${PRERELEASE}" "${PRERELEASE}"   && mv ./arename-*.tar.gz "$2/"
+[ -n "${SNAPSHOT}" ]   && ./bin/gentarball.sh "${SNAPSHOT}"   "${SNAPSHOT_ver}" && mv ./arename-*.tar.gz "$2/"
 
 SEDCOMMANDS='s/@@release@@/'"[arename ${RELEASE}](\/comp\/arename\/arename-${RELEASE}.tar.gz)<br \/>"'/;'
 

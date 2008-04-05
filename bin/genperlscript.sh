@@ -10,15 +10,15 @@ if [ "arename.pl" -nt "arename.in" ] ; then
     exit 0
 fi
 
-pre="$(./getversion.sh prerelease)"
+pre="$(./bin/getversion.sh prerelease)"
 if [ -n "${pre}" ] ; then
-    snap="$(./getversion.sh snapshot)"
+    snap="$(./bin/getversion.sh snapshot)"
     [ -z "${snap}" ] && version="${pre}"
 fi
 
 if [ -z "${version}" ] ; then
-    rel="$(./getversion.sh release)"
-    snap="$(./getversion.sh snapshot)"
+    rel="$(./bin/getversion.sh release)"
+    snap="$(./bin/getversion.sh snapshot)"
     if [ -n "${snap}" ] ; then
         version="${rel}+git-${snap}"
     else

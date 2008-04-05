@@ -43,7 +43,7 @@ dev-help: all test-help
 	@printf '  removeweb      clean up the website'\''s target directory\n'
 
 genperlscript:
-	@./genperlscript.sh
+	@./bin/genperlscript.sh
 
 doc: arename.1 arename.html
 
@@ -63,28 +63,28 @@ distclean: clean
 	rm -f *.tar.gz
 
 install: genperlscript
-	@./install.sh x arename.pl    "$(prefix)/bin"                        $(maxwidth)
-	@./install.sh x ataglist.pl   "$(prefix)/bin"                        $(maxwidth)
-	@./install.sh x ARename.pm    "$(prefix)/$(libpath)/"                $(maxwidth)
+	@./bin/install.sh x arename.pl    "$(prefix)/bin"                        $(maxwidth)
+	@./bin/install.sh x ataglist.pl   "$(prefix)/bin"                        $(maxwidth)
+	@./bin/install.sh x ARename.pm    "$(prefix)/$(libpath)/"                $(maxwidth)
 
 install-doc:
 	@[ -e arename.in ] && $(MAKE) doc || true
-	@./install.sh n README        "$(prefix)/share/doc/arename"          $(maxwidth)
-	@./install.sh n LICENCE       "$(prefix)/share/doc/arename"          $(maxwidth)
-	@./install.sh n CHANGES       "$(prefix)/share/doc/arename"          $(maxwidth)
-	@./install.sh n arename.html  "$(prefix)/share/doc/arename"          $(maxwidth)
-	@./install.sh n arename.1     "$(prefix)/share/man/man1"             $(maxwidth)
-	@./install.sh n arename.hooks "$(prefix)/share/doc/arename/examples" $(maxwidth)
-	@./install.sh n _arename      "$(prefix)/share/doc/arename/examples" $(maxwidth)
+	@./bin/install.sh n README        "$(prefix)/share/doc/arename"          $(maxwidth)
+	@./bin/install.sh n LICENCE       "$(prefix)/share/doc/arename"          $(maxwidth)
+	@./bin/install.sh n CHANGES       "$(prefix)/share/doc/arename"          $(maxwidth)
+	@./bin/install.sh n arename.html  "$(prefix)/share/doc/arename"          $(maxwidth)
+	@./bin/install.sh n arename.1     "$(prefix)/share/man/man1"             $(maxwidth)
+	@./bin/install.sh n arename.hooks "$(prefix)/share/doc/arename/examples" $(maxwidth)
+	@./bin/install.sh n _arename      "$(prefix)/share/doc/arename/examples" $(maxwidth)
 
 uninstall:
-	@./uninstall.sh f "$(prefix)/bin/arename.pl"
-	@./uninstall.sh f "$(prefix)/bin/ataglist.pl"
-	@./uninstall.sh f "$(prefix)/$(libpath)/ARename.pm"
+	@./bin/uninstall.sh f "$(prefix)/bin/arename.pl"
+	@./bin/uninstall.sh f "$(prefix)/bin/ataglist.pl"
+	@./bin/uninstall.sh f "$(prefix)/$(libpath)/ARename.pm"
 
 uninstall-doc:
-	@./uninstall.sh d "$(prefix)/share/doc/arename"
-	@./uninstall.sh f "$(prefix)/share/man/man1/arename.1"
+	@./bin/uninstall.sh d "$(prefix)/share/doc/arename"
+	@./bin/uninstall.sh f "$(prefix)/share/man/man1/arename.1"
 
 test: doc
 	@[ ! -e tests/data/input.wav ] && { \
@@ -101,11 +101,11 @@ test: doc
 	prove -I. -v tests/*.t
 
 prepare-test-data:
-	./gentestsdata.sh
+	./bin/gentestsdata.sh
 
 updateweb:
 	@printf 'Updating webpages...\n'
-	@./updatewebsite.sh "$(ikiroot)" "$(ikisubroot)"
+	@./bin/updatewebsite.sh "$(ikiroot)" "$(ikisubroot)"
 	make distclean
 
 removeweb:
