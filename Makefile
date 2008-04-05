@@ -55,6 +55,7 @@ arename.html:
 	@rm -f *.tmp
 
 clean:
+	@[ ! -e arename.in ] && { printf 'DO NOT CALL THIS!\n' ; exit 1 ; } || true
 	rm -f arename.html arename.1 *.tmp .*~ *~ tests/*~ arename.pl
 	rm -Rf tests/data
 
