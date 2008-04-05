@@ -58,18 +58,18 @@ distclean: clean
 	rm -f *.tar.gz
 
 install:
-	@./install.sh arename.pl    "$(prefix)/bin"                        $(maxwidth)
-	@./install.sh ataglist.pl   "$(prefix)/bin"                        $(maxwidth)
-	@./install.sh ARename.pm    "$(prefix)/$(libpath)/"                $(maxwidth)
+	@./install.sh x arename.pl    "$(prefix)/bin"                        $(maxwidth)
+	@./install.sh x ataglist.pl   "$(prefix)/bin"                        $(maxwidth)
+	@./install.sh x ARename.pm    "$(prefix)/$(libpath)/"                $(maxwidth)
 
 install-doc: doc
-	@./install.sh README        "$(prefix)/share/doc/arename"          $(maxwidth)
-	@./install.sh LICENCE       "$(prefix)/share/doc/arename"          $(maxwidth)
-	@./install.sh CHANGES       "$(prefix)/share/doc/arename"          $(maxwidth)
-	@./install.sh arename.html  "$(prefix)/share/doc/arename"          $(maxwidth)
-	@./install.sh arename.1     "$(prefix)/share/man/man1"             $(maxwidth)
-	@./install.sh arename.hooks "$(prefix)/share/doc/arename/examples" $(maxwidth)
-	@./install.sh _arename      "$(prefix)/share/doc/arename/examples" $(maxwidth)
+	@./install.sh n README        "$(prefix)/share/doc/arename"          $(maxwidth)
+	@./install.sh n LICENCE       "$(prefix)/share/doc/arename"          $(maxwidth)
+	@./install.sh n CHANGES       "$(prefix)/share/doc/arename"          $(maxwidth)
+	@./install.sh n arename.html  "$(prefix)/share/doc/arename"          $(maxwidth)
+	@./install.sh n arename.1     "$(prefix)/share/man/man1"             $(maxwidth)
+	@./install.sh n arename.hooks "$(prefix)/share/doc/arename/examples" $(maxwidth)
+	@./install.sh n _arename      "$(prefix)/share/doc/arename/examples" $(maxwidth)
 
 uninstall:
 	@./uninstall.sh f "$(prefix)/bin/arename.pl"
