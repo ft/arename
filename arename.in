@@ -165,7 +165,7 @@ I<-exec> option:
 
 This will work for every possible file name. No matter if it has spaces
 or newlines in it. The I<+> at the end of the call causes find to call
-the external program (arename in this case) with as many arguments as
+the external program (B<arename> in this case) with as many arguments as
 possible, without exceeding the limit. This requires a POSIXly correct
 find. GNU find for instance, did not support the I<+> way for a long time.
 If you are stuck with an old version, you can exchange the I<+> with a
@@ -179,9 +179,25 @@ A last solution for zsh users would be zargs (which requires
 
 =head1 FILES
 
+B<arename>'s behaviour can be altered by a number of files it reads when
+starting up.
+
+Normal configuration tasks are done in (how convenient)
+L<Configuration Files|arename>, described below.
+
+If you need more control, or want to solve special problems you are having,
+you can do so by supplying Perl code in L<Hook definition files|arename>.
+
+B<arename> can be configured to read configuration files as well as hook
+definition files from the current working directory. This feature is
+disabled by default, because they can be a security issue on multiuser
+systems.
+
+There are no such things as systems wide configuration files in B<arename>.
+
 =head2 Configuration files
 
-B<arename> uses up to two configuration files. As for most programs,
+B<arename> uses up to three configuration files. As for most programs,
 the script will try to read a configuration file, that is located in the
 user's I<home directory>. In addition to that, it will try to load I<local>
 configuration files, if it finds appropriately named files in the
@@ -195,9 +211,17 @@ per-user global configuration file.
 
 =item B<./.arename.local>
 
-per-directory local configuration file.
+per-directory local configuration file (only read if I<uselocalrc> is set
+or the I<-l> option is given on the command line).
 
 =back
+
+The per-user global configuration file can be substituted by another file,
+if specified via the I<-c> option.
+
+Last but not least, you can specify an intermediate configuration file,
+that is read in between the global and the per-directory file, via the
+I<-C> option.
 
 =head3 File format
 
@@ -206,16 +230,29 @@ It is parsed line by line. Empty lines, lines only containing whitespace
 and lines, whose first non whitespace character is a hash character (I<#>)
 are ignored.
 
-Each line consists of one or two parts. If there are two parts,
-they are separated by whitespace. The first part of the line will be used
-as the identifier of a setting (eg. I<verbose>). The second part (read: the
-rest of the line) is used as the value of the setting. (No quoting, or whatsoever
-is required.)
+There are two different types of settings: boolean and scalar settings.
+
+Booleans can be set like this:
+
+  <setting> [true|false]
+
+If the value is omitted, I<true> is assumed. I<true> and I<false> are read
+case insensitively. And I<1> is synonymous to I<true>, as is I<0> to
+I<false>.
+
+Scalar settings are done very in a very similar way:
+
+  <setting> <value>
+
+If the value is omitted, string values will be set to an empty string and
+numeric values will be set to zero.
+
+In both cases, setting and value are separated by one or more whitespace
+characters. The value will be the rest of the line (all of it, including
+trailing whitespace).
 
 If the value part start with a backslash, that backslash is left out of the
 value. That makes it possible to define templates with leading whitespace.
-
-If a line consists of only one part, that means the setting is switched on.
 
 If a line contains only a string within square brackets, that string is the
 start of a section. Section names are matches for starts of file names.
@@ -229,10 +266,18 @@ You may start as many sections as you would like.
 A section named I</foo/bar/> supersedes a section named I</foo/> for a file
 named I</foo/bar/baz.ogg>. So, the longest match wins.
 
+One last possible configuration file entry is a user variable, which is
+defined via the B<set> command. These settings are very different from the
+normal settings. Therefore, they are defined in a different way. That way
+is described in the L<User defined variables> subsection below.
+
 =head2 Configuration file example
 
   # switch on verbosity
   verbose
+
+  # canonicalize file names before working with them
+  canonicalize
 
   # the author is crazy! use a sane template by default. :-)
   template &artist - &album (&year) - &tracknumber. &tracktitle
@@ -256,9 +301,9 @@ This allows you to define special hooks, that will only be applied for processes
 that run in the directory the local file is found (and if the I<uselocalhooks>
 option is set to B<true>).
 
-For details about hooks in arename, see L<HOOKS|arename> below.
-
 =back
+
+For details about hooks in B<arename>, see L<HOOKS|arename> below.
 
 =head1 SETTINGS
 
