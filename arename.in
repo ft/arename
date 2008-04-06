@@ -307,7 +307,11 @@ For details about hooks in B<arename>, see L<HOOKS|arename> below.
 
 =head1 SETTINGS
 
-The following settings are supported in all configuration files:
+The following settings are supported in all configuration files.
+
+Not all of them are usable in I<sections>. The ones you can use in
+sections are: All I<default_*> options, I<force>, I<prefix>, I<sepreplace>,
+I<tnpad>, I<comp_template> and I<template>.
 
 =over 8
 
@@ -341,44 +345,50 @@ I<false>)
 
 =item B<prefix>
 
-Defines a prefix for destination files. This setting can still be
-overwritten by the B<-p> command line option. (default value: I<.>)
+Defines a prefix for destination files. Setting this to '/foo/bar' results
+in destination files named '/foo/bar/Expanded Template.ogg'
+
+This setting can still be overwritten by the B<-p> command line option.
+(default value: I<.>)
 
 =item B<quiet>
 
-Switches on quietness by default. (default value: I<off>)
+Switches on quietness. This makes the output a lot more compact. (default
+value: I<off>)
 
 =item B<quiet_skip>
 
-Be quiet about skips by default. This implicitly sets 'quiet'.
-(default value: I<off>)
+Be quiet about skips. Even if I<quiet> is set, B<arename> will
+report files it does not process, because renaming would not change their
+names. With this option, these skipped files will not be reported. This
+implicitly sets 'quiet'. (default value: I<off>)
 
 =item B<sepreplace>
 
 Tagging information strings may contain slashes, which is a pretty bad
-idea on most filesystems. Therefore, you can define a string, that replaces
+idea on most file systems. Therefore, you can define a string, that replaces
 slashes with the value of this setting. (default value: I<_>)
 
 =item B<template>
 
 Defines a template to use with files that do not provide a compilation tag
 (or where the compilation tag and the artist tag are exactly the same).
-This setting can still be overwritten by the B<-T> command line option.
+This setting can be overwritten by the B<-T> command line option.
 (default value: I<&artist[1]/&artist/&album/&tracknumber - &tracktitle>)
 
 =item B<tnpad>
 
-This defines the width, to which the tracknumber field is padded with zeros
-on the left. (default value: I<2>)
+This defines the width, to which the track number field is padded with zeros
+on the left. Setting this to zero disables padding. (default value: I<2>)
 
 =item B<usehooks>
 
-If set to true use hooks defined in B<~/.arename.hooks>.
+If set to true, use hooks defined in B<~/.arename.hooks>.
 (default value: I<true>)
 
 =item B<uselocalhooks>
 
-If set to true use hooks defined in B<./.arename.hooks.local>.
+If set to true, use hooks defined in B<./.arename.hooks.local>.
 (default value: I<false>)
 
 =item B<uselocalrc>
@@ -388,7 +398,9 @@ if it exists. (default value: I<false>)
 
 =item B<verbose>
 
-Switches on verbosity by default. (default value: I<off>)
+Switches on verbosity by default. This makes B<arename>'s output really
+noisy. This is probably only useful for debugging or if you are really
+interested in what is going on. (default value: I<off>)
 
 =back
 
