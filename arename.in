@@ -537,20 +537,9 @@ The keys in various data hashes passed to the hooks can be one of
 the following: I<album>, I<artist>, I<compilation>, I<genre>,
 I<tracknumber>, I<tracktitle>, I<year>.
 
-Hooks can also use the data from user defined variables, by using
-their Perl interface (I<user_get>() and I<user_set>()):
-
-  # Assume, the user set the myvar-variable to "bar"
-  my $foo = user_get('myvar');    # $foo is now "bar"
-  user_set('foo', "bar, baz");
-  my $foo = user_get('myvar');    # $foo is now "bar, baz"
-
-The currently processed file name can be accessed via two subroutines:
-I<get_file()> and I<set_file()>. That way, you could even change the
-file name of the processed file, while I<arename> works on it (which
-you really should only do, if you know what you are doing).
-
 =head2 Utility subroutines
+
+=head3 Registration subroutines
 
 There are two subroutines, that are used to tell arename about
 subroutines, you defined that shall become hooks.
@@ -571,7 +560,169 @@ If the coderef was added more than once, all entries are removed.
 
 =back
 
+=head3 File access and manipulation
+
+The currently processed file name can be accessed via two subroutines:
+
+=over 4
+
+=item B<get_file>()
+
+Returns the current file name in as a string. This way, you can get the
+name of the processed file in every hook.
+
+=item B<set_file>(I<file name string>)
+
+This gives you the opportunity of manipulating the current file name.
+Be careful using this, because if you break the file name, B<arename>
+cannot work properly.
+
+=back
+
+With these, you could even change the file name of the processed file,
+while B<arename> works on it (which you really should only do, if you
+know what you are doing).
+
+=head3 User defines variable subroutines
+
+Hooks can also use the data from user defined variables, via their Perl
+interface:
+
+=over 4
+
+=item B<user_get>(I<setting>)
+
+Returns the current value of I<setting>. This is always a scalar value.
+
+=item B<user_set>(I<setting>, I<value>)
+
+Change the value of I<setting> to I<value>.
+
+=back
+
+Here is an example for user defined settings:
+
+  # Assume, the user set the myvar-variable to "bar" in his
+  # configuration file
+  my $foo = user_get('myvar');    # $foo is now "bar"
+  user_set('foo', "bar, baz");
+  my $foo = user_get('myvar');    # $foo is now "bar, baz"
+
+=head3 API for accessing to arename's internal configuration
+
+You can also access the configuration data of B<arename> itself:
+
+=over 4
+
+=item B<get_opt>(I<setting>)
+
+Returns the current value of I<setting>. This is always a scalar value.
+
+=item B<set_opt>(I<setting>, I<value>)
+
+Change the value of I<setting> to I<value>.
+
+=back
+
+A list of settings B<arename> will use: canonicalize, dryrun, force,
+hookerrfatal, oprefix, prefix, quiet, quiet_skip, readstdin, shutup,
+sepreplace, tnpad, usehooks, uselocalhooks, uselocalrc, verbose,
+comp_template and template.
+
+If you want to actually change these settings, you should have a profound
+knowledge of B<arename>'s internals. Be careful.
+
+=head3 API for default_* settings
+
+If you need to access the current values of the I<default_*> settings:
+
+=over 4
+
+=item B<get_defaults>(I<tagname>)
+
+Returns the value of default_I<tagname>.
+
+=item B<get_default_keys>()
+
+Returns a lexically sorted array of tag names of currently set I<default_*>
+values.
+
+=item B<set_default>(I<tagname>, I<value>)
+
+Sets the value of default_I<tagname> to I<value>.
+
+=back
+
+=head3 Output subroutines
+
+For output, you can use the following functions, the rest of B<arename>
+uses as well:
+
+=over 4
+
+=item B<oprint>(I<args>, ...)
+
+Print to the standard output stream. This can be called the same way as
+Perl's usual I<print> subroutine.
+
+=item B<owarn>(I<args>, ...)
+
+Print to the standard error stream.
+
+=back
+
+=head3 Miscellaneous subroutines
+
+And finally, a few miscellaneous functions ARename.pm provides, that
+might be of interest.
+
+If you need to know if a tag name is supported by B<arename>:
+
+=over 4
+
+=item B<choose_template>(I<data hash reference>)
+
+Return the appropriate template (I<normal> versus I<compiliation> template)
+by the data in the referenced data hash.
+
+=item B<expand_template>(I<template string>, I<data hash reference>)
+
+Return the expanded version of I<template string>. The information, that
+is used to do the expansion is taken from the referenced data hash.
+
+Keep in mind that this function calls hooks itself. Avoid endless loops!
+See L<Hooks when expanding the template|arename> for details.
+
+=item B<ensure_dir>(I<directory>)
+
+Makes sure I<directory> exists. Think: mkdir -p I<directory>
+
+=item B<file_eq>(I<file0>, I<file1>)
+
+Checks if the name I<file0> and the name I<file1> point to the same file.
+Returns I<0>, if one of the file names does not exist or if the files do
+not point to the same file, I<1> otherwise.
+
+Dies if it cannot stat one of the given files.
+
+=item B<tag_supported>(I<tagname>)
+
+Returns I<1> if the tag I<tagname> is supported, I<0> otherwise.
+
+=item B<xrename>(I<src>, I<dest>)
+
+Renames I<src> to I<dest>. Works across file systems, too. Dies
+if something fails.
+
+=back
+
 =head2 List of hook events
+
+This is a complete list of hooks events with descriptions.
+
+The first argument (argument number "zero") for every hook is the
+name space they are called in. To find out the name of the currently
+processed file, use the I<get_file>() subroutine described above.
 
 =head3 Hooks in the main loop
 
@@ -593,19 +744,25 @@ I<Arguments>: B<1:> canonicalized file name
 
 =item B<next_file_early>
 
-Called at the start of the main loop I<before> any file checks are done.
+Called at the start of the main loop I<before> any file checks and
+canonicalizations (if enabled) are done.
 
 I<Arguments>:
 
 =item B<next_file_late>
 
-Called in the main loop I<after> the file checks are done.
+Called in the main loop I<after> the file checks and canonicalizations
+are done.
+
+By file checks, checks for read-access and for symlinks are meant. I<arename>
+will refuse to process symlinks and files it cannot read.
 
 I<Arguments>:
 
 =item B<file_done>
 
-Called in the main loop I<after> the file has been processed.
+Called in the main loop I<after> the file has been processed (unless
+B<filetype_unknown> was triggered, see below).
 
 I<Arguments>:
 
@@ -620,7 +777,7 @@ I<Arguments>:
 
 =head3 Hooks in the renaming procedure
 
-When all data has been gathered, arename will go on to actually
+When all data has been gathered, B<arename> will go on to actually
 rename the files to their new destination name (which will be generated
 in the process, see L<Hooks when expanding the template> below).
 
@@ -646,7 +803,7 @@ has been completely generated (including the destination directory
 prefix).
 
 I<Arguments>: B<1:> data hash, B<2:> file extension
-B<4:> the generated new filename (including directory prefix and file
+B<3:> the generated new filename (including directory prefix and file
 extension)
 
 =item B<post_ensure_dir>
@@ -656,7 +813,7 @@ which currently do not exist. This hook is called I<after> it is ensured,
 every directory portion exists.
 
 I<Arguments>: B<1:> data hash, B<2:> file extension
-B<4:> the generated new filename (including directory prefix and file
+B<3:> the generated new filename (including directory prefix and file
 extension)
 
 =item B<post_rename>
@@ -665,7 +822,7 @@ This is the final hook in the actual renaming process. The file has been
 renamed at this point.
 
 I<Arguments>: B<1:> data hash, B<2:> file extension
-B<4:> the generated new filename (including directory prefix and file
+B<3:> the generated new filename (including directory prefix and file
 extension)
 
 =back
@@ -769,7 +926,7 @@ that the tag is even among the supported tags at this point.
 
 I<Arguments>: B<1:> tag name, B<2:> tag value, B<3:> data hash
 
-=item B<pre_handle_vorbistag>
+=item B<post_handle_vorbistag>
 
 I<.ogg and .flac only!>
 
@@ -819,10 +976,10 @@ I<Arguments>: B<1:> the mp3 object, B<2:> data hash
 =item B<apply_defaults>
 
 This is triggered before values from the default_* settings are applied
-to missing values in the audio file. This hook is I<only> run if the
+to missing values in the audio file. This hook is I<only> run if a
 default value for a tag will be used!
 
-I<Arguments>: B<1:> data hash, B<2:> defaults hash, B<3:> current key
+I<Arguments>: B<1:> data hash, B<2:> current key
 
 =item B<pre_method>
 
@@ -866,16 +1023,19 @@ This is a very simple example for a hook file, that prints a custom
 banner and replaces all whitespace in the expanded template with
 underscores:
 
-  sub my_banner { oprint "Hello World.\n"; }
+  sub my_banner {
+      oprint "Hello World.\n";
+  }
+  register_hook('startup', \&my_banner);
+
   sub replace_spaces_by_underscore {
       my ($templateref, $datref) = @_;
       $$templateref =~ s/\s+/_/g;
   }
-  register_hook('startup', \&my_banner);
   register_hook('post_expand_template',
       \&replace_spaces_by_underscore);
 
-Further examples can be found in the arename.hook file of the
+Further examples can be found in the B<arename.hook> file of the
 distribution.
 
 =head1 SEE ALSO
