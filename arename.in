@@ -90,7 +90,7 @@ tag.
 
 =item B<-t> E<lt>templateE<gt>
 
-Define a generic template (for all files that do L<not> contain a
+Define a generic template (for all files that do I<not> contain a
 compilation tag).
 
 =item I<FILE(s)...>
@@ -102,18 +102,80 @@ Input files, that are subject for renaming.
 =head1 DESCRIPTION
 
 B<arename> is a tool that is able to rename audio files by looking at
-a file's tagging information, from which it will assemble a consistent
-destination file name. The format of that filename is configurable for the
-user by the use of template strings.
+a file's tagging information. It uses this information to assemble a
+consistent destination file name. The user can define the format of the
+destination filename by the use of template strings.
 
-B<arename> currently supports three widely used audio formats, namely
-MPEG Layer3, ogg vorbis and flac. The format, that B<arename> will
-assume for each input file is determined by the file's filename-extension
-(I<.mp3> vs. I<.ogg> vs. I<.flac>). The extension check is case-insensitive.
+Templates can be defined in the L<Configuration Files|arename>, by the
+I<template> and I<comp_template> (See L<SETTINGS|arename> below).
 
 By default, B<arename> will refuse to overwrite destination files,
 if the file in question already exists. You can force overwriting by
 supplying the B<-f> option.
+
+In order to see what would happen instead of actually modifying files, you
+can use the B<-d> option. This way you can avoid problems, that would
+occur if the situation (e.g. the information in the files or your
+configuration) is not exactly as you expected it.
+
+=head2 Supported file formats
+
+B<arename> currently supports three widely used audio formats, namely
+MPEG Layer3, ogg vorbis and flac (Free Lossless Audio Codec). The format,
+that B<arename> will assume for each input file is determined by the file's
+filename-extension (I<.mp3> vs. I<.ogg> vs. I<.flac>).
+The extension check is case-insensitive.
+
+I<.mp3> files may contain different types of tags, namely id3v1 and id3v2.
+Id3v1 is a very limited format. Therefore B<arename> will use the id3v2 tag
+when it finds it. Therefore you should make sure that the id3v2 tag has
+all the information you need, if you use files with both id3v1 and id3v2
+tags.
+
+=head2 Inputting a *lot* of files
+
+B<arename> can be used to keep the file names of whole audio archives in
+sync. However, that means that you will have to tell the script the
+location of many files, thousands maybe.
+
+In order to do that you will face the problem, that on most UNIX-like
+systems, the length of the argument list for external programs is limited
+(recent Linux versions, as an exception, do not have that limitation
+anymore).
+
+So, even if your shell can do recursive globbing like ksh or zsh, this will
+most likely get you into trouble (for more than just a few files):
+
+  % arename -d **/*.mp3
+
+There are ways to overcome that limitation, of course.
+
+The first solution is to use B<find> in connection with B<arename>'s I<-s>
+option:
+
+  % find . -name "*.mp3" -print | arename -d -s
+
+This will break for file names that contain newlines, because I<-s> will
+read one file name per line from the standard input stream.
+
+Another way of using B<find> to deal with this problem is to use find's
+I<-exec> option:
+
+  % find . -name "*.mp3" -exec arename -d '{}' '+'
+
+This will work for every possible file name. No matter if it has spaces
+or newlines in it. The I<+> at the end of the call causes find to call
+the external program (arename in this case) with as many arguments as
+possible, without exceeding the limit. This requires a POSIXly correct
+find. GNU find for instance, did not support the I<+> way for a long time.
+If you are stuck with an old version, you can exchange the I<+> with a
+I<;> (note, that a semicolon B<must> be quoted in any case), or use GNU's
+xargs tool instead.
+
+A last solution for zsh users would be zargs (which requires
+'autoload zargs' in your zsh configuration):
+
+  % zargs -- **/*.mp3 -- arename.pl -d
 
 =head1 FILES
 
