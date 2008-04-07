@@ -62,13 +62,12 @@ clean:
 distclean: clean
 	rm -f *.tar.gz
 
-install: genperlscript
+install:
 	@./bin/install.sh x arename       "$(prefix)/bin"                        $(maxwidth)
 	@./bin/install.sh x ataglist      "$(prefix)/bin"                        $(maxwidth)
 	@./bin/install.sh x ARename.pm    "$(prefix)/$(libpath)/"                $(maxwidth)
 
 install-doc:
-	@[ -e arename.in ] && $(MAKE) doc || true
 	@./bin/install.sh n README        "$(prefix)/share/doc/arename"          $(maxwidth)
 	@./bin/install.sh n LICENCE       "$(prefix)/share/doc/arename"          $(maxwidth)
 	@./bin/install.sh n CHANGES       "$(prefix)/share/doc/arename"          $(maxwidth)
