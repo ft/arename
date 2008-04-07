@@ -5,8 +5,8 @@ if [ ! -e "arename.in" ] ; then
     exit 0
 fi
 
-if [ "arename" -nt "arename.in" ] ; then
-    printf 'genperlscript.sh: arename newer than the input file, do nothing...\n'
+if [ "arename" -nt "arename.in" ] && [ "arename" -nt "ARename.pm" ] ; then
+    printf 'genperlscript.sh: arename newer than the input files, doing nothing...\n'
     exit 0
 fi
 
