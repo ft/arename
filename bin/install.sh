@@ -18,16 +18,16 @@ else
     printf 'Installing %'"${WIDTH}"'s to %s\n' "${SRC}" "${DST}"
 fi
 
-mkdir -p "${DST}"
-chown root:root "${DST}"
-cp "${SRC}" "${DST}"
-chown root:root "${DST}/${SRC##*/}"
+mkdir -p "${DST}"                   || exit 1
+chown root:root "${DST}"            || exit 1
+cp "${SRC}" "${DST}"                || exit 1
+chown root:root "${DST}/${SRC##*/}" || exit 1
 case "${MODE}" in
 n)
-    chmod 0644 "${DST}/${SRC##*/}"
+    chmod 0644 "${DST}/${SRC##*/}"  || exit 1
     ;;
 x)
-    chmod 0755 "${DST}/${SRC##*/}"
+    chmod 0755 "${DST}/${SRC##*/}"  || exit 1
     ;;
 *)
     printf 'Unknown mode '\''%s'\'', ABORT.\n' "${MODE}"
