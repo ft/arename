@@ -427,16 +427,16 @@ err:
 #{{{
     '^\s*\[.*\]\s*$'  => \&parse_new_section,
     '^canonicalize$'  => \&parse_bool,
-    '^comp_template$' => \&parse_generic,
+    '^comp_template$' => \&parse_string,
     '^default_.*$'    => \&parse_defaultvalues,
     '^hookerrfatal$'  => \&parse_bool,
-    '^prefix$'        => \&parse_generic,
+    '^prefix$'        => \&parse_string,
     '^quiet$'         => \&parse_bool,
     '^quiet_skip$'    => \&parse_bool,
-    '^sepreplace$'    => \&parse_generic,
+    '^sepreplace$'    => \&parse_string,
     '^set$'           => \&parse_set,
-    '^template$'      => \&parse_generic,
-    '^tnpad$'         => \&parse_generic,
+    '^template$'      => \&parse_string,
+    '^tnpad$'         => \&parse_integer,
     '^usehooks$'      => \&parse_bool,
     '^uselocalhooks$' => \&parse_bool,
     '^uselocalrc$'    => \&parse_bool,
@@ -500,11 +500,27 @@ sub parse_defaultvalues { #{{{
     set_defaults($key, $val);
 }
 #}}}
-sub parse_generic { #{{{
+sub parse_integer { #{{{
+    my ($file, $lnum, $count, $key, $val) = @_;
+
+    if ($val ne '' && $val !~ m/^\d+$/) {
+        die "$file,$lnum: Broken integer value for '$key': '$val'\n";
+    }
+
+    $val = 0 if ($val eq '');
+
+    if (get_opt("verbose")) {
+        oprint("integer option \"$key\" = $val\n");
+    }
+
+    set_opt($key, $val);
+}
+#}}}
+sub parse_string { #{{{
     my ($file, $lnum, $count, $key, $val) = @_;
 
     if (get_opt("verbose")) {
-        oprint("generic option \"$key\" = '$val'\n");
+        oprint("string option \"$key\" = '$val'\n");
     }
 
     set_opt($key, $val);
