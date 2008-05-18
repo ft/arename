@@ -471,8 +471,10 @@ sub parse_bool { #{{{
        || $val =~ m/^true$/i || $val eq '1') {
 
         $val = 1;
-    } else {
+    } elsif ($val =~ m/^false$/i || $val eq '0') {
         $val = 0;
+    } else {
+        die "$file,$lnum: unknown boolean value for '$key': '$val'\n";
     }
 
     if (get_opt("verbose")) {
