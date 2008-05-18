@@ -97,6 +97,19 @@ test: doc
 	 fi ; \
 	 "$(fakeroot)" /bin/sh ./tests/inst_t.sh ; \
 	)
+	@( \
+	 [ -e "arename.in" ] && PODFILE=arename.in || PODFILE=arename ; \
+	 printf 'Checking pod syntax in "%s"...\n\n' "$$PODFILE" ; \
+	 podchecker -warnings "$$PODFILE" || { \
+	  printf '\n podchecker returned errors, please check!\n\n' ; \
+	  exit 1 ; \
+	 } ; \
+	 if podchecker -warnings "$$PODFILE" 2>&1 | grep '^\*\*\* WARNING' > /dev/null 2>&1; then \
+	  printf '\n podchecker returned warnings, please check!\n\n' ;\
+	  exit 1 ; \
+	 fi ; \
+	 printf '\nPod syntax in "%s" passed all tests - okay.\n\n' "$$PODFILE" ; \
+	)
 	prove -I. -v tests/*.t
 
 prepare-test-data:

@@ -16,6 +16,8 @@ arename's test suite
       + metaflac       - manipulate tags in flac files
       + id3v2          - manipulate tags in mp3 files
       + fakeroot (opt) - fake root previleges
+      + podchecker     - check the syntax of the plain old documentation
+                         in arename.in
 
 
   This test suite should run without failing tests on all systems. If
