@@ -175,7 +175,7 @@ xargs tool instead.
 A last solution for zsh users would be zargs (which requires
 'autoload zargs' in your zsh configuration):
 
-  % zargs -- **/*.mp3 -- arename.pl -d
+  % zargs -- **/*.mp3 -- arename -d
 
 =head1 FILES
 
