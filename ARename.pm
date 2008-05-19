@@ -1119,7 +1119,7 @@ sub __read_hook_file { #{{{
 
     $rc = do $file;
 
-    if (!$rc && $@) {
+    if (!defined $rc && $@) {
         owarn("Could not parse hooks file ($file):\n   - $@\n");
         if (get_opt("hookerrfatal")) {
             exit 1;
@@ -1133,6 +1133,13 @@ sub __read_hook_file { #{{{
         } else {
             return 0;
         }
+    } elsif ($rc != 1) {
+        owarn("Reading hooks file \"$file\" did not return 1.\n");
+        owarn("  While this is not a fatal problem, it is good practice, to let\n");
+        owarn("  perl script files return 1. Just put a '1;' into the last line\n");
+        owarn("  of this file to get rid of this warning. Subroutines like\n");
+        owarn("  register_hook() and remove_hook() return 1 by default, so sticking\n");
+        owarn("  them into the last line of the file will do the trick, too.\n");
     }
 
     oprint("Hook file read ($file).\n");
