@@ -107,7 +107,7 @@ consistent destination file name. The user can define the format of the
 destination filename by the use of template strings.
 
 Templates can be defined in the L<Configuration Files|arename>, by the
-I<template> and I<comp_template> (See L<SETTINGS|arename> below).
+I<template> and I<comp_template> settings (See L<SETTINGS|arename> below).
 
 By default, B<arename> will refuse to overwrite destination files,
 if the file in question already exists. You can force overwriting by
@@ -128,7 +128,7 @@ The extension check is case-insensitive.
 
 I<.mp3> files may contain different types of tags, namely id3v1 and id3v2.
 Id3v1 is a very limited format. Therefore B<arename> will use the id3v2 tag
-when it finds it. Therefore you should make sure that the id3v2 tag has
+when it finds it. Which means you should make sure that the id3v2 tag has
 all the information you need, if you use files with both id3v1 and id3v2
 tags.
 
@@ -148,7 +148,7 @@ most likely get you into trouble (for more than just a few files):
 
   % arename -d **/*.mp3
 
-There are ways to overcome that limitation, of course.
+There are several ways to overcome that limitation, of course.
 
 The first solution is to use B<find> in connection with B<arename>'s I<-s>
 option:
@@ -193,7 +193,7 @@ definition files from the current working directory. This feature is
 disabled by default, because they can be a security issue on multiuser
 systems.
 
-There are no such things as systems wide configuration files in B<arename>.
+There are no such things as system wide configuration files in B<arename>.
 
 =head2 Configuration files
 
@@ -201,7 +201,7 @@ B<arename> uses up to three configuration files. As for most programs,
 the script will try to read a configuration file, that is located in the
 user's I<home directory>. In addition to that, it will try to load I<local>
 configuration files, if it finds appropriately named files in the
-I<current directory>.
+I<current directory> (and the I<uselocalrc> feature is enabled):
 
 =over 8
 
@@ -236,9 +236,9 @@ Booleans can be set like this:
 
   <setting> [true|false]
 
-If the value is omitted, I<true> is assumed. I<true> and I<false> are read
-case insensitively. And I<1> is synonymous to I<true>, as is I<0> to
-I<false>.
+If the value is omitted, I<true> is assumed. I<true> and I<false> are
+recognized case insensitively, and a value of I<1> is synonymous to I<true>,
+as is I<0> to I<false>.
 
 Scalar settings are done very in a very similar way:
 
@@ -251,15 +251,16 @@ In both cases, setting and value are separated by one or more whitespace
 characters. The value will be the rest of the line (all of it, including
 trailing whitespace).
 
-If the value part start with a backslash, that backslash is left out of the
+If the value part starts with a backslash, that backslash is left out of the
 value. That makes it possible to define templates with leading whitespace.
 
 If a line contains only a string within square brackets, that string is the
 start of a section. Section names are matches for starts of file names.
-That means, the following settings are will only applied for input file
-names that start with the same string as the section name. Where file name
-means the string, handed over to B<arename>. The string I<~/> at the
-beginning of a section name is expanded to the user's home directory.
+That means, the settings following such a section definition will only
+applied for input file names that start with the same string as the section
+name. Where file name means the string, handed over to B<arename>. The string
+I<~/> at the beginning of a section name is expanded to the user's home
+directory.
 
 You may start as many sections as you would like.
 
@@ -400,23 +401,26 @@ if it exists. (default value: I<false>)
 
 Switches on verbosity by default. This makes B<arename>'s output really
 noisy. This is probably only useful for debugging or if you are really
-interested in what is going on. (default value: I<off>)
+interested in what is going on. (default value: I<false>)
 
 =back
 
 =head2 User defined variables
 
 You can use the B<set> command in arenamerc files. This way the user can
-define his own variables. The namespace is seperate from B<arename's>
+define his own variables. The namespace is seperate from B<arename>'s
 normal settings. (That means, you cannot, for example,  overwrite the
 internal I<template> variable with this command.)
+
+The synax is quite simple (and B<different> to settings normal settings on
+purpose!):
 
 B<set> I<varname> = I<value>
 
 There may be an arbitrary amount of whitespace around the equal sign
 (including no whitespace at all). If you want to have a value that
 starts in a whitespace character, you may start the value with a
-backslash character (just like with the template settings, a leading
+backslash character (just like with the normal settings, a leading
 backslash is always ignored).
 
 User defined variables are useful to make hooks configurable (see
@@ -497,7 +501,7 @@ Year (id3v1), TYER (id3v2) or DATE tag (.ogg/.flac).
 =head1 HOOKS
 
 Before we start, a word of warning: Hooks can solve a lot of problems.
-That amount of flexibility comes with its price. All data passed to
+That amount of flexibility comes at its price. All data passed to
 hook functions are B<references> to the B<actual data> in the script
 (except for the namespace argument, which is a copy). If you write
 hooks carelessly, arename will get back at you! HOOKS ARE A BIG
@@ -520,7 +524,7 @@ Hooks are just Perl subroutines, which are defined in one of two files
 execution of arename. The contents of the argument list for each hook
 depends on what hook is called (see the list of hook events below).
 However, the first argument (argument zero aka. $_[0]) to all hooks is
-the namespace, the hook is called in.
+the hook namespace, the subroutine is called in.
 
 The global hooks file is read before the local one, which means, that
 this local file may overwrite and extend the definitions from the global
@@ -568,8 +572,8 @@ The currently processed file name can be accessed via two subroutines:
 
 =item B<get_file>()
 
-Returns the current file name in as a string. This way, you can get the
-name of the processed file in every hook.
+Returns the current file name as a string. This way, you can get the
+name of the currently processed file in every hook.
 
 =item B<set_file>(I<file name string>)
 
@@ -583,7 +587,7 @@ With these, you could even change the file name of the processed file,
 while B<arename> works on it (which you really should only do, if you
 know what you are doing).
 
-=head3 User defines variable subroutines
+=head3 User-defined-variable subroutines
 
 Hooks can also use the data from user defined variables, via their Perl
 interface:
@@ -676,8 +680,6 @@ Print to the standard error stream.
 And finally, a few miscellaneous functions ARename.pm provides, that
 might be of interest.
 
-If you need to know if a tag name is supported by B<arename>:
-
 =over 4
 
 =item B<choose_template>(I<data hash reference>)
@@ -707,7 +709,7 @@ Dies if it cannot stat one of the given files.
 
 =item B<tag_supported>(I<tagname>)
 
-Returns I<1> if the tag I<tagname> is supported, I<0> otherwise.
+Returns I<1> if the tag I<tagname> is supported by arename, I<0> otherwise.
 
 =item B<xrename>(I<src>, I<dest>)
 
@@ -867,7 +869,8 @@ value of the length modifier, B<5:> the data hash
 Called after all expansions have been done, right before the the resulting
 string is returned.
 
-I<Arguments>: B<1:> the template string, B<2:> the data hash
+I<Arguments>: B<1:> the template string (fully expanded), B<2:> the data
+hash
 
 =back
 
@@ -931,6 +934,9 @@ I<Arguments>: B<1:> tag name, B<2:> tag value, B<3:> data hash
 I<.ogg and .flac only!>
 
 Triggered I<after> a certain tag was processed.
+
+This hook is only reached if the currently processed tag is in fact among
+the tags supported by B<arename>.
 
 I<Arguments>: B<1:> tag name, B<2:> tag value, B<3:> the internal name for
 the tag (also used as the key in the data hash), B<4:> data hash
