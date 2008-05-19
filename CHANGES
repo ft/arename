@@ -1,3 +1,11 @@
+1.6 -> 2.0
+    + Dropping the .pl suffix of the scripts.
+    + boolean parsing is stricter now.
+    + string and interger settings are parsed seperately now,
+      which changes value checks and default values, too
+    + Improved documentation.
+    + 'tnpad 0' now switches off track number padding completely.
+    + 'hookerrfatal' works as expected now.
 1.5 -> 1.6
     = No big user-visible changes in this release...
     + Introducing a testsuite, that should catch stupid bugs, which
