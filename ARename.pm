@@ -246,13 +246,16 @@ sub expand_template { #{{{
                 $token = substr($datref->{$tag}, 0, $len);
             } else {
                 if ($tag eq 'tracknumber') {
-                    my $val;
+                    my ($val, $pad);
+
                     if ($datref->{$tag} =~ m/^([^\/]*)\/.*$/) {
                         $val = $1;
                     } else {
                         $val = $datref->{$tag};
                     }
-                    $token = sprintf "%0" . get_opt("tnpad") . "d", $val;
+
+                    $pad = get_opt('tnpad');
+                    $token = sprintf "%0" . ($pad ne "0" ? "$pad" : "" ) . "d", $val;
                 } else {
                     $token = $datref->{$tag};
                 }
