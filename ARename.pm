@@ -110,21 +110,26 @@ set_opt('shutup', 0);
 $postproc = \&arename;
 #}}}
 
-sub apply_defaults { #{{{
-    my ($datref) = @_;
-    my ($value);
+# high level code {{{
 
-    foreach my $key (get_default_keys()) {
-        if (!defined $datref->{$key}) {
-            run_hook('apply_defaults', $datref, \$key);
+sub apply_methods { #{{{
+    my ($exit) = @_;
 
-            $value = get_defaults($key);
-            if (get_opt("verbose")) {
-                oprint("Setting ($key) to \"$value\".\n");
+    my $file = get_file();
+
+    foreach my $method (sort keys %methods) {
+        if ($file =~ m/$method/i) {
+            run_hook('pre_method', \$method);
+            $methods{$method}->($file);
+            run_hook('post_method', \$method);
+            if ($exit) {
+                exit 0;
+            } else {
+                return 1;
             }
-            $datref->{$key} = $value;
         }
     }
+    return 0;
 }
 #}}}
 sub arename { #{{{
@@ -181,6 +186,37 @@ sub arename { #{{{
     run_hook('post_rename', $datref, \$ext, \$newname);
 }
 #}}}
+
+sub apply_defaults { #{{{
+    my ($datref) = @_;
+    my ($value);
+
+    foreach my $key (get_default_keys()) {
+        if (!defined $datref->{$key}) {
+            run_hook('apply_defaults', $datref, \$key);
+
+            $value = get_defaults($key);
+            if (get_opt("verbose")) {
+                oprint("Setting ($key) to \"$value\".\n");
+            }
+            $datref->{$key} = $value;
+        }
+    }
+}
+#}}}
+sub tag_supported { #{{{
+    my ($tag) = @_;
+
+    foreach my $sub (@supported_tags) {
+        if ($tag eq $sub) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+#}}}
+
 sub arename_verbosity { #{{{
     my ($datref) = @_;
 
@@ -195,6 +231,115 @@ sub arename_verbosity { #{{{
     }
 }
 #}}}
+sub getdat { #{{{
+    my ($datref, $tag) = @_;
+
+    return defined $datref->{$tag} ? $datref->{$tag} : "-.-";
+}
+#}}}
+
+sub process_file { #{{{
+    my ($file) = @_;
+
+    set_file($file);
+
+    run_hook('next_file_early');
+
+    if (!get_opt("quiet")) {
+        print "Processing: $file\n";
+    }
+    if (-l $file) {
+        owarn("Refusing to handle symbolic links ($file).\n");
+        return;
+    }
+    if (! -r $file) {
+        owarn("Can't read \"$file\": $!\n");
+        return;
+    }
+
+    if (get_opt('canonicalize')) {
+        my $f = abs_path($file);
+        run_hook('canonicalize', \$f);
+        set_file($f);
+    }
+
+    run_hook('next_file_late');
+
+    if (!apply_methods(0)) {
+        run_hook('filetype_unknown');
+        process_warn();
+    } else {
+        run_hook('file_done');
+    }
+}
+#}}}
+
+sub set_default_options { #{{{
+    set_opt("canonicalize",  0);
+    set_opt("dryrun",        0);
+    set_opt("force",         0);
+    set_opt("hookerrfatal",  1);
+    set_opt("oprefix",       '  -!- ');
+    set_opt("prefix" ,       '.');
+    set_opt("quiet",         0);
+    set_opt("quiet_skip",    0);
+    set_opt("readstdin",     0);
+    set_opt("sepreplace",    '_');
+    set_opt("tnpad",         2);
+    set_opt("usehooks",      1);
+    set_opt("uselocalhooks", 0);
+    set_opt("uselocalrc",    0);
+    set_opt("verbose",       0);
+    set_opt("comp_template", "va/&album/&tracknumber - &artist - &tracktitle");
+    set_opt("template",      "&artist[1]/&artist/&album/&tracknumber - &tracktitle");
+}
+#}}}
+sub set_default_methods { #{{{
+
+    %methods = (
+        '\.flac$' => \&ARename::process_flac,
+        '\.mp3$'  => \&ARename::process_mp3,
+        '\.ogg$'  => \&ARename::process_ogg
+    );
+}
+#}}}
+sub set_nameversion { #{{{
+    my ($n, $v) = @_;
+
+    $NAME    = $n;
+    $VERSION = $v;
+}
+#}}}
+sub set_postproc { #{{{
+    $postproc = $_[0];
+}
+#}}}
+
+sub usage { #{{{
+    print " Usage:\n  $NAME [OPTION(s)] FILE(s)...\n\n";
+    print "    -d                Go into dryrun mode.\n";
+    print "    -f                Overwrite files if needed.\n";
+    print "    -H                Disable *all* hooks.\n";
+    print "    -h                Display this help text.\n";
+    print "    -L                List current configuration.\n";
+    print "    -l                Read local rc, if it exists.\n";
+    print "    -Q                Don't display skips in quiet mode.\n";
+    print "    -q                Enable quiet output.\n";
+    print "    -s                Read file names from stdin.\n";
+    print "    -V                Display version infomation.\n";
+    print "    -v                Enable verbose output.\n";
+    print "    -c <file>         Read file instead of ~/.arenamerc.\n";
+    print "    -C <file>         Read file after ~/.arenamerc.\n";
+    print "    -p <prefix>       Define a prefix for destination files.\n";
+    print "    -T <template>     Define a compilation template.\n";
+    print "    -t <template>     Define a generic template.\n";
+    print "\n";
+}
+#}}}
+
+#}}}
+# template handling {{{
+
 sub choose_template { #{{{
     my ($datref) = @_;
 
@@ -204,48 +349,6 @@ sub choose_template { #{{{
         return get_opt("comp_template");
     } else {
         return get_opt("template");
-    }
-}
-#}}}
-sub ensure_dir { #{{{
-    # think: mkdir -p /foo/bar/baz
-    my ($wantdir) = @_;
-    my (@parts, $sofar);
-
-    if (-d $wantdir) {
-        return;
-    }
-
-    if ($wantdir =~ '^/') {
-        $sofar = '/';
-    } else {
-        $sofar = '';
-    }
-
-    @parts = split(/\//, $wantdir);
-    foreach my $part (@parts) {
-        if ($part eq '') {
-            next;
-        }
-        $sofar = (
-                  $sofar eq ''
-                    ? $part
-                    : (
-                        $sofar eq '/'
-                          ? '/' . $part
-                          : $sofar . "/" . $part
-                      )
-                 );
-
-        if (!-d $sofar) {
-            if ((get_opt("dryrun") || get_opt("verbose")) && !get_opt("quiet")) {
-                oprint("mkdir \"$sofar\"\n");
-            }
-            if (!get_opt("dryrun")) {
-                mkdir($sofar) or die "Could not mkdir($sofar).\n" .
-                                     "Reason: $!\n";
-            }
-        }
     }
 }
 #}}}
@@ -310,6 +413,52 @@ sub expand_template { #{{{
     return $template;
 }
 #}}}
+
+#}}}
+# file system related code {{{
+
+sub ensure_dir { #{{{
+    # think: mkdir -p /foo/bar/baz
+    my ($wantdir) = @_;
+    my (@parts, $sofar);
+
+    if (-d $wantdir) {
+        return;
+    }
+
+    if ($wantdir =~ '^/') {
+        $sofar = '/';
+    } else {
+        $sofar = '';
+    }
+
+    @parts = split(/\//, $wantdir);
+    foreach my $part (@parts) {
+        if ($part eq '') {
+            next;
+        }
+        $sofar = (
+                  $sofar eq ''
+                    ? $part
+                    : (
+                        $sofar eq '/'
+                          ? '/' . $part
+                          : $sofar . "/" . $part
+                      )
+                 );
+
+        if (!-d $sofar) {
+            if ((get_opt("dryrun") || get_opt("verbose")) && !get_opt("quiet")) {
+                oprint("mkdir \"$sofar\"\n");
+            }
+            if (!get_opt("dryrun")) {
+                mkdir($sofar) or die "Could not mkdir($sofar).\n" .
+                                     "Reason: $!\n";
+            }
+        }
+    }
+}
+#}}}
 sub file_eq { #{{{
     my ($f0, $f1) = @_;
     my (@stat0, @stat1);
@@ -330,12 +479,41 @@ sub file_eq { #{{{
     return 0;
 }
 #}}}
-sub getdat { #{{{
-    my ($datref, $tag) = @_;
+sub xrename { #{{{
+    # a rename() replacement, that implements renames across
+    # filesystems via File::copy() + unlink().
+    # This assumes, that source and destination directory are
+    # there, because it stat()s them, to check if it can use
+    # rename().
+    my ($src, $dest) = @_;
+    my (@stat0, @stat1, $d0, $d1, $cause);
 
-    return defined $datref->{$tag} ? $datref->{$tag} : "-.-";
+    $d0 = dirname($src);
+    $d1 = dirname($dest);
+    @stat0 = stat $d0 or die "Could not stat($d0): $!\n";
+    @stat1 = stat $d1 or die "Could not stat($d1): $!\n";
+
+    if ($stat0[0] == $stat1[0]) {
+        $cause = 'rename';
+        rename $src, $dest or goto err;
+    } else {
+        $cause = 'copy';
+        copy($src, $dest) or goto err;
+        $cause = 'unlink';
+        unlink $src or goto dir;
+    }
+
+    return 0;
+
+err:
+    die "Could not rename($src, $dest);\n" .
+        "Reason: $cause(): $!\n";
 }
 #}}}
+
+#}}}
+# output subroutines {{{
+
 sub oprint { #{{{
     my ($string) = @_;
 
@@ -350,6 +528,10 @@ sub owarn { #{{{
     warn get_opt("oprefix") . $string;
 }
 #}}}
+
+#}}}
+# config file processing {{{
+
 sub __rcload { #{{{
     my ($file, $desc) = @_;
     my ($fh, $retval);
@@ -410,47 +592,33 @@ sub rcload { #{{{
 
 }
 #}}}
-sub tag_supported { #{{{
-    my ($tag) = @_;
+sub read_rcs { #{{{
+    my ($rc, $retval);
 
-    foreach my $sub (@supported_tags) {
-        if ($tag eq $sub) {
-            return 1;
-        }
+    $rc = $ENV{HOME} . "/.arenamerc";
+    $rc = cmdoptstr('c') if (cmdopts('c'));
+
+    $retval = rcload($rc, "main configuration");
+
+    if ($retval < 0) {
+        die "Error(s) in \"$rc\". Aborting.\n";
+    } elsif ($retval > 0) {
+        warn "Error opening configuration; using defaults.\n";
     }
 
-    return 0;
-}
-#}}}
-sub xrename { #{{{
-    # a rename() replacement, that implements renames across
-    # filesystems via File::copy() + unlink().
-    # This assumes, that source and destination directory are
-    # there, because it stat()s them, to check if it can use
-    # rename().
-    my ($src, $dest) = @_;
-    my (@stat0, @stat1, $d0, $d1, $cause);
-
-    $d0 = dirname($src);
-    $d1 = dirname($dest);
-    @stat0 = stat $d0 or die "Could not stat($d0): $!\n";
-    @stat1 = stat $d1 or die "Could not stat($d1): $!\n";
-
-    if ($stat0[0] == $stat1[0]) {
-        $cause = 'rename';
-        rename $src, $dest or goto err;
-    } else {
-        $cause = 'copy';
-        copy($src, $dest) or goto err;
-        $cause = 'unlink';
-        unlink $src or goto dir;
+    if (cmdopts('C')) {
+        sect_reset();
+        $rc = cmdoptstr('C');
+        $retval = rcload($rc, "additional configuration");
     }
 
-    return 0;
+    if (get_opt('uselocalrc') && -r "./.arename.local") {
+        sect_reset();
+        $rc = "./.arename.local";
+        $retval = rcload($rc, "local configuration");
+    }
 
-err:
-    die "Could not rename($src, $dest);\n" .
-        "Reason: $cause(): $!\n";
+    sect_reset();
 }
 #}}}
 
@@ -475,8 +643,7 @@ err:
 );
 #}}}
 
-# parser sub functions {{{
-
+# parser sub functions
 sub parse { #{{{
     my ($file, $lnum, $count, $key, $val) = @_;
 
@@ -593,6 +760,7 @@ sub parse_set { #{{{
 #}}}
 
 #}}}
+# processing audio files {{{
 
 sub handle_vorbistag { #{{{
     my ($datref, $tag, $value) = @_;
@@ -746,62 +914,9 @@ sub process_warn { #{{{
 }
 #}}}
 
-sub process_file { #{{{
-    my ($file) = @_;
-
-    set_file($file);
-
-    run_hook('next_file_early');
-
-    if (!get_opt("quiet")) {
-        print "Processing: $file\n";
-    }
-    if (-l $file) {
-        owarn("Refusing to handle symbolic links ($file).\n");
-        return;
-    }
-    if (! -r $file) {
-        owarn("Can't read \"$file\": $!\n");
-        return;
-    }
-
-    if (get_opt('canonicalize')) {
-        my $f = abs_path($file);
-        run_hook('canonicalize', \$f);
-        set_file($f);
-    }
-
-    run_hook('next_file_late');
-
-    if (!apply_methods(0)) {
-        run_hook('filetype_unknown');
-        process_warn();
-    } else {
-        run_hook('file_done');
-    }
-}
 #}}}
+# handling commandline options {{{
 
-sub apply_methods { #{{{
-    my ($exit) = @_;
-
-    my $file = get_file();
-
-    foreach my $method (sort keys %methods) {
-        if ($file =~ m/$method/i) {
-            run_hook('pre_method', \$method);
-            $methods{$method}->($file);
-            run_hook('post_method', \$method);
-            if ($exit) {
-                exit 0;
-            } else {
-                return 1;
-            }
-        }
-    }
-    return 0;
-}
-#}}}
 sub checkstropts { #{{{
     my (@o) = @_;
 
@@ -835,35 +950,7 @@ sub cmdoptstr { #{{{
     return $opts{$opt};
 }
 #}}}
-sub read_rcs { #{{{
-    my ($rc, $retval);
 
-    $rc = $ENV{HOME} . "/.arenamerc";
-    $rc = cmdoptstr('c') if (cmdopts('c'));
-
-    $retval = rcload($rc, "main configuration");
-
-    if ($retval < 0) {
-        die "Error(s) in \"$rc\". Aborting.\n";
-    } elsif ($retval > 0) {
-        warn "Error opening configuration; using defaults.\n";
-    }
-
-    if (cmdopts('C')) {
-        sect_reset();
-        $rc = cmdoptstr('C');
-        $retval = rcload($rc, "additional configuration");
-    }
-
-    if (get_opt('uselocalrc') && -r "./.arename.local") {
-        sect_reset();
-        $rc = "./.arename.local";
-        $retval = rcload($rc, "local configuration");
-    }
-
-    sect_reset();
-}
-#}}}
 sub read_cmdline_options { #{{{
 
     sect_reset();
@@ -910,35 +997,10 @@ sub read_cmdline_options { #{{{
     }
 }
 #}}}
-sub set_default_options { #{{{
-    set_opt("canonicalize",  0);
-    set_opt("dryrun",        0);
-    set_opt("force",         0);
-    set_opt("hookerrfatal",  1);
-    set_opt("oprefix",       '  -!- ');
-    set_opt("prefix" ,       '.');
-    set_opt("quiet",         0);
-    set_opt("quiet_skip",    0);
-    set_opt("readstdin",     0);
-    set_opt("sepreplace",    '_');
-    set_opt("tnpad",         2);
-    set_opt("usehooks",      1);
-    set_opt("uselocalhooks", 0);
-    set_opt("uselocalrc",    0);
-    set_opt("verbose",       0);
-    set_opt("comp_template", "va/&album/&tracknumber - &artist - &tracktitle");
-    set_opt("template",      "&artist[1]/&artist/&album/&tracknumber - &tracktitle");
-}
-#}}}
-sub set_default_methods { #{{{
 
-    %methods = (
-        '\.flac$' => \&ARename::process_flac,
-        '\.mp3$'  => \&ARename::process_mp3,
-        '\.ogg$'  => \&ARename::process_ogg
-    );
-}
 #}}}
+# accessing the currently processed audio file's name {{{
+
 sub get_file { #{{{
     return $__arename_file;
 }
@@ -947,38 +1009,9 @@ sub set_file { #{{{
     $__arename_file = $_[0];
 }
 #}}}
-sub set_nameversion { #{{{
-    my ($n, $v) = @_;
 
-    $NAME    = $n;
-    $VERSION = $v;
-}
 #}}}
-sub set_postproc { #{{{
-    $postproc = $_[0];
-}
-#}}}
-sub usage { #{{{
-    print " Usage:\n  $NAME [OPTION(s)] FILE(s)...\n\n";
-    print "    -d                Go into dryrun mode.\n";
-    print "    -f                Overwrite files if needed.\n";
-    print "    -H                Disable *all* hooks.\n";
-    print "    -h                Display this help text.\n";
-    print "    -L                List current configuration.\n";
-    print "    -l                Read local rc, if it exists.\n";
-    print "    -Q                Don't display skips in quiet mode.\n";
-    print "    -q                Enable quiet output.\n";
-    print "    -s                Read file names from stdin.\n";
-    print "    -V                Display version infomation.\n";
-    print "    -v                Enable verbose output.\n";
-    print "    -c <file>         Read file instead of ~/.arenamerc.\n";
-    print "    -C <file>         Read file after ~/.arenamerc.\n";
-    print "    -p <prefix>       Define a prefix for destination files.\n";
-    print "    -T <template>     Define a compilation template.\n";
-    print "    -t <template>     Define a generic template.\n";
-    print "\n";
-}
-#}}}
+# section handling code {{{
 
 sub is_locopt { #{{{
     my ($opt) = @_;
@@ -1026,6 +1059,9 @@ sub sect_reset { #{{{
     $sect = undef;
 }
 #}}}
+
+#}}}
+# {get,set}_opt() API {{{
 
 sub get_opt { #{{{
     my ($opt) = @_;
@@ -1098,6 +1134,9 @@ sub __set_opt { #{{{
 }
 #}}}
 
+#}}}
+# default_* code {{{
+
 sub get_defaults { #{{{
     my ($key) = @_;
 
@@ -1116,6 +1155,9 @@ sub set_defaults { #{{{
 }
 #}}}
 
+#}}}
+# user-defined-variable API {{{
+
 sub user_get { #{{{
     my ($opt) = @_;
 
@@ -1128,6 +1170,9 @@ sub user_set { #{{{
     $sets{$opt} = $val;
 }
 #}}}
+
+#}}}
+# hooks code {{{
 
 sub disable_hooks { #{{{
     __set_opt("usehooks", 0);
@@ -1237,6 +1282,9 @@ sub startup_hook { #{{{
 }
 #}}}
 
+#}}}
+# configuration dumping code {{{
+
 sub dump_string { #{{{
     my ($s) = @_;
 
@@ -1270,6 +1318,8 @@ sub dump_config { #{{{
 
     exit 0;
 }
+#}}}
+
 #}}}
 
 1;
