@@ -1,5 +1,9 @@
 #!/usr/bin/perl
 
+# TODO:
+#   + refactor the code
+#   + make it more testable
+
 package ARename;
 use warnings;
 use strict;
