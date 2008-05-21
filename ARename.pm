@@ -281,23 +281,24 @@ sub process_file { #{{{
 #}}}
 
 sub set_default_options { #{{{
-    set_opt("canonicalize",  0);
-    set_opt("dryrun",        0);
-    set_opt("force",         0);
-    set_opt("hookerrfatal",  1);
-    set_opt("oprefix",       '  -!- ');
-    set_opt("prefix" ,       '.');
-    set_opt("quiet",         0);
-    set_opt("quiet_skip",    0);
-    set_opt("readstdin",     0);
-    set_opt("sepreplace",    '_');
-    set_opt("tnpad",         2);
-    set_opt("usehooks",      1);
-    set_opt("uselocalhooks", 0);
-    set_opt("uselocalrc",    0);
-    set_opt("verbose",       0);
-    set_opt("comp_template", "va/&album/&tracknumber - &artist - &tracktitle");
-    set_opt("template",      "&artist[1]/&artist/&album/&tracknumber - &tracktitle");
+    set_opt("canonicalize",         0);
+    set_opt("dryrun",               0);
+    set_opt("force",                0);
+    set_opt("hookerrfatal",         1);
+    set_opt("oprefix",              '  -!- ');
+    set_opt("prefix" ,              '.');
+    set_opt("quiet",                0);
+    set_opt("quiet_skip",           0);
+    set_opt("readstdin",            0);
+    set_opt("sepreplace",           '_');
+    set_opt("tnpad",                2);
+    set_opt("usehooks",             1);
+    set_opt("uselocalhooks",        0);
+    set_opt("uselocalrc",           0);
+    set_opt("verbose",              0);
+    set_opt("warningsautodryrun",   1);
+    set_opt("comp_template",        "va/&album/&tracknumber - &artist - &tracktitle");
+    set_opt("template",             "&artist[1]/&artist/&album/&tracknumber - &tracktitle");
 }
 #}}}
 sub set_default_methods { #{{{
@@ -628,10 +629,16 @@ sub __rcload { #{{{
     }
     close $fh;
 
+    sect_reset();
     oprint("Read $desc.\n");
     oprint("$count valid items.\n");
     if ($warnings > 0) {
         oprint("$warnings warnings.\n");
+        if (get_opt('warningsautodryrun') && !get_opt('dryrun')) {
+            owarn("Encountered warnings; enabling 'dryrun'.\n");
+            owarn("  (See 'warningsautodryrun' option.)\n");
+            set_opt('dryrun', 1);
+        }
     }
     return 0;
 }
@@ -659,39 +666,36 @@ sub read_rcs { #{{{
     $retval = rcload($rc, "main configuration");
 
     if (cmdopts('C')) {
-        sect_reset();
         $rc = cmdoptstr('C');
         $retval = rcload($rc, "additional configuration");
     }
 
     if (get_opt('uselocalrc') && -r "./.arename.local") {
-        sect_reset();
         $rc = "./.arename.local";
         $retval = rcload($rc, "local configuration");
     }
-
-    sect_reset();
 }
 #}}}
 
 %parsers = (
 #{{{
-    '^\s*\[.*\]\s*$'  => \&parse_new_section,
-    '^canonicalize$'  => \&parse_bool,
-    '^comp_template$' => \&parse_string,
-    '^default_.*$'    => \&parse_defaultvalues,
-    '^hookerrfatal$'  => \&parse_bool,
-    '^prefix$'        => \&parse_string,
-    '^quiet$'         => \&parse_bool,
-    '^quiet_skip$'    => \&parse_bool,
-    '^sepreplace$'    => \&parse_string,
-    '^set$'           => \&parse_set,
-    '^template$'      => \&parse_string,
-    '^tnpad$'         => \&parse_integer,
-    '^usehooks$'      => \&parse_bool,
-    '^uselocalhooks$' => \&parse_bool,
-    '^uselocalrc$'    => \&parse_bool,
-    '^verbose$'       => \&parse_bool
+    '^\s*\[.*\]\s*$'        => \&parse_new_section,
+    '^canonicalize$'        => \&parse_bool,
+    '^comp_template$'       => \&parse_string,
+    '^default_.*$'          => \&parse_defaultvalues,
+    '^hookerrfatal$'        => \&parse_bool,
+    '^prefix$'              => \&parse_string,
+    '^quiet$'               => \&parse_bool,
+    '^quiet_skip$'          => \&parse_bool,
+    '^sepreplace$'          => \&parse_string,
+    '^set$'                 => \&parse_set,
+    '^template$'            => \&parse_string,
+    '^tnpad$'               => \&parse_integer,
+    '^usehooks$'            => \&parse_bool,
+    '^uselocalhooks$'       => \&parse_bool,
+    '^uselocalrc$'          => \&parse_bool,
+    '^verbose$'             => \&parse_bool,
+    '^warningsautodryrun$'  => \&parse_bool
 );
 #}}}
 
@@ -1012,9 +1016,6 @@ sub cmdoptstr { #{{{
 #}}}
 
 sub read_cmdline_options { #{{{
-
-    sect_reset();
-
     if ($#main::ARGV == -1) {
         $opts{h} = 1;
     } else {
@@ -1178,12 +1179,13 @@ sub set_opt { #{{{
 sub __set_opt { #{{{
     my ($opt, $val) = @_;
 
-    if (defined $sect && !is_locopt($opt)) {
+    my $s = sect_get();
+
+    if (defined $s && !is_locopt($opt)) {
         owarn("\"$opt\" is *not* a localizable setting (will not set to $val).\n");
         return;
     }
 
-    my $s = sect_get();
     if (!defined $s) {
         #print "DEBUG: set_opt() ($opt) = ($val)\n";
         $conf{$opt} = $val;
