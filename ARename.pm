@@ -3,6 +3,29 @@
 # TODO:
 #   + refactor the code
 #   + make it more testable
+#
+# New Features?
+#   - profiles
+#           profile hs /mnt/audio/hoerspiel
+#               -> reads arenamerc.hs if working dir
+#                  is /mnt/audio/hoerspiel.
+#               -> -P <profile> to enable them manually
+#               -> -N to disable reading profile rcs
+#           The profilename 'hooks' should be prohibited.
+#   - read config files from more then one place
+#       i)   ~/etc/arename/rc
+#            ~/etc/arename/hooks
+#       ii)  ~/.arename/rc
+#            ~/.arename/hooks
+#       iii) ~/.arenamerc
+#            ~/.arename.hooks
+#     ...and profile names:
+#       i)   ~/etc/arename/profile.<profilename>
+#            ~/etc/arename/profile.<profilename>.hooks
+#       ii)  ~/.arename/profile.<profilename>
+#            ~/.arename/profile.<profilename>.hooks
+#       iii) ~/.arename.profilename
+#            ~/.arename.profilename.hooks
 
 package ARename;
 use warnings;
