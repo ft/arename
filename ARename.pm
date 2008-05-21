@@ -196,9 +196,7 @@ sub apply_defaults { #{{{
             run_hook('apply_defaults', $datref, \$key);
 
             $value = get_defaults($key);
-            if (get_opt("verbose")) {
-                oprint("Setting ($key) to \"$value\".\n");
-            }
+            oprint_verbose("Setting ($key) to \"$value\".\n");
             $datref->{$key} = $value;
         }
     }
@@ -220,15 +218,15 @@ sub tag_supported { #{{{
 sub arename_verbosity { #{{{
     my ($datref) = @_;
 
-    if (get_opt("verbose")) {
-        oprint("Artist     : \"" . getdat($datref, "artist")      . "\"\n");
-        oprint("Compilation: \"" . getdat($datref, "compilation") . "\"\n");
-        oprint("Album      : \"" . getdat($datref, "album")       . "\"\n");
-        oprint("Tracktitle : \"" . getdat($datref, "tracktitle")  . "\"\n");
-        oprint("Tracknumber: \"" . getdat($datref, "tracknumber") . "\"\n");
-        oprint("Genre      : \"" . getdat($datref, "genre")       . "\"\n");
-        oprint("Year       : \"" . getdat($datref, "year")        . "\"\n");
-    }
+    return if (!get_opt('verbose'));
+
+    oprint("Artist     : \"" . getdat($datref, "artist")      . "\"\n");
+    oprint("Compilation: \"" . getdat($datref, "compilation") . "\"\n");
+    oprint("Album      : \"" . getdat($datref, "album")       . "\"\n");
+    oprint("Tracktitle : \"" . getdat($datref, "tracktitle")  . "\"\n");
+    oprint("Tracknumber: \"" . getdat($datref, "tracknumber") . "\"\n");
+    oprint("Genre      : \"" . getdat($datref, "genre")       . "\"\n");
+    oprint("Year       : \"" . getdat($datref, "year")        . "\"\n");
 }
 #}}}
 sub getdat { #{{{
@@ -380,10 +378,8 @@ sub __template_token_sepreplace { #{{{
     my ($sr);
 
     if ($$tokref =~ m!/!) {
-        if (get_opt("verbose")) {
-            oprint("Found directory seperator in token.\n");
-            oprint("Replacing with \"" . get_opt("sepreplace") . "\".\n");
-        }
+        oprint_verbose("Found directory seperator in token.\n");
+        oprint_verbose("Replacing with \"" . get_opt("sepreplace") . "\".\n");
         $sr = get_opt("sepreplace");
         $$tokref =~ s!/!$sr!g;
     }
@@ -691,9 +687,7 @@ sub parse_bool { #{{{
         die "$file,$lnum: unknown boolean value for '$key': '$val'\n";
     }
 
-    if (get_opt("verbose")) {
-        oprint("boolean option \"$key\" = '" . ($val ? 'true' : 'false' ) . "'\n");
-    }
+    oprint_verbose("boolean option \"$key\" = '" . ($val ? 'true' : 'false' ) . "'\n");
 
     set_opt($key, $val);
 }
@@ -707,9 +701,7 @@ sub parse_defaultvalues { #{{{
         die "$file,$lnum: Default for unsupported tag found: '$key'\n";
     }
 
-    if (get_opt("verbose")) {
-        oprint("default for \"$key\" = '$val'\n");
-    }
+    oprint_verbose("default for \"$key\" = '$val'\n");
 
     set_defaults($key, $val);
 }
@@ -723,9 +715,7 @@ sub parse_integer { #{{{
 
     $val = 0 if ($val eq '');
 
-    if (get_opt("verbose")) {
-        oprint("integer option \"$key\" = $val\n");
-    }
+    oprint_verbose("integer option \"$key\" = $val\n");
 
     set_opt($key, $val);
 }
@@ -733,9 +723,7 @@ sub parse_integer { #{{{
 sub parse_string { #{{{
     my ($file, $lnum, $count, $key, $val) = @_;
 
-    if (get_opt("verbose")) {
-        oprint("string option \"$key\" = '$val'\n");
-    }
+    oprint_verbose("string option \"$key\" = '$val'\n");
 
     set_opt($key, $val);
 }
@@ -753,9 +741,7 @@ sub parse_new_section { #{{{
     $s =~ s/^~\//$ENV{HOME}\//;
     sect_set($s);
 
-    if (get_opt("verbose")) {
-        oprint("Switching section: \"$s\"\n");
-    }
+    oprint_verbose("Switching section: \"$s\"\n");
 }
 #}}}
 sub parse_set { #{{{
@@ -767,9 +753,7 @@ sub parse_set { #{{{
         return;
     }
 
-    if (get_opt("verbose")) {
-        oprint("user setting \"$name\" = '$value'\n");
-    }
+    oprint_verbose("user setting \"$name\" = '$value'\n");
 
     user_set($name, $value);
 }
