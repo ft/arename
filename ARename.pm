@@ -386,9 +386,9 @@ sub __template_token_sepreplace { #{{{
     my ($sr);
 
     if ($$tokref =~ m!/!) {
-        oprint_verbose("Found directory seperator in token.\n");
-        oprint_verbose("Replacing with \"" . get_opt("sepreplace") . "\".\n");
         $sr = get_opt("sepreplace");
+        oprint_verbose("Found directory seperator in token.\n");
+        oprint_verbose("Replacing with \"$sr\".\n");
         $$tokref =~ s!/!$sr!g;
     }
 }
