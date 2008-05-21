@@ -530,6 +530,13 @@ sub oprint { #{{{
     print get_opt("oprefix") . $string;
 }
 #}}}
+sub oprint_verbose { #{{{
+    my ($string) = @_;
+
+    return if (!get_opt('verbose'));
+    oprint($string);
+}
+#}}}
 sub owarn { #{{{
     my ($string) = @_;
 
