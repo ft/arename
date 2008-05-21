@@ -406,14 +406,12 @@ sub expand_template { #{{{
                 return undef;
             }
 
-            run_hook('expand_template_next_tag',
-                \$template, \$tag, \$len, $datref);
+            run_hook('expand_template_next_tag', \$template, \$tag, \$len, $datref);
 
             __template_token_expand(\$token, $datref, $tag, $len);
             __template_token_sepreplace(\$token);
 
-            run_hook('expand_template_postprocess_tag',
-                \$template, \$token, \$tag, \$len, $datref);
+            run_hook('expand_template_postprocess_tag', \$template, \$token, \$tag, \$len, $datref);
 
             $template =~ s/&$tag(\[(\d+)\]|)/$token/;
         }
