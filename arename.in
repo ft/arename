@@ -1128,7 +1128,7 @@ if (ARename::get_opt("quiet")) {
     ARename::set_opt("oprefix", "");
 }
 
-dvr_newline();
+print "\n";
 
 if (ARename::get_opt("dryrun")) {
     print "+++ We are on a dry run!\n";
