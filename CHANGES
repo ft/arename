@@ -6,6 +6,12 @@
     + Improved documentation.
     + 'tnpad 0' now switches off track number padding completely.
     + 'hookerrfatal' works as expected now.
+    = ARename.pm was thoroughly refactored.
+    + Introducing 'warningsautodryrun' option, see manual for details.
+    + Unknown config file lines trigger warnings rather then fatal
+      errors.
+    + Broken section definition starts are fatal now.
+    + Beautified -L output
 1.5 -> 1.6
     = No big user-visible changes in this release...
     + Introducing a testsuite, that should catch stupid bugs, which
