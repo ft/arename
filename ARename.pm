@@ -352,6 +352,29 @@ sub choose_template { #{{{
     }
 }
 #}}}
+sub __template_token_expand { #{{{
+    my ($tokref, $datref, $tag, $len) = @_;
+    my ($val, $pad);
+
+    if ($len > 0) {
+        $$tokref = substr($datref->{$tag}, 0, $len);
+    } else {
+        if ($tag eq 'tracknumber') {
+
+            if ($datref->{$tag} =~ m/^([^\/]*)\/.*$/) {
+                $val = $1;
+            } else {
+                $val = $datref->{$tag};
+            }
+
+            $pad = get_opt('tnpad');
+            $$tokref = sprintf "%0" . ($pad ne "0" ? "$pad" : "" ) . "d", $val;
+        } else {
+            $$tokref = $datref->{$tag};
+        }
+    }
+}
+#}}}
 sub __template_token_sepreplace { #{{{
     my ($tokref) = @_;
     my ($sr);
@@ -386,25 +409,7 @@ sub expand_template { #{{{
             run_hook('expand_template_next_tag',
                 \$template, \$tag, \$len, $datref);
 
-            if ($len > 0) {
-                $token = substr($datref->{$tag}, 0, $len);
-            } else {
-                if ($tag eq 'tracknumber') {
-                    my ($val, $pad);
-
-                    if ($datref->{$tag} =~ m/^([^\/]*)\/.*$/) {
-                        $val = $1;
-                    } else {
-                        $val = $datref->{$tag};
-                    }
-
-                    $pad = get_opt('tnpad');
-                    $token = sprintf "%0" . ($pad ne "0" ? "$pad" : "" ) . "d", $val;
-                } else {
-                    $token = $datref->{$tag};
-                }
-            }
-
+            __template_token_expand(\$token, $datref, $tag, $len);
             __template_token_sepreplace(\$token);
 
             run_hook('expand_template_postprocess_tag',
