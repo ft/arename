@@ -561,6 +561,30 @@ sub owarn_verbose { #{{{
 #}}}
 # config file processing {{{
 
+sub __is_comment_or_blank { #{{{
+    my ($string) = @_;
+
+    if ($string =~ m/^\s*#/ || $string =~ m/^\s*$/) {
+        return 1;
+    }
+
+    return 0;
+}
+#}}}
+sub __remove_leading_backslash { #{{{
+    my ($strref) = @_;
+
+    if (defined $$strref) {
+        $$strref =~ s/^\\//;
+    }
+}
+#}}}
+sub __remove_leading_whitespace { #{{{
+    my ($strref) = @_;
+
+    $$strref =~ s/^\s*//;
+}
+#}}}
 sub __rcload { #{{{
     my ($file, $desc) = @_;
     my ($fh, $retval);
@@ -579,19 +603,15 @@ sub __rcload { #{{{
         chomp($line);
         $lnum++;
 
-        if ($line =~ m/^\s*#/ || $line =~ m/^\s*$/) {
-            # skip comments and blank lines
+        if (__is_comment_or_blank($line)) {
             next;
         }
 
-        # remove leading whitespace
-        $line =~ s/^\s*//;
+        __remove_leading_whitespace(\$line);
+
         my ($key,$val) = split(/\s+/, $line, 2);
 
-        if (defined $val) {
-            # if $val starts with a backslash, throw it away
-            $val =~ s/^\\//;
-        }
+        __remove_leading_backslash(\$val);
 
         if (!parse($file, $lnum, $count, $key, $val)) {
             warn "$file,$lnum: invalid line '$line'.\n";
