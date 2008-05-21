@@ -26,6 +26,7 @@
 #            ~/.arename/profile.<profilename>.hooks
 #       iii) ~/.arename.profilename
 #            ~/.arename.profilename.hooks
+#   - debug option (to enable our DEBUG: prints)
 
 package ARename;
 use warnings;
