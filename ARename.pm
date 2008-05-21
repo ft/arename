@@ -358,8 +358,7 @@ sub expand_template { #{{{
     run_hook('pre_expand_template', \$template, $datref);
 
     foreach my $tag (@supported_tags) {
-        my ($len, $token, $sr);
-        $sr = get_opt("sepreplace");
+        my ($len, $token);
 
         while ($template =~ m/&$tag(\[(\d+)\]|)/) {
             $len = 0;
@@ -393,11 +392,13 @@ sub expand_template { #{{{
             }
 
             if ($token =~ m!/!) {
+                my ($sr);
                 if (get_opt("verbose")) {
                     oprint("Found directory seperator in token.\n");
                     oprint("Replacing with \""
                         . get_opt("sepreplace") . "\".\n");
                 }
+                $sr = get_opt("sepreplace");
                 $token =~ s!/!$sr!g;
             }
 
