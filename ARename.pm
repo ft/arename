@@ -358,7 +358,7 @@ sub choose_template { #{{{
     }
 }
 #}}}
-sub __template_token_expand { #{{{
+sub __template_create_token { #{{{
     my ($datref, $tag, $len) = @_;
     my ($token, $val, $pad);
 
@@ -414,7 +414,7 @@ sub expand_template { #{{{
 
             run_hook('expand_template_next_tag', \$template, \$tag, \$len, $datref);
 
-            $token = __template_token_expand($datref, $tag, $len);
+            $token = __template_create_token($datref, $tag, $len);
             __template_token_sepreplace(\$token);
 
             run_hook('expand_template_postprocess_tag', \$template, \$token, \$tag, \$len, $datref);
