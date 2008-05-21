@@ -586,6 +586,21 @@ sub __remove_leading_whitespace { #{{{
     $$strref =~ s/^\s*//;
 }
 #}}}
+sub __rcload_stats { #{{{
+    my ($desc, $count, $warnings) = @_;
+
+    oprint("Read $desc.\n");
+    oprint("$count valid items.\n");
+    if ($warnings > 0) {
+        oprint("$warnings warnings.\n");
+        if (get_opt('warningsautodryrun') && !get_opt('dryrun')) {
+            owarn("Encountered warnings; enabling 'dryrun'.\n");
+            owarn("  (See 'warningsautodryrun' option.)\n");
+            set_opt('dryrun', 1);
+        }
+    }
+}
+#}}}
 sub __rcload { #{{{
     my ($file, $desc) = @_;
     my ($fh, $retval);
@@ -630,16 +645,8 @@ sub __rcload { #{{{
     close $fh;
 
     sect_reset();
-    oprint("Read $desc.\n");
-    oprint("$count valid items.\n");
-    if ($warnings > 0) {
-        oprint("$warnings warnings.\n");
-        if (get_opt('warningsautodryrun') && !get_opt('dryrun')) {
-            owarn("Encountered warnings; enabling 'dryrun'.\n");
-            owarn("  (See 'warningsautodryrun' option.)\n");
-            set_opt('dryrun', 1);
-        }
-    }
+    __rcload_stats($desc, $count, $warnings);
+
     return 0;
 }
 #}}}
