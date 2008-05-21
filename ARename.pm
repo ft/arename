@@ -589,7 +589,8 @@ sub __rcload { #{{{
     my ($file, $desc) = @_;
     my ($fh, $retval);
     my $count = 0;
-    my $lnum  = 0;
+    my $warnings = 0;
+    my $lnum = 0;
 
     if (!open($fh, "<$file")) {
         warn "Failed to read $desc ($file).\n";
@@ -613,9 +614,13 @@ sub __rcload { #{{{
 
         __remove_leading_backslash(\$val);
 
-        if (!parse($file, $lnum, $count, $key, $val)) {
-            warn "$file,$lnum: invalid line '$line'.\n";
+        $retval = parse($file, $lnum, $count, $key, $val);
+        if ($retval < 0) {
+            owarn("$file,$lnum: invalid line '$line'.\n");
             return -1;
+        } elsif ($retval > 0) {
+            owarn("warning:$file,$lnum: $line\n");
+            $warnings++;
         } else {
             $count++;
         }
@@ -624,6 +629,9 @@ sub __rcload { #{{{
 
     oprint("Read $desc.\n");
     oprint("$count valid items.\n");
+    if ($warnings > 0) {
+        oprint("$warnings warnings.\n");
+    }
     return 0;
 }
 #}}}
@@ -686,25 +694,28 @@ sub read_rcs { #{{{
 );
 #}}}
 
-# parser sub functions
 sub parse { #{{{
     my ($file, $lnum, $count, $key, $val) = @_;
 
     foreach my $pattern (sort keys %parsers) {
         if ($key =~ m/$pattern/) {
 
-            $parsers{$pattern}->(
-                $file, $lnum, $count,
-                $key, (defined $val ? $val : "")
-            );
-
-            return 1;
+            return $parsers{$pattern}->(
+                        $file, $lnum, $count,
+                        $key, (defined $val ? $val : "")
+                   );
         }
     }
 
-    return 0;
+    return -1;
 }
 #}}}
+
+# parser sub functions
+#   return values:
+#       all okay: =0
+#       warning : >0
+#       fatal   : <0
 sub parse_bool { #{{{
     my ($file, $lnum, $count, $key, $val) = @_;
 
@@ -715,12 +726,15 @@ sub parse_bool { #{{{
     } elsif ($val =~ m/^false$/i || $val eq '0') {
         $val = 0;
     } else {
-        die "$file,$lnum: unknown boolean value for '$key': '$val'\n";
+        owarn("$file,$lnum: unknown boolean value for '$key': '$val'\n");
+        return -1
     }
 
     oprint_verbose("boolean option \"$key\" = '" . ($val ? 'true' : 'false' ) . "'\n");
 
     set_opt($key, $val);
+
+    return 0;
 }
 #}}}
 sub parse_defaultvalues { #{{{
@@ -729,19 +743,23 @@ sub parse_defaultvalues { #{{{
     $key =~ s/^default_//;
 
     if (!tag_supported($key)) {
-        die "$file,$lnum: Default for unsupported tag found: '$key'\n";
+        owarn("$file,$lnum: Default for unsupported tag found: '$key'\n");
+        return -1;
     }
 
     oprint_verbose("default for \"$key\" = '$val'\n");
 
     set_defaults($key, $val);
+
+    return 0;
 }
 #}}}
 sub parse_integer { #{{{
     my ($file, $lnum, $count, $key, $val) = @_;
 
     if ($val ne '' && $val !~ m/^\d+$/) {
-        die "$file,$lnum: Broken integer value for '$key': '$val'\n";
+        owarn("$file,$lnum: Broken integer value for '$key': '$val'\n");
+        return -1;
     }
 
     $val = 0 if ($val eq '');
@@ -749,6 +767,8 @@ sub parse_integer { #{{{
     oprint_verbose("integer option \"$key\" = $val\n");
 
     set_opt($key, $val);
+
+    return 0;
 }
 #}}}
 sub parse_string { #{{{
@@ -757,6 +777,8 @@ sub parse_string { #{{{
     oprint_verbose("string option \"$key\" = '$val'\n");
 
     set_opt($key, $val);
+
+    return 0;
 }
 #}}}
 sub parse_new_section { #{{{
@@ -766,13 +788,15 @@ sub parse_new_section { #{{{
 
     if (!defined $s) {
         owarn("Broken section start: ($key)\n");
-        return;
+        return 1;
     }
 
     $s =~ s/^~\//$ENV{HOME}\//;
     sect_set($s);
 
     oprint_verbose("Switching section: \"$s\"\n");
+
+    return 0;
 }
 #}}}
 sub parse_set { #{{{
@@ -781,12 +805,14 @@ sub parse_set { #{{{
     my ($name, $value) = $val =~ m/\s*(\w+)\s*=\s*\\?(.*)/;
     if (!defined $name || !defined $value) {
         owarn("Broken user setting: ($val)\n");
-        return;
+        return 1;
     }
 
     oprint_verbose("user setting \"$name\" = '$value'\n");
 
     user_set($name, $value);
+
+    return 0;
 }
 #}}}
 
