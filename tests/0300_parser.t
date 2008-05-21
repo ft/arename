@@ -21,7 +21,7 @@ lives_ok { ARename::parse("testrc", 1, 0, "[/tmp/foo/]",  ""               ) } '
 #}}}
 # and test some of the read settings for correctness {{{
 
-is( ARename::parse("testrc", 1, 0, "foo",  ""), 0, 'Unknown syntax must fail' );
+is( ARename::parse("testrc", 1, 0, "foo",  ""), 2, 'Unknown syntax must return 2' );
 is( ARename::get_opt("canonicalize"), "1", 'canonicalize set to 1' );
 is( ARename::get_opt("hookerrfatal"), "1", 'hookerrfatal set to 1' );
 is( ARename::get_opt("prefix"), "/mnt/extern/tmp", 'prefix: /mnt/extern/tmp' );

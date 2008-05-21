@@ -588,9 +588,7 @@ sub __remove_leading_whitespace { #{{{
 sub __rcload { #{{{
     my ($file, $desc) = @_;
     my ($fh, $retval);
-    my $count = 0;
-    my $warnings = 0;
-    my $lnum = 0;
+    my ($count, $warnings, $lnum) = (0, 0, 0);
 
     if (!open($fh, "<$file")) {
         warn "Failed to read $desc ($file).\n";
@@ -618,6 +616,9 @@ sub __rcload { #{{{
         if ($retval < 0) {
             owarn("$file,$lnum: invalid line '$line'.\n");
             return -1;
+        } elsif ($retval > 1) {
+            owarn("unknown-line:$file,$lnum: $line\n");
+            $warnings++;
         } elsif ($retval > 0) {
             owarn("warning:$file,$lnum: $line\n");
             $warnings++;
@@ -707,7 +708,9 @@ sub parse { #{{{
         }
     }
 
-    return -1;
+    # return 2, to tell __rcload() that we had no parser, which matched
+    # this line, unknown lines should be warnings, not fatal error.
+    return 2;
 }
 #}}}
 
