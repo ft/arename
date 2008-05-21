@@ -359,11 +359,11 @@ sub choose_template { #{{{
 }
 #}}}
 sub __template_token_expand { #{{{
-    my ($tokref, $datref, $tag, $len) = @_;
-    my ($val, $pad);
+    my ($datref, $tag, $len) = @_;
+    my ($token, $val, $pad);
 
     if ($len > 0) {
-        $$tokref = substr($datref->{$tag}, 0, $len);
+        $token = substr($datref->{$tag}, 0, $len);
     } else {
         if ($tag eq 'tracknumber') {
 
@@ -374,11 +374,13 @@ sub __template_token_expand { #{{{
             }
 
             $pad = get_opt('tnpad');
-            $$tokref = sprintf "%0" . ($pad ne "0" ? "$pad" : "" ) . "d", $val;
+            $token = sprintf "%0" . ($pad ne "0" ? "$pad" : "" ) . "d", $val;
         } else {
-            $$tokref = $datref->{$tag};
+            $token = $datref->{$tag};
         }
     }
+
+    return $token;
 }
 #}}}
 sub __template_token_sepreplace { #{{{
@@ -412,7 +414,7 @@ sub expand_template { #{{{
 
             run_hook('expand_template_next_tag', \$template, \$tag, \$len, $datref);
 
-            __template_token_expand(\$token, $datref, $tag, $len);
+            $token = __template_token_expand($datref, $tag, $len);
             __template_token_sepreplace(\$token);
 
             run_hook('expand_template_postprocess_tag', \$template, \$token, \$tag, \$len, $datref);
