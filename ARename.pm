@@ -802,7 +802,7 @@ sub parse_new_section { #{{{
 
     if (!defined $s) {
         owarn("Broken section start: ($key)\n");
-        return 1;
+        return -1;
     }
 
     $s =~ s/^~\//$ENV{HOME}\//;
