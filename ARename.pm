@@ -636,7 +636,7 @@ sub rcload { #{{{
     if ($retval < 0) {
         die "Error(s) in \"$rc\". Aborting.\n";
     } elsif ($retval > 0) {
-        warn "Error opening configuration; using defaults.\n";
+        owarn("Error opening configuration; using defaults.\n");
     }
 
 }
@@ -648,12 +648,6 @@ sub read_rcs { #{{{
     $rc = cmdoptstr('c') if (cmdopts('c'));
 
     $retval = rcload($rc, "main configuration");
-
-    if ($retval < 0) {
-        die "Error(s) in \"$rc\". Aborting.\n";
-    } elsif ($retval > 0) {
-        warn "Error opening configuration; using defaults.\n";
-    }
 
     if (cmdopts('C')) {
         sect_reset();
