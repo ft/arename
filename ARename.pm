@@ -132,6 +132,23 @@ sub apply_methods { #{{{
     return 0;
 }
 #}}}
+sub __arename_file_eq { #{{{
+    my ($newname, $oldname) = @_;
+
+    if (file_eq($newname, $oldname)) {
+        if (get_opt("quiet")) {
+            if (!get_opt("quiet_skip")) {
+                print "Skipping: '$oldname'\n";
+            }
+        } else {
+            oprint("'$oldname'\n      would stay the way it is, skipping.\n");
+        }
+        return 1;
+    }
+
+    return 0;
+}
+#}}}
 sub arename { #{{{
     my ($datref, $ext) = @_;
     my ($t, $newname);
@@ -152,16 +169,7 @@ sub arename { #{{{
 
     run_hook('post_template', $datref, \$ext, \$newname);
 
-    if (file_eq($newname, $file)) {
-        if (get_opt("quiet")) {
-            if (!get_opt("quiet_skip")) {
-                print "Skipping: '$file'\n";
-            }
-        } else {
-            oprint("'$file'\n      would stay the way it is, skipping.\n");
-        }
-        return;
-    }
+    return if (__arename_file_eq($newname, $file));
 
     if (-e $newname && !get_opt("force")) {
         oprint("'$newname' exists." . (get_opt("quiet") ? " " : "\n      ")
