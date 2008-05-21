@@ -228,19 +228,19 @@ sub arename_verbosity { #{{{
 
     return if (!get_opt('verbose'));
 
-    oprint("Artist     : \"" . getdat($datref, "artist")      . "\"\n");
-    oprint("Compilation: \"" . getdat($datref, "compilation") . "\"\n");
-    oprint("Album      : \"" . getdat($datref, "album")       . "\"\n");
-    oprint("Tracktitle : \"" . getdat($datref, "tracktitle")  . "\"\n");
-    oprint("Tracknumber: \"" . getdat($datref, "tracknumber") . "\"\n");
-    oprint("Genre      : \"" . getdat($datref, "genre")       . "\"\n");
-    oprint("Year       : \"" . getdat($datref, "year")        . "\"\n");
+    oprint("Artist     : " . getdat($datref, "artist")      . "\n");
+    oprint("Compilation: " . getdat($datref, "compilation") . "\n");
+    oprint("Album      : " . getdat($datref, "album")       . "\n");
+    oprint("Tracktitle : " . getdat($datref, "tracktitle")  . "\n");
+    oprint("Tracknumber: " . getdat($datref, "tracknumber") . "\n");
+    oprint("Genre      : " . getdat($datref, "genre")       . "\n");
+    oprint("Year       : " . getdat($datref, "year")        . "\n");
 }
 #}}}
 sub getdat { #{{{
     my ($datref, $tag) = @_;
 
-    return defined $datref->{$tag} ? $datref->{$tag} : "-.-";
+    return defined $datref->{$tag} ? "\"" . $datref->{$tag} . "\"" : "(undefined)";
 }
 #}}}
 
