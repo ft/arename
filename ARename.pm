@@ -352,6 +352,20 @@ sub choose_template { #{{{
     }
 }
 #}}}
+sub __template_token_sepreplace { #{{{
+    my ($tokref) = @_;
+    my ($sr);
+
+    if ($$tokref =~ m!/!) {
+        if (get_opt("verbose")) {
+            oprint("Found directory seperator in token.\n");
+            oprint("Replacing with \"" . get_opt("sepreplace") . "\".\n");
+        }
+        $sr = get_opt("sepreplace");
+        $$tokref =~ s!/!$sr!g;
+    }
+}
+#}}}
 sub expand_template { #{{{
     my ($template, $datref) = @_;
 
@@ -391,16 +405,7 @@ sub expand_template { #{{{
                 }
             }
 
-            if ($token =~ m!/!) {
-                my ($sr);
-                if (get_opt("verbose")) {
-                    oprint("Found directory seperator in token.\n");
-                    oprint("Replacing with \""
-                        . get_opt("sepreplace") . "\".\n");
-                }
-                $sr = get_opt("sepreplace");
-                $token =~ s!/!$sr!g;
-            }
+            __template_token_sepreplace(\$token);
 
             run_hook('expand_template_postprocess_tag',
                 \$template, \$token, \$tag, \$len, $datref);
