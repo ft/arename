@@ -540,6 +540,13 @@ sub owarn { #{{{
     warn get_opt("oprefix") . $string;
 }
 #}}}
+sub owarn_verbose { #{{{
+    my ($string) = @_;
+
+    return if (!get_opt('verbose'));
+    owarn($string);
+}
+#}}}
 
 #}}}
 # config file processing {{{
@@ -1184,9 +1191,7 @@ sub __read_hook_file { #{{{
     my ($rc);
 
     if (! -e $file) {
-        if (get_opt("verbose")) {
-            owarn("Hook file not found ($file).\n");
-        }
+        owarn_verbose("Hook file not found ($file).\n");
         return 1;
     }
 
