@@ -104,7 +104,7 @@ set_opt('shutup', 0);
     'sepreplace',
     'template', 'tnpad',
     'usehooks', 'uselocalhooks', 'uselocalrc',
-    'verbose'
+    'verbose', 'warningsautodryrun'
 );
 
 $postproc = \&arename;
@@ -1363,23 +1363,83 @@ sub dump_string { #{{{
 }
 #}}}
 sub dump_config { #{{{
+    # XXX: Oh baby, this one needs some serious lovin...
+    #      It works as I want it to, but it's ugly as fuck.
+    my ($val);
+
     foreach my $setting (sort @settables) {
-        print "$setting " . dump_string($conf{$setting}) . "\n";
+        if ($setting =~ m/^(comp_|)template$/) {
+            next;
+        }
+
+        $val = dump_string($conf{$setting});
+
+        if ($val ne '') {
+            printf "%-18s   %s\n", "$setting", "$val";
+        } else {
+            print "$setting\n";
+        }
+    }
+
+    print "\n";
+    foreach my $setting ('comp_template', 'template') {
+        $val = dump_string($conf{$setting});
+
+        if ($val ne '') {
+            printf "%-13s   %s\n", "$setting", "$val";
+        } else {
+            print "$setting\n";
+        }
     }
 
     foreach my $default (sort keys %defaults) {
         print "default_$default " . dump_string($defaults{$default}) . "\n";
     }
 
+    if (%sets) {
+        print "\n# user defined settings (see manual for details)\n\n";
+    }
     foreach my $key (sort keys %sets) {
         print "set $key = " . dump_string($sets{$key}) . "\n";
     }
 
-    foreach my $sect (sort keys %sectconf) {
-        print "\n[$sect]\n";
+    if (%sectconf) {
+        print "\n# section definition(s)\n";
 
-        foreach my $key (sort keys %{ $sectconf{$sect} }) {
-            print "$key " . dump_string($sectconf{$sect}{$key}) . "\n";
+        foreach my $sect (sort keys %sectconf) {
+            print "\n[$sect]\n";
+
+            foreach my $setting (sort keys %{ $sectconf{$sect} }) {
+                if ($setting =~ m/^(comp_|)template$/) {
+                    next;
+                }
+
+                $val = dump_string($sectconf{$sect}{$setting});
+
+                if ($val ne '') {
+                    printf "%-18s   %s\n", "$setting", "$val";
+                } else {
+                    print "$setting\n";
+                }
+            }
+            if (defined $sectconf{$sect}{'template'}
+                || defined $sectconf{$sect}{'comp_template'}) {
+
+                print "\n";
+                foreach my $setting ('comp_template', 'template') {
+                    if (!defined$sectconf{$sect}{$setting}) {
+                        next;
+                    }
+
+                    $val = dump_string($sectconf{$sect}{$setting});
+
+                    if ($val ne '') {
+                        printf "%-13s   %s\n", "$setting", "$val";
+                    } else {
+                        print "$setting\n";
+                    }
+                }
+            }
         }
     }
 
