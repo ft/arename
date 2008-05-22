@@ -35,6 +35,7 @@ use strict;
 # modules {{{
 
 # These are commonly installed along with Perl:
+use Readonly;
 use Getopt::Std;
 use File::Basename;
 use File::Copy;
@@ -562,6 +563,66 @@ sub owarn_verbose { #{{{
 #}}}
 # config file processing {{{
 
+Readonly::Scalar my $FIND_RC => 0;              # find .arenamerc
+Readonly::Scalar my $FIND_HOOKS => 1;           # find .arename.hooks
+Readonly::Scalar my $FIND_NONAME => '';         # file name to find not further specified
+
+sub __home_find_file { #{{{
+    my ($home, $name, $dotname) = @_;
+    my ($etcdir, $dotdir, $fn);
+
+    $etcdir = "$home/etc/arename";
+    $dotdir = "$home/.arename";
+
+    # if ~/etc/arename/ exists, we read *everything* from there.
+    # if not, but ~/.arename/, we read everything from there.
+    # if both are not there, we're looking for stuff like ~/.arenamerc.
+    if (-d $etcdir) {
+        print "DEBUG: __home_find_file() using \"$etcdir\"\n";
+        $fn = "$etcdir/$name";
+
+        if (-e $fn) {
+            return $fn;
+        }
+    } elsif (-d $dotdir) {
+        print "DEBUG: __home_find_file() using \"$dotdir\"\n";
+        $fn = "$dotdir/$name";
+
+        if (-e $fn) {
+            return $fn;
+        }
+    } else {
+        print "DEBUG: __home_find_file() using \"$home\"\n";
+        $fn = "$home/$dotname";
+
+        if (-e $fn) {
+            return $fn;
+        }
+    }
+
+    return '';
+}
+#}}}
+sub home_find_file { #{{{
+    my ($code, $spec) = @_;
+    my ($name, $home);
+
+    $home = $ENV{'HOME'};
+    $home =~ s/\/+$//;
+
+    if ($code == $FIND_RC) {
+        $name = __home_find_file($home, 'rc', '.arenamerc');
+    } elsif ($code == $FIND_HOOKS) {
+        $name = __home_find_file($home, 'hooks', '.arename.hooks');
+    } else {
+        die "home_find_file(): unknown code ($code). Please report!\n";
+    }
+
+    print "DEBUG: home_find_file($code, \"$spec\") returning ($name)\n";
+    return $name;
+}
+#}}}
+
 sub __is_comment_or_blank { #{{{
     my ($string) = @_;
 
@@ -659,27 +720,34 @@ sub rcload { #{{{
     if ($retval < 0) {
         die "Error(s) in \"$rc\". Aborting.\n";
     } elsif ($retval > 0) {
-        owarn("Error opening configuration; using defaults.\n");
+        owarn("Error opening configuration file.\n");
     }
 
 }
 #}}}
 sub read_rcs { #{{{
-    my ($rc, $retval);
+    my ($rc);
 
-    $rc = $ENV{HOME} . "/.arenamerc";
-    $rc = cmdoptstr('c') if (cmdopts('c'));
+    if (cmdopts('c')) {
+        $rc = cmdoptstr('c');
+    } else {
+        $rc = home_find_file($FIND_RC, $FIND_NONAME);
+    }
 
-    $retval = rcload($rc, "main configuration");
+    if ($rc eq '') {
+        owarn("main configuration file not found. Using defaults.\n");
+    } else {
+        rcload($rc, "main configuration");
+    }
 
     if (cmdopts('C')) {
         $rc = cmdoptstr('C');
-        $retval = rcload($rc, "additional configuration");
+        rcload($rc, "additional configuration");
     }
 
     if (get_opt('uselocalrc') && -r "./.arename.local") {
         $rc = "./.arename.local";
-        $retval = rcload($rc, "local configuration");
+        rcload($rc, "local configuration");
     }
 }
 #}}}
@@ -1252,6 +1320,10 @@ sub __read_hook_file { #{{{
     my ($file) = @_;
     my ($rc);
 
+    if ($file eq '') {
+        return 1;
+    }
+
     if (! -e $file) {
         owarn_verbose("Hook file not found ($file).\n");
         return 1;
@@ -1288,7 +1360,7 @@ sub __read_hook_file { #{{{
 #}}}
 sub read_hook_files { #{{{
     if (get_opt("usehooks")) {
-        __read_hook_file("$ENV{HOME}/.arename.hooks");
+        __read_hook_file( home_find_file($FIND_HOOKS, $FIND_NONAME) );
     }
 
     if (get_opt("uselocalhooks")) {

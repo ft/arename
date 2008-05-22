@@ -195,6 +195,20 @@ systems.
 
 There are no such things as system wide configuration files in B<arename>.
 
+For all setup files B<arename> tries to find (except for the local ones)
+three different locations are tried. If the directory I<~/etc/arename/>
+exists, B<all> files are expected to be in there. If that directory does
+not exist, I<~/.arename/> is tried instead. If that one could not be found,
+either, B<arename> will try to find the file it is looking for directly in
+the user's home directory.
+
+The first setup directory we find always wins. B<arename> does not consider
+more than one setup directory.
+
+If, for example, I<~/etc/arename/> exists and we are looking for the normal
+configuration file (see below), but I<~/etc/arename/rc> could not be found,
+we do B<not> try to find it in I<~/.arename/> or the user's home directory.
+
 =head2 Configuration files
 
 B<arename> uses up to three configuration files. As for most programs,
@@ -205,9 +219,13 @@ I<current directory> (and the I<uselocalrc> feature is enabled):
 
 =over 8
 
+=item B<~/etc/arename/rc>
+
+=item B<~/.arename/rc>
+
 =item B<~/.arenamerc>
 
-per-user global configuration file.
+per-user normal configuration file.
 
 =item B<./.arename.local>
 
@@ -216,11 +234,11 @@ or the I<-l> option is given on the command line).
 
 =back
 
-The per-user global configuration file can be substituted by another file,
+The per-user normal configuration file can be substituted by another file,
 if specified via the I<-c> option.
 
 Last but not least, you can specify an intermediate configuration file,
-that is read in between the global and the per-directory file, via the
+that is read in between the normal and the per-directory file, via the
 I<-C> option.
 
 =head3 File format
@@ -290,6 +308,10 @@ is described in the L<User defined variables> subsection below.
 =head2 Hook definition files
 
 =over 4
+
+=item B<~/etc/arename/hooks>
+
+=item B<~/.arename/hooks>
 
 =item B<~/.arename.hooks>
 
