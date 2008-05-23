@@ -7,6 +7,7 @@ use Test::More tests => 13;
 use Test::Exception;
 
 use ARename;
+ARename::set_opt('shutup', 1);
 
 # feed some valid lines into the parser() {{{
 
