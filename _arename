@@ -26,6 +26,7 @@ function _arename_profiles() {
 
 arguments=(
     '-p[define a directory prefix for destination file(s)]:directory prefix:_path_files -g '\''*(-/)'\'
+    '-P[force the use of certain profile(s)]:profile(s):_arename_profiles'
     '-T[define a compilation template]:compilation template:'
     '-t[define a generic template]:template:'
     '-c[read a file instead of ~/.arenamerc]:config file:_files'
@@ -38,9 +39,11 @@ arguments=(
     '-q[enable quiet output]'
     '-s[read filenames from stdin]'
     '-v[enable verbose output]'
-    '-P[force the use of certain profile(s)]:profile(s):_arename_profiles'
+    '-N[disable all profiles]'
+    '-D[enable debugging mode]'
     '-Q[do not display skips in quiet mode]'
     '-h[display help information]:'
+    '-S[print all profile names defined in the active configuration]'
     '-V[display version infomation]:'
     '*:audio files:_arename_files'
 )
