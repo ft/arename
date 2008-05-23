@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
 # TODO:
-#   + refactor the code
-#   + make it more testable
+#   + final refactoring state
+#   + make use of the refactored code in the testsuite
 
 package ARename;
 use warnings;
