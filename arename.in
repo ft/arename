@@ -591,8 +591,7 @@ define his own variables. The namespace is seperate from B<arename>'s
 normal settings. (That means, you cannot, for example,  overwrite the
 internal I<template> variable with this command.)
 
-The synax is quite simple (and B<different> to settings normal settings on
-purpose!):
+The synax is quite simple (and B<different> to normal settings on purpose!):
 
 B<set> I<varname> = I<value>
 
