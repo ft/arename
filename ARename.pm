@@ -348,6 +348,7 @@ sub usage { #{{{
     print "    -N                Deactivate all profiles.\n";
     print "    -Q                Don't display skips in quiet mode.\n";
     print "    -q                Enable quiet output.\n";
+    print "    -S                Show a list of defined profiles\n";
     print "    -s                Read file names from stdin.\n";
     print "    -V                Display version infomation.\n";
     print "    -v                Enable verbose output.\n";
@@ -1183,7 +1184,7 @@ sub read_cmdline_options { #{{{
     if ($#main::ARGV == -1) {
         $opts{h} = 1;
     } else {
-        if (!getopts('DdfhHLlNQqsVvc:C:P:p:T:t:', \%opts)) {
+        if (!getopts('DdfhHLlNQqSsVvc:C:P:p:T:t:', \%opts)) {
             checkstropts('c', 'C', 't', 'T', 'P', 'p');
             die "    Try $NAME -h\n";
         }
@@ -1192,7 +1193,7 @@ sub read_cmdline_options { #{{{
     # turn on debugging early
     __set_opt("debug", 1) if (cmdopts('D'));
 
-    set_opt('shutup', 1) if (cmdopts('L'));
+    set_opt('shutup', 1) if (cmdopts('L') || cmdopts('S'));
 
     if (cmdopts('h')) {
         usage();
@@ -1225,7 +1226,7 @@ sub read_cmdline_options { #{{{
     __set_opt("prefix", cmdoptstr('p')) if (cmdopts('p'));
     disable_hooks() if (cmdopts('H'));
 
-    if ($#main::ARGV < 0 && !cmdopts('L') && !get_opt('readstdin')) {
+    if ($#main::ARGV < 0 && !cmdopts('L') && !cmdopts('S') && !get_opt('readstdin')) {
         die "No input files given; try " . basename($main::0) . " -h.\n";
     }
 }
@@ -1632,6 +1633,13 @@ sub dump_config { #{{{
     exit 0;
 }
 #}}}
+sub dump_profiles { #{{{
+    foreach my $profile (sort keys %profiles) {
+        print "$profile\n";
+    }
+}
+#}}}
+
 
 #}}}
 

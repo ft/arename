@@ -67,6 +67,11 @@ Except for files, that are skipped because they would overwrite something).
 
 This option implies '-q'.
 
+=item B<-S>
+
+Print a list of profile names defined in the active configuration.
+(This is primarily used by the zsh completion for the I<-P> option.)
+
 =item B<-s>
 
 Read filenames from stdin after processing files given on the command line.
@@ -1241,6 +1246,11 @@ ARename::set_nameversion($NAME, $VERSION);
 ARename::set_default_options();
 ARename::read_cmdline_options();
 ARename::read_rcs();
+
+if (ARename::cmdopts('S')) {
+    ARename::dump_profiles();
+    exit 0;
+}
 
 if (ARename::cmdopts('L')) {
     ARename::dump_config();

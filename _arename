@@ -1,4 +1,11 @@
 #compdef arename
+
+# Written by Frank Terbeck <ft@bewatermyfriend.org>.
+#
+# Distributed with arename <http://ft.bewatermyfriend.org/comp/arename.html>,
+# under the same terms as arename itself (2-clause BSD); See the LICENCE file
+# which is included in the arename distribution.
+
 local arguments
 local -a supported_extensions
 
@@ -6,6 +13,15 @@ supported_extensions=( 'mp3' 'ogg' 'flac' )
 
 function _arename_files() {
     _path_files -g "(#i)*.(${(j:|:)supported_extensions})" -g "*(-/)"
+}
+
+function _arename_profiles() {
+    local expl
+    local -a already
+
+    compset -P '*,'
+    already=(${(s<,>)IPREFIX})
+    _wanted list expl 'profile(s)' compadd -S, -F already -q ${expl} -- ${(f)"$(arename -S)"}
 }
 
 arguments=(
@@ -22,6 +38,7 @@ arguments=(
     '-q[enable quiet output]'
     '-s[read filenames from stdin]'
     '-v[enable verbose output]'
+    '-P[force the use of certain profile(s)]:profile(s):_arename_profiles'
     '-Q[do not display skips in quiet mode]'
     '-h[display help information]:'
     '-V[display version infomation]:'
