@@ -386,6 +386,34 @@ I</mnt/extern/audio/music/>, for example.
 More than one profile can be activated at the same time. If that is true,
 the according configuration files are read in lexical order.
 
+=head3 Sections versus Profiles
+
+Since B<arename> provides two context sensitive configuration facilities,
+you might ask yourself when to use which, when you are confronted with both
+for the first time.
+
+First of all, I<profiles> are more powerful. They may even introduce new
+hooks for B<arename> to use. But that is not the conceptual difference
+between the two.
+
+I<sections> are sets of configuration settings, that are considered for
+B<each and every> input file and they are B<only> enabled for input files,
+whose name matches the section name.
+
+I<profiles> on the other hand are sets of configuration and hook-definition
+files, whose inclusion in the current B<arename> run is decided at the
+B<beginning> of the program's execution (not for every input file) - namely,
+if the name of the current working directory matches one of the profile's
+patterns.
+
+That means, that if you need to introduce slight configuration changes based
+on an B<input file's name> you want to use a I<section>.
+
+If you need to make broader configuration changes, considering the name of
+the B<current working directory>, I<profiles> are the way to go.
+
+Of course, profile configuration files may introduce new sections, too.
+
 =head2 Configuration file example
 
   # switch on verbosity
