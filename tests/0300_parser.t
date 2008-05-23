@@ -18,7 +18,7 @@ is( ARename::parse("testrc", 1, 0, "set",
                 "albumless_template = misc/&artist - &tracktitle"   ), 0, 'parser must        0 (set albumless_template)');
 is( ARename::parse("testrc", 1, 0, "tnpad",        "3"              ), 0, 'parser must        0 (tnpad)');
 is( ARename::parse("testrc", 1, 0, "[/tmp/foo/]",  ""               ), 0, 'parser must        0 (section: [/tmp/foo/])');
-is( ARename::parse("testrc", 1, 0, "profile",      "baz /foo/bar"   ), 0, 'parser must return 1 (warning triggered)' );
+is( ARename::parse("testrc", 1, 0, "profile",      "baz /foo/bar"   ), 0, 'parser must return 0 (profile: baz)' );
 is( ARename::parse("testrc", 1, 0, "profile",      "b.z /foo/bar"   ), 1, 'parser must return 1 (warning triggered)' );
 is( ARename::parse("testrc", 1, 0, "foo",  ""                       ), 2, 'parser must return 2 (unknown systax)' );
 
