@@ -1130,7 +1130,7 @@ sub read_cmdline_options { #{{{
     disable_hooks() if (cmdopts('H'));
 
     if ($#main::ARGV < 0 && !cmdopts('L') && !cmdopts('S') && !get_opt('readstdin')) {
-        die "No input files given; try " . basename($main::0) . " -h.\n";
+        die "No input files given; try $NAME -h.\n";
     }
 }
 #}}}
