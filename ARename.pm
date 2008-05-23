@@ -1541,94 +1541,71 @@ sub dump_string { #{{{
     }
 }
 #}}}
+sub __dump_config { #{{{
+    my (
+        $formatfull, $formatnoval,
+        $hashref,
+        $keylistref, $excludelistref
+    ) = @_;
+
+    KEYLOOP: foreach my $key (sort @{ $keylistref }) {
+        foreach my $exclude (sort @{ $excludelistref }) {
+            if ($key eq $exclude) {
+                next KEYLOOP;
+            }
+        }
+
+        if (!exists $$hashref{$key} && !defined $$hashref{$key}) {
+            next KEYLOOP;
+        }
+
+        my $val = dump_string($$hashref{$key});
+
+        if ($val eq '') {
+            printf("$formatnoval", $key);
+        } else {
+            printf("$formatfull", $key, $val);
+        }
+    }
+}
+#}}}
+sub __dump_config_print { #{{{
+    my ($hashref, $string) = @_;
+
+    if (%{ $hashref }) {
+        print "$string";
+    }
+}
+#}}}
 sub dump_config { #{{{
-    # XXX: Oh baby, this one needs some serious lovin...
-    #      It works as I want it to, but it's ugly as fuck.
-    my ($val);
+    my ($vffull, $vfnoval) = ( "%-18s   %s\n", "%s\n");
+    my ($tffull, $tfnoval) = ( "%-13s   %s\n", "%s\n");
 
-    foreach my $setting (sort @settables) {
-        if ($setting =~ m/^(comp_|)template$/) {
-            next;
-        }
-
-        $val = dump_string($conf{$setting});
-
-        if ($val ne '') {
-            printf "%-18s   %s\n", "$setting", "$val";
-        } else {
-            print "$setting\n";
-        }
-    }
-
+    __dump_config($vffull, $vfnoval, \%conf, \@settables, [ "comp_template", "template" ]);
     print "\n";
-    foreach my $setting ('comp_template', 'template') {
-        $val = dump_string($conf{$setting});
+    __dump_config($tffull, $tfnoval, \%conf, [ "comp_template", "template" ], [ ]);
 
-        if ($val ne '') {
-            printf "%-13s   %s\n", "$setting", "$val";
-        } else {
-            print "$setting\n";
-        }
-    }
+    __dump_config_print(\%defaults, "\n# default values for missing tags\n\n");
+    __dump_config("default_%s %s\n", "default_%s\n", \%defaults, [ keys %defaults ], [ ]);
 
-    foreach my $default (sort keys %defaults) {
-        print "default_$default " . dump_string($defaults{$default}) . "\n";
-    }
+    __dump_config_print(\%sets, "\n# user defined settings (see manual for details)\n\n");
+    __dump_config("set %s = %s\n", "set %s =\n", \%sets, [ keys %sets ], [ ]);
 
-    if (%sets) {
-        print "\n# user defined settings (see manual for details)\n\n";
-    }
-    foreach my $key (sort keys %sets) {
-        print "set $key = " . dump_string($sets{$key}) . "\n";
-    }
-
-    if (%profiles) {
-        print "\n# profile definitions (commented out on purpose)\n\n";
-    }
+    __dump_config_print(\%profiles, "\n# profile definitions (commented out on purpose)\n\n");
     foreach my $key (sort keys %profiles) {
         foreach my $pat (@{ $profiles{$key} }) {
             print "#profile $key $pat\n";
         }
     }
 
-    if (%sectconf) {
-        print "\n# section definition(s)\n";
+    __dump_config_print(\%profiles, "\n# section definition(s)\n");
+    foreach my $sect (sort keys %sectconf) {
+        print "\n[$sect]\n";
 
-        foreach my $sect (sort keys %sectconf) {
-            print "\n[$sect]\n";
-
-            foreach my $setting (sort keys %{ $sectconf{$sect} }) {
-                if ($setting =~ m/^(comp_|)template$/) {
-                    next;
-                }
-
-                $val = dump_string($sectconf{$sect}{$setting});
-
-                if ($val ne '') {
-                    printf "%-18s   %s\n", "$setting", "$val";
-                } else {
-                    print "$setting\n";
-                }
-            }
-            if (defined $sectconf{$sect}{'template'}
-                || defined $sectconf{$sect}{'comp_template'}) {
-
-                print "\n";
-                foreach my $setting ('comp_template', 'template') {
-                    if (!defined$sectconf{$sect}{$setting}) {
-                        next;
-                    }
-
-                    $val = dump_string($sectconf{$sect}{$setting});
-
-                    if ($val ne '') {
-                        printf "%-13s   %s\n", "$setting", "$val";
-                    } else {
-                        print "$setting\n";
-                    }
-                }
-            }
-        }
+        __dump_config($vffull, $vfnoval, \%{ $sectconf{$sect} },
+            [ keys %{ $sectconf{$sect} } ], [ "comp_template", "template" ]);
+        __dump_config($tffull, $tfnoval, \%{ $sectconf{$sect} },
+            [ "comp_template", "template" ], [ ]);
     }
 
     exit 0;
