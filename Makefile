@@ -45,14 +45,8 @@ dev-help: all test-help
 genperlscript:
 	@./bin/genperlscript.sh
 
-doc: arename.1 arename.html
-
-arename.1:
-	[ -e arename.in ] && pod2man  --name=arename ./arename.in > arename.1    2>/dev/null || true
-
-arename.html:
-	[ -e arename.in ] && pod2html                ./arename.in > arename.html 2>/dev/null || true
-	@rm -f *.tmp
+doc:
+	@./bin/gendoc.sh
 
 clean:
 	@[ ! -e arename.in ] && { printf 'DO NOT CALL THIS!\n' ; exit 1 ; } || true

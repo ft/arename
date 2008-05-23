@@ -449,99 +449,157 @@ sub expand_template { #{{{
 #}}}
 
 #}}}
-# file system related code {{{
+# processing audio files {{{
 
-sub ensure_dir { #{{{
-    # think: mkdir -p /foo/bar/baz
-    my ($wantdir) = @_;
-    my (@parts, $sofar);
+sub handle_vorbistag { #{{{
+    my ($datref, $tag, $value) = @_;
+    my ($realtag);
 
-    if (-d $wantdir) {
+    run_hook('pre_handle_vorbistag', \$tag, \$value, $datref);
+
+    if (!(
+            $tag =~ m/^ALBUM$/i         ||
+            $tag =~ m/^ARTIST$/i        ||
+            $tag =~ m/^TITLE$/i         ||
+            $tag =~ m/^TRACKNUMBER$/i   ||
+            $tag =~ m/^DATE$/i          ||
+            $tag =~ m/^GENRE$/i         ||
+            $tag =~ m/^ALBUMARTIST$/i
+        )) { return; }
+
+    if ($tag =~ m/^ALBUM$/i) {
+        $realtag = 'album';
+    } elsif ($tag =~ m/^ARTIST$/i) {
+        $realtag = 'artist';
+    } elsif ($tag =~ m/^TITLE$/i) {
+        $realtag = 'tracktitle';
+    } elsif ($tag =~ m/^TRACKNUMBER$/i) {
+        $realtag = 'tracknumber';
+    } elsif ($tag =~ m/^DATE$/i) {
+        $realtag = 'year';
+    } elsif ($tag =~ m/^GENRE$/i) {
+        $realtag = 'genre';
+    } elsif ($tag =~ m/^ALBUMARTIST$/i) {
+        $realtag = 'compilation';
+    } else {
+        die "This should not happen. Report this BUG. ($tag, $value)";
+    }
+
+    if (!defined $datref->{$realtag}) {
+        $datref->{$realtag} = $value;
+    }
+
+    run_hook('post_handle_vorbistag', \$tag, \$value, \$realtag, $datref);
+}
+#}}}
+sub process_flac { #{{{
+    my ($flac, %data, $tags);
+
+    my $file = get_file();
+
+    run_hook('pre_process_flac');
+
+    $flac = Audio::FLAC::Header->new($file);
+
+    if (!defined $flac) {
+        oprint("Failed to open \"$file\".\n");
+        oprint("Reason: $!\n");
         return;
     }
 
-    if ($wantdir =~ '^/') {
-        $sofar = '/';
-    } else {
-        $sofar = '';
+    $tags = $flac->tags();
+
+    foreach my $tag (keys %$tags) {
+        handle_vorbistag(\%data, $tag, $tags->{$tag});
     }
 
-    @parts = split(/\//, $wantdir);
-    foreach my $part (@parts) {
-        if ($part eq '') {
-            next;
-        }
-        $sofar = (
-                  $sofar eq ''
-                    ? $part
-                    : (
-                        $sofar eq '/'
-                          ? '/' . $part
-                          : $sofar . "/" . $part
-                      )
-                 );
+    $postproc->(\%data, 'flac');
 
-        if (!-d $sofar) {
-            if ((get_opt("dryrun") || get_opt("verbose")) && !get_opt("quiet")) {
-                oprint("mkdir \"$sofar\"\n");
-            }
-            if (!get_opt("dryrun")) {
-                mkdir($sofar) or die "Could not mkdir($sofar).\n" .
-                                     "Reason: $!\n";
-            }
-        }
-    }
+    run_hook('post_process_flac');
 }
 #}}}
-sub file_eq { #{{{
-    my ($f0, $f1) = @_;
-    my (@stat0, @stat1);
+sub process_mp3 { #{{{
+    my ($mp3, %data, $info);
 
-    if (!-e $f0 || !-e $f1) {
-        # one of the two doesn't even exist, can't be the same then.
-        return 0;
+    my $file = get_file();
+
+    run_hook('pre_process_mp3');
+
+    $mp3 = MP3::Tag->new($file);
+
+    if (!defined $mp3) {
+        oprint("Failed to open \"$file\".\n");
+        oprint("Reason: $!\n");
+        return;
     }
 
-    @stat0 = stat $f0 or die "Could not stat($f0): $!\n";
-    @stat1 = stat $f1 or die "Could not stat($f1): $!\n";
+    $mp3->get_tags;
 
-    if ($stat0[0] == $stat1[0] && $stat0[1] == $stat1[1]) {
-        # device and inode are the same. same file.
-        return 1;
+    if (!exists $mp3->{ID3v1} && !exists $mp3->{ID3v2}) {
+        oprint("No tag found. Ignoring.\n");
+        $mp3->close();
+        return;
     }
 
-    return 0;
+    run_hook('pre_handle_mp3tag', $mp3, \%data);
+    if (exists $mp3->{ID3v2}) {
+        ($data{artist},      $info) = $mp3->{ID3v2}->get_frame("TPE1");
+        ($data{compilation}, $info) = $mp3->{ID3v2}->get_frame("TPE2");
+        ($data{album},       $info) = $mp3->{ID3v2}->get_frame("TALB");
+        ($data{tracktitle},  $info) = $mp3->{ID3v2}->get_frame("TIT2");
+        ($data{tracknumber}, $info) = $mp3->{ID3v2}->get_frame("TRCK");
+        ($data{genre},       $info) = $mp3->{ID3v2}->get_frame("TCON");
+        ($data{year},        $info) = $mp3->{ID3v2}->get_frame("TYER");
+    } elsif (exists $mp3->{ID3v1}) {
+        if ($NAME eq 'arename') {
+            oprint("Only found ID3v1 tag.\n");
+        }
+        $data{artist}      = $mp3->{ID3v1}->artist;
+        $data{album}       = $mp3->{ID3v1}->album;
+        $data{tracktitle}  = $mp3->{ID3v1}->title;
+        $data{tracknumber} = $mp3->{ID3v1}->track;
+        $data{genre}       = $mp3->{ID3v1}->genre;
+        $data{year}        = $mp3->{ID3v1}->year;
+    }
+    run_hook('post_handle_mp3tag', $mp3, \%data);
+
+    $mp3->close();
+
+    $postproc->(\%data, 'mp3');
+
+    run_hook('post_process_mp3');
 }
 #}}}
-sub xrename { #{{{
-    # a rename() replacement, that implements renames across
-    # filesystems via File::copy() + unlink().
-    # This assumes, that source and destination directory are
-    # there, because it stat()s them, to check if it can use
-    # rename().
-    my ($src, $dest) = @_;
-    my (@stat0, @stat1, $d0, $d1, $cause);
+sub process_ogg { #{{{
+    my ($ogg, %data, @tags);
 
-    $d0 = dirname($src);
-    $d1 = dirname($dest);
-    @stat0 = stat $d0 or die "Could not stat($d0): $!\n";
-    @stat1 = stat $d1 or die "Could not stat($d1): $!\n";
+    my $file = get_file();
 
-    if ($stat0[0] == $stat1[0]) {
-        $cause = 'rename';
-        rename $src, $dest or goto err;
-    } else {
-        $cause = 'copy';
-        copy($src, $dest) or goto err;
-        $cause = 'unlink';
-        unlink $src or goto dir;
+    run_hook('pre_process_ogg');
+
+    $ogg = Ogg::Vorbis::Header->load($file);
+
+    if (!defined $ogg) {
+        oprint("Failed to open \"$file\".\n");
+        oprint("Reason: $!\n");
+        return;
     }
 
-    return 0;
+    @tags = $ogg->comment_tags;
 
-err:
-    die "Could not rename($src, $dest);\n" .
-        "Reason: $cause(): $!\n";
+    foreach my $tag (@tags) {
+        handle_vorbistag(\%data, $tag, join(' ', $ogg->comment($tag)));
+    }
+
+    $postproc->(\%data, 'ogg');
+
+    run_hook('post_process_ogg');
+}
+#}}}
+sub process_warn { #{{{
+    my $file = get_file();
+
+    owarn("No method for handling \"$file\".\n");
 }
 #}}}
 
@@ -987,161 +1045,6 @@ sub parse_set { #{{{
 #}}}
 
 #}}}
-# processing audio files {{{
-
-sub handle_vorbistag { #{{{
-    my ($datref, $tag, $value) = @_;
-    my ($realtag);
-
-    run_hook('pre_handle_vorbistag', \$tag, \$value, $datref);
-
-    if (!(
-            $tag =~ m/^ALBUM$/i         ||
-            $tag =~ m/^ARTIST$/i        ||
-            $tag =~ m/^TITLE$/i         ||
-            $tag =~ m/^TRACKNUMBER$/i   ||
-            $tag =~ m/^DATE$/i          ||
-            $tag =~ m/^GENRE$/i         ||
-            $tag =~ m/^ALBUMARTIST$/i
-        )) { return; }
-
-    if ($tag =~ m/^ALBUM$/i) {
-        $realtag = 'album';
-    } elsif ($tag =~ m/^ARTIST$/i) {
-        $realtag = 'artist';
-    } elsif ($tag =~ m/^TITLE$/i) {
-        $realtag = 'tracktitle';
-    } elsif ($tag =~ m/^TRACKNUMBER$/i) {
-        $realtag = 'tracknumber';
-    } elsif ($tag =~ m/^DATE$/i) {
-        $realtag = 'year';
-    } elsif ($tag =~ m/^GENRE$/i) {
-        $realtag = 'genre';
-    } elsif ($tag =~ m/^ALBUMARTIST$/i) {
-        $realtag = 'compilation';
-    } else {
-        die "This should not happen. Report this BUG. ($tag, $value)";
-    }
-
-    if (!defined $datref->{$realtag}) {
-        $datref->{$realtag} = $value;
-    }
-
-    run_hook('post_handle_vorbistag', \$tag, \$value, \$realtag, $datref);
-}
-#}}}
-sub process_flac { #{{{
-    my ($flac, %data, $tags);
-
-    my $file = get_file();
-
-    run_hook('pre_process_flac');
-
-    $flac = Audio::FLAC::Header->new($file);
-
-    if (!defined $flac) {
-        oprint("Failed to open \"$file\".\n");
-        oprint("Reason: $!\n");
-        return;
-    }
-
-    $tags = $flac->tags();
-
-    foreach my $tag (keys %$tags) {
-        handle_vorbistag(\%data, $tag, $tags->{$tag});
-    }
-
-    $postproc->(\%data, 'flac');
-
-    run_hook('post_process_flac');
-}
-#}}}
-sub process_mp3 { #{{{
-    my ($mp3, %data, $info);
-
-    my $file = get_file();
-
-    run_hook('pre_process_mp3');
-
-    $mp3 = MP3::Tag->new($file);
-
-    if (!defined $mp3) {
-        oprint("Failed to open \"$file\".\n");
-        oprint("Reason: $!\n");
-        return;
-    }
-
-    $mp3->get_tags;
-
-    if (!exists $mp3->{ID3v1} && !exists $mp3->{ID3v2}) {
-        oprint("No tag found. Ignoring.\n");
-        $mp3->close();
-        return;
-    }
-
-    run_hook('pre_handle_mp3tag', $mp3, \%data);
-    if (exists $mp3->{ID3v2}) {
-        ($data{artist},      $info) = $mp3->{ID3v2}->get_frame("TPE1");
-        ($data{compilation}, $info) = $mp3->{ID3v2}->get_frame("TPE2");
-        ($data{album},       $info) = $mp3->{ID3v2}->get_frame("TALB");
-        ($data{tracktitle},  $info) = $mp3->{ID3v2}->get_frame("TIT2");
-        ($data{tracknumber}, $info) = $mp3->{ID3v2}->get_frame("TRCK");
-        ($data{genre},       $info) = $mp3->{ID3v2}->get_frame("TCON");
-        ($data{year},        $info) = $mp3->{ID3v2}->get_frame("TYER");
-    } elsif (exists $mp3->{ID3v1}) {
-        if ($NAME eq 'arename') {
-            oprint("Only found ID3v1 tag.\n");
-        }
-        $data{artist}      = $mp3->{ID3v1}->artist;
-        $data{album}       = $mp3->{ID3v1}->album;
-        $data{tracktitle}  = $mp3->{ID3v1}->title;
-        $data{tracknumber} = $mp3->{ID3v1}->track;
-        $data{genre}       = $mp3->{ID3v1}->genre;
-        $data{year}        = $mp3->{ID3v1}->year;
-    }
-    run_hook('post_handle_mp3tag', $mp3, \%data);
-
-    $mp3->close();
-
-    $postproc->(\%data, 'mp3');
-
-    run_hook('post_process_mp3');
-}
-#}}}
-sub process_ogg { #{{{
-    my ($ogg, %data, @tags);
-
-    my $file = get_file();
-
-    run_hook('pre_process_ogg');
-
-    $ogg = Ogg::Vorbis::Header->load($file);
-
-    if (!defined $ogg) {
-        oprint("Failed to open \"$file\".\n");
-        oprint("Reason: $!\n");
-        return;
-    }
-
-    @tags = $ogg->comment_tags;
-
-    foreach my $tag (@tags) {
-        handle_vorbistag(\%data, $tag, join(' ', $ogg->comment($tag)));
-    }
-
-    $postproc->(\%data, 'ogg');
-
-    run_hook('post_process_ogg');
-}
-#}}}
-sub process_warn { #{{{
-    my $file = get_file();
-
-    owarn("No method for handling \"$file\".\n");
-}
-#}}}
-
-#}}}
 # handling commandline options {{{
 
 sub checkstropts { #{{{
@@ -1233,64 +1136,99 @@ sub read_cmdline_options { #{{{
 #}}}
 
 #}}}
-# accessing the currently processed audio file's name {{{
+# file system related code {{{
 
-sub get_file { #{{{
-    return $__arename_file;
-}
-#}}}
-sub set_file { #{{{
-    $__arename_file = $_[0];
-}
-#}}}
+sub ensure_dir { #{{{
+    # think: mkdir -p /foo/bar/baz
+    my ($wantdir) = @_;
+    my (@parts, $sofar);
 
-#}}}
-# section handling code {{{
+    if (-d $wantdir) {
+        return;
+    }
 
-sub is_locopt { #{{{
-    my ($opt) = @_;
+    if ($wantdir =~ '^/') {
+        $sofar = '/';
+    } else {
+        $sofar = '';
+    }
 
-    foreach my $lo (@localizables) {
-        if ($lo eq $opt) {
-            return 1;
+    @parts = split(/\//, $wantdir);
+    foreach my $part (@parts) {
+        if ($part eq '') {
+            next;
         }
+        $sofar = (
+                  $sofar eq ''
+                    ? $part
+                    : (
+                        $sofar eq '/'
+                          ? '/' . $part
+                          : $sofar . "/" . $part
+                      )
+                 );
+
+        if (!-d $sofar) {
+            if ((get_opt("dryrun") || get_opt("verbose")) && !get_opt("quiet")) {
+                oprint("mkdir \"$sofar\"\n");
+            }
+            if (!get_opt("dryrun")) {
+                mkdir($sofar) or die "Could not mkdir($sofar).\n" .
+                                     "Reason: $!\n";
+            }
+        }
+    }
+}
+#}}}
+sub file_eq { #{{{
+    my ($f0, $f1) = @_;
+    my (@stat0, @stat1);
+
+    if (!-e $f0 || !-e $f1) {
+        # one of the two doesn't even exist, can't be the same then.
+        return 0;
+    }
+
+    @stat0 = stat $f0 or die "Could not stat($f0): $!\n";
+    @stat1 = stat $f1 or die "Could not stat($f1): $!\n";
+
+    if ($stat0[0] == $stat1[0] && $stat0[1] == $stat1[1]) {
+        # device and inode are the same. same file.
+        return 1;
     }
 
     return 0;
 }
 #}}}
-sub section_matches { #{{{
-    my ($filename) = @_;
+sub xrename { #{{{
+    # a rename() replacement, that implements renames across
+    # filesystems via File::copy() + unlink().
+    # This assumes, that source and destination directory are
+    # there, because it stat()s them, to check if it can use
+    # rename().
+    my ($src, $dest) = @_;
+    my (@stat0, @stat1, $d0, $d1, $cause);
 
-    if (!defined $filename) {
-        return undef;
+    $d0 = dirname($src);
+    $d1 = dirname($dest);
+    @stat0 = stat $d0 or die "Could not stat($d0): $!\n";
+    @stat1 = stat $d1 or die "Could not stat($d1): $!\n";
+
+    if ($stat0[0] == $stat1[0]) {
+        $cause = 'rename';
+        rename $src, $dest or goto err;
+    } else {
+        $cause = 'copy';
+        copy($src, $dest) or goto err;
+        $cause = 'unlink';
+        unlink $src or goto dir;
     }
 
-    # The block in the sort call makes sure we always get the longest
-    # section names first; that way /foo/bar/ supersedes /foo/.
-    foreach my $section (sort { length $b <=> length $a } keys %sectconf) {
-        my $substring = substr($filename, 0, length $section);
-        odebug("<$section> ($filename) eq [generated from $filename] ($substring)\n");
+    return 0;
 
-        if ($substring eq $section) {
-            odebug("$section MATCHED! returning it.\n");
-            return $section;
-        }
-    }
-
-    return undef;
-}
-#}}}
-sub sect_get { #{{{
-    return $sect;
-}
-#}}}
-sub sect_set { #{{{
-    $sect = $_[0];
-}
-#}}}
-sub sect_reset { #{{{
-    $sect = undef;
+err:
+    die "Could not rename($src, $dest);\n" .
+        "Reason: $cause(): $!\n";
 }
 #}}}
 
@@ -1372,6 +1310,18 @@ sub __set_opt { #{{{
 #}}}
 
 #}}}
+# accessing the currently processed audio file's name {{{
+
+sub get_file { #{{{
+    return $__arename_file;
+}
+#}}}
+sub set_file { #{{{
+    $__arename_file = $_[0];
+}
+#}}}
+
+#}}}
 # default_* code {{{
 
 sub get_defaults { #{{{
@@ -1405,6 +1355,56 @@ sub user_set { #{{{
     my ($opt, $val) = @_;
 
     $sets{$opt} = $val;
+}
+#}}}
+
+#}}}
+# section handling code {{{
+
+sub is_locopt { #{{{
+    my ($opt) = @_;
+
+    foreach my $lo (@localizables) {
+        if ($lo eq $opt) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+#}}}
+sub section_matches { #{{{
+    my ($filename) = @_;
+
+    if (!defined $filename) {
+        return undef;
+    }
+
+    # The block in the sort call makes sure we always get the longest
+    # section names first; that way /foo/bar/ supersedes /foo/.
+    foreach my $section (sort { length $b <=> length $a } keys %sectconf) {
+        my $substring = substr($filename, 0, length $section);
+        odebug("<$section> ($filename) eq [generated from $filename] ($substring)\n");
+
+        if ($substring eq $section) {
+            odebug("$section MATCHED! returning it.\n");
+            return $section;
+        }
+    }
+
+    return undef;
+}
+#}}}
+sub sect_get { #{{{
+    return $sect;
+}
+#}}}
+sub sect_set { #{{{
+    $sect = $_[0];
+}
+#}}}
+sub sect_reset { #{{{
+    $sect = undef;
 }
 #}}}
 
