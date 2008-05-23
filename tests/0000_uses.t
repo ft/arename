@@ -3,8 +3,9 @@
 use strict;
 use warnings;
 
-use Test::More tests => 8;
+use Test::More tests => 9;
 
+BEGIN { use_ok('Readonly')            };
 BEGIN { use_ok('Getopt::Std')         };
 BEGIN { use_ok('File::Basename')      };
 BEGIN { use_ok('File::Copy')          };
