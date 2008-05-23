@@ -337,6 +337,9 @@ following naming conventions:
 
 Profile related configuration files; read if I<PROFILENAME> is active.
 
+They are read after a intermediate config file defined by I<-C> and
+a local config file (if enabled).
+
 =item B<~/etc/arename/profile.PROFILENAME.hooks>
 
 =item B<~/.arename/profile.PROFILENAME.hooks>
@@ -345,6 +348,8 @@ Profile related configuration files; read if I<PROFILENAME> is active.
 
 Profile related hook-definition files (see below for details); read if
 I<PROFILENAME> is active.
+
+These files are read, between global and local hook-definition files.
 
 =back
 
