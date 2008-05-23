@@ -39,6 +39,7 @@ use Readonly;
 use Getopt::Std;
 use File::Basename;
 use File::Copy;
+use Cwd;
 use Cwd 'abs_path';
 
 # These are external modules. On debian systems, do:
@@ -55,9 +56,9 @@ use Audio::FLAC::Header;
 #}}}
 # variables {{{
 my (
-    %conf, %defaults, %hooks, %methods, %parsers, %opts, %sectconf, %sets,
+    %conf, %defaults, %hooks, %methods, %parsers, %profiles, %opts, %sectconf, %sets,
     $__arename_file, $postproc, $sect,
-    @localizables, @settables, @supported_tags
+    @cmdline_profiles, @localizables, @settables, @supported_tags
 );
 my ( $NAME, $VERSION ) = ( 'unset', 'unset' );
 
@@ -68,9 +69,11 @@ sub data_reset { #{{{
     undef %hooks;
     undef %methods;
     undef %parsers;
+    undef %profiles;
     undef %opts;
     undef %sectconf;
     undef %sets;
+    undef @cmdline_profiles;
     undef @localizables;
     undef @settables;
     undef @supported_tags;
@@ -281,8 +284,39 @@ sub process_file { #{{{
 }
 #}}}
 
+sub get_profile_list { #{{{
+    my @list = ();
+    my $wd = getcwd();
+    my %seen = ();
+
+    # make sure $wd ends in *one* slash
+    $wd =~ s/\/+$//;
+    $wd .= '/';
+
+    foreach my $profile (sort keys %profiles) {
+        odebug("get_profile_list(): Checking \"$profile\" patterns...\n");
+
+        foreach my $pat (@{ $profiles{$profile} }) {
+            odebug("get_profile_list(): ($wd) =~ ($pat)...\n");
+
+            if ($wd =~ m/^$pat/) {
+                odebug("get_profile_list(): MATCHED.\n");
+                push @list, $profile;
+                last;
+            }
+
+        }
+    }
+
+    @list = sort grep { ! $seen{ $_ }++ } (@list, @cmdline_profiles);
+    odebug("get_profile_list(): (" . join(',', @list) . ")\n");
+    return @list;
+}
+#}}}
+
 sub set_default_options { #{{{
     set_opt("canonicalize",         0);
+    set_opt("checkprofilerc",       1);
     set_opt("dryrun",               0);
     set_opt("force",                0);
     set_opt("hookerrfatal",         1);
@@ -296,6 +330,7 @@ sub set_default_options { #{{{
     set_opt("usehooks",             1);
     set_opt("uselocalhooks",        0);
     set_opt("uselocalrc",           0);
+    set_opt("useprofiles",          1);
     set_opt("verbose",              0);
     set_opt("warningsautodryrun",   1);
     set_opt("comp_template",        "va/&album/&tracknumber - &artist - &tracktitle");
@@ -331,6 +366,7 @@ sub usage { #{{{
     print "    -h                Display this help text.\n";
     print "    -L                List current configuration.\n";
     print "    -l                Read local rc, if it exists.\n";
+    print "    -N                Deactivate all profiles.\n";
     print "    -Q                Don't display skips in quiet mode.\n";
     print "    -q                Enable quiet output.\n";
     print "    -s                Read file names from stdin.\n";
@@ -338,6 +374,7 @@ sub usage { #{{{
     print "    -v                Enable verbose output.\n";
     print "    -c <file>         Read file instead of ~/.arenamerc.\n";
     print "    -C <file>         Read file after ~/.arenamerc.\n";
+    print "    -P <prof(s),...>  Comma seperated list of profiles to activate forcibly.\n";
     print "    -p <prefix>       Define a prefix for destination files.\n";
     print "    -T <template>     Define a compilation template.\n";
     print "    -t <template>     Define a generic template.\n";
@@ -565,7 +602,9 @@ sub owarn_verbose { #{{{
 
 Readonly::Scalar my $FIND_RC => 0;              # find .arenamerc
 Readonly::Scalar my $FIND_HOOKS => 1;           # find .arename.hooks
-Readonly::Scalar my $FIND_NONAME => '';         # file name to find not further specified
+Readonly::Scalar my $FIND_PROFRC => 2;          # find .arename.profilename
+Readonly::Scalar my $FIND_PROFHOOKS => 3;       # find .arename.profilename.hooks
+Readonly::Scalar my $FIND_NONAME => q{};        # file name to find not further specified
 
 sub __home_find_file { #{{{
     my ($home, $name, $dotname) = @_;
@@ -578,21 +617,21 @@ sub __home_find_file { #{{{
     # if not, but ~/.arename/, we read everything from there.
     # if both are not there, we're looking for stuff like ~/.arenamerc.
     if (-d $etcdir) {
-        print "DEBUG: __home_find_file() using \"$etcdir\"\n";
+        #print "DEBUG: __home_find_file() using \"$etcdir\"\n";
         $fn = "$etcdir/$name";
 
         if (-e $fn) {
             return $fn;
         }
     } elsif (-d $dotdir) {
-        print "DEBUG: __home_find_file() using \"$dotdir\"\n";
+        #print "DEBUG: __home_find_file() using \"$dotdir\"\n";
         $fn = "$dotdir/$name";
 
         if (-e $fn) {
             return $fn;
         }
     } else {
-        print "DEBUG: __home_find_file() using \"$home\"\n";
+        #print "DEBUG: __home_find_file() using \"$home\"\n";
         $fn = "$home/$dotname";
 
         if (-e $fn) {
@@ -614,11 +653,23 @@ sub home_find_file { #{{{
         $name = __home_find_file($home, 'rc', '.arenamerc');
     } elsif ($code == $FIND_HOOKS) {
         $name = __home_find_file($home, 'hooks', '.arename.hooks');
+    } elsif ($code == $FIND_PROFRC) {
+        $name = __home_find_file(
+            $home,
+            sprintf('profile.%s', $spec),
+            sprintf('.arename.%s', $spec)
+        );
+    } elsif ($code == $FIND_PROFHOOKS) {
+        $name = __home_find_file(
+            $home,
+            sprintf('profile.%s.hooks', $spec),
+            sprintf('.arename.%s.hooks', $spec)
+        );
     } else {
         die "home_find_file(): unknown code ($code). Please report!\n";
     }
 
-    print "DEBUG: home_find_file($code, \"$spec\") returning ($name)\n";
+    #print "DEBUG: home_find_file($code, \"$spec\") returning ($name)\n";
     return $name;
 }
 #}}}
@@ -745,6 +796,17 @@ sub read_rcs { #{{{
         rcload($rc, "additional configuration");
     }
 
+    if (get_opt('useprofiles')) {
+        foreach my $profile (get_profile_list()) {
+            $rc = home_find_file($FIND_PROFRC, $profile);
+            if ($rc ne '') {
+                rcload($rc, "configuration for profile \"$profile\"");
+            } else {
+                owarn("Profile \"$profile\" active, but no configuration found.\n");
+            }
+        }
+    }
+
     if (get_opt('uselocalrc') && -r "./.arename.local") {
         $rc = "./.arename.local";
         rcload($rc, "local configuration");
@@ -756,10 +818,12 @@ sub read_rcs { #{{{
 #{{{
     '^\s*\[.*\]\s*$'        => \&parse_new_section,
     '^canonicalize$'        => \&parse_bool,
+    '^checkprofilerc$'      => \&parse_bool,
     '^comp_template$'       => \&parse_string,
     '^default_.*$'          => \&parse_defaultvalues,
     '^hookerrfatal$'        => \&parse_bool,
     '^prefix$'              => \&parse_string,
+    '^profile$'             => \&parse_profile,
     '^quiet$'               => \&parse_bool,
     '^quiet_skip$'          => \&parse_bool,
     '^sepreplace$'          => \&parse_string,
@@ -769,6 +833,7 @@ sub read_rcs { #{{{
     '^usehooks$'            => \&parse_bool,
     '^uselocalhooks$'       => \&parse_bool,
     '^uselocalrc$'          => \&parse_bool,
+    '^useprofiles$'         => \&parse_bool,
     '^verbose$'             => \&parse_bool,
     '^warningsautodryrun$'  => \&parse_bool
 );
@@ -849,6 +914,39 @@ sub parse_integer { #{{{
     oprint_verbose("integer option \"$key\" = $val\n");
 
     set_opt($key, $val);
+
+    return 0;
+}
+#}}}
+sub parse_profile { #{{{
+    my ($file, $lnum, $count, $key, $val) = @_;
+    my ($name, $pat, $home);
+
+    ($name, $pat) = $val =~ m/([^\s]+)\s+(.*)/;
+    if (!defined $name || !defined $pat || $name eq '' || $pat eq '') {
+        owarn("Could not parse profile value \"$val\"\n");
+        return 1;
+    }
+
+    if ($name =~ m/[^a-zA-Z0-9_-]/) {
+        owarn("Disallowed charaters in profile name ($name)!");
+        return 1;
+    }
+
+    if (get_opt('checkprofilerc') && home_find_file($FIND_PROFRC, $name) eq '') {
+        owarn("Could not find config file for profile \"$name\".\n");
+        return 1;
+    }
+
+    $home = $ENV{'HOME'};
+    $home =~ s/\/+$//;
+    $home .= '/';
+
+    $pat =~ s/^\\//;        # throw away a leading backslash
+    $pat =~ s/^~\//$home/;  # ~/ -> $HOME
+
+    oprint_verbose("Adding pattern \"$pat\" to profile \"$name\".\n");
+    push @{ $profiles{$name} }, $pat;
 
     return 0;
 }
@@ -1091,11 +1189,13 @@ sub cmdoptstr { #{{{
 #}}}
 
 sub read_cmdline_options { #{{{
+    my ($tmp);
+
     if ($#main::ARGV == -1) {
         $opts{h} = 1;
     } else {
-        if (!getopts('dfhHLlQqsVvc:C:p:T:t:', \%opts)) {
-            checkstropts('t', 'T', 'p');
+        if (!getopts('dfhHLlNQqsVvc:C:P:p:T:t:', \%opts)) {
+            checkstropts('c', 'C', 't', 'T', 'P', 'p');
             die "    Try $NAME -h\n";
         }
     }
@@ -1116,6 +1216,11 @@ sub read_cmdline_options { #{{{
         exit 0;
     }
 
+    $tmp = cmdoptstr('P');
+    if (defined $tmp && $tmp ne '') {
+        @cmdline_profiles = split(/,/, $tmp);
+    }
+    __set_opt("useprofiles", 0) if (cmdopts('N'));
     __set_opt("readstdin", 1) if (cmdopts('s'));
     __set_opt("uselocalrc", 1) if (cmdopts('l'));
     __set_opt("verbose", 1) if (cmdopts('v'));
@@ -1361,6 +1466,12 @@ sub __read_hook_file { #{{{
 sub read_hook_files { #{{{
     if (get_opt("usehooks")) {
         __read_hook_file( home_find_file($FIND_HOOKS, $FIND_NONAME) );
+    }
+
+    if (get_opt('useprofiles')) {
+        foreach my $profile (get_profile_list()) {
+            __read_hook_file( home_find_file($FIND_PROFHOOKS, $profile) );
+        }
     }
 
     if (get_opt("uselocalhooks")) {

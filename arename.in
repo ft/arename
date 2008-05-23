@@ -44,6 +44,11 @@ List the current configuration in the actual configuration format.
 Read a local config file (./.arename.local). Overwrites the B<uselocalrc>
 configuration setting.
 
+=item B<-N>
+
+Do I<not> use configuration profiles (see below). Overwrites the
+B<useprofiles> setting.
+
 =item B<-q>
 
 Make the output way more quiet, when processing files.
@@ -78,6 +83,11 @@ Read I<file> instead of ~/.arenamerc.
 =item B<-C> E<lt>fileE<gt>
 
 Read I<file> B<after> ~/.arenamerc and B<before> ./.arename.local.
+
+=item B<-P> E<lt>profile(s),...E<gt>
+
+Define a list of one or more profiles to use forcibly, no matter if they
+would be activated normally or not.
 
 =item B<-p> E<lt>prefixE<gt>
 
@@ -285,10 +295,86 @@ You may start as many sections as you would like.
 A section named I</foo/bar/> supersedes a section named I</foo/> for a file
 named I</foo/bar/baz.ogg>. So, the longest match wins.
 
-One last possible configuration file entry is a user variable, which is
+Another possible configuration file entry is a user variable, which is
 defined via the B<set> command. These settings are very different from the
 normal settings. Therefore, they are defined in a different way. That way
 is described in the L<User defined variables> subsection below.
+
+Last but not least, you may define so called profiles, see below.
+
+=head3 Configuration profiles
+
+Profiles are a very flexible and context sensitive way of using multiple
+configuration files at once. With profiles, local configuration files (and
+local hook definition files) can be substituted in a secure way; even on
+multi-user systems.
+
+Reading local files (configs and hook-files) is still supported for backwards
+compatibility (see I<uselocalrc> and I<uselocalhooks> options). However, you
+are strongly encouraged to use profiles whenever you can.
+
+As normal configuration files and global hook-files, profile-related files are
+searched in one of the setup directories described above. They are using the
+following naming conventions:
+
+=over 8
+
+=item B<~/etc/arename/profile.PROFILENAME>
+
+=item B<~/.arename/profile.PROFILENAME>
+
+=item B<~/.arename.PROFILENAME>
+
+Profile related configuration files; read if I<PROFILENAME> is active.
+
+=item B<~/etc/arename/profile.PROFILENAME.hooks>
+
+=item B<~/.arename/profile.PROFILENAME.hooks>
+
+=item B<~/.arename.PROFILENAME.hooks>
+
+Profile related hook-definition files (see below for details); read if
+I<PROFILENAME> is active.
+
+=back
+
+In order to define profiles, you need to use the I<profile> keyword:
+
+  profile <name> <pattern>
+
+Where I<name> is a string, that is used in the place of B<PROFILENAME>
+in the file location lists above. This name may contain of the following
+character range: B<a-zA-Z0-9_->
+
+I<pattern> is part of a Perl regex pattern (see I<perlreref> and I<perlretut>
+manpages). The pattern will be anchored at the beginning and is open at
+the end, somewhat like this pseudocode:
+
+  if ($working_directory =~ m/^PATTERN/) { use_this_profile(); }
+
+Example:
+
+  profile music /mnt/audio/music/
+
+Will cause the profile I<music> to be active when the working directory is
+I</mnt/audio/music/> or below. So, do not be afraid. You can use profiles
+without understanding regular expressions.
+
+Like many other values in B<arename>'s configuration, a leading backslash of
+a pattern will be ignored to allow patterns, that start in white spaces.
+Furthermore, if a pattern starts in I<~/>, that string is replaced by the
+user's home directory.
+
+You may add as many patterns to a profile name, as you want:
+
+  profile music /mnt/audio/music/
+  profile music /mnt/extern/audio/music/
+
+The above activates the I<music> profile in I</mnt/audio/music/> and
+I</mnt/extern/audio/music/>, for example.
+
+More than one profile can be activated at the same time. If that is true,
+the according configuration files are read in lexical order.
 
 =head2 Configuration file example
 
@@ -300,6 +386,9 @@ is described in the L<User defined variables> subsection below.
 
   # the author is crazy! use a sane template by default. :-)
   template &artist - &album (&year) - &tracknumber. &tracktitle
+
+  # activate the 'music' profile below /mnt/audio/music/.
+  profile music /mnt/audio/music/
 
   # force files from /foo/bar/ to stay below that directory
   [/foo/bar/]
@@ -344,6 +433,18 @@ If set, a given file name will be transformed to its cleaned up absolute
 path. You may want to set this, if you are using sections in the
 configuration. If you do not use sections, all this will give you is a
 performance penalty. (default value: I<false>)
+
+=item B<checkprofilerc>
+
+If set, B<arename> will check if there is a configuration file for a
+profile as soon as it reads a profile definition in the setup and B<only>
+consider the profile if it found the according config file. Profiles
+without config file will cause a warning if this is set, which may cause the
+I<dryrun> option to be set if the I<warningsautodryrun> option is set.
+
+If unset, profiles without config file will not cause warnings. You will
+see messages about missing configuration files, if a profile without config
+file is active. (default: I<true>)
 
 =item B<comp_template>
 
@@ -418,6 +519,11 @@ If set to true, use hooks defined in B<./.arename.hooks.local>.
 
 If set to true, read a local configuration file (B<./.arename.local>),
 if it exists. (default value: I<false>)
+
+=item B<useprofiles>
+
+If set to true, configuration profiles will be used. If false, they are not.
+(default value: I<true>)
 
 =item B<verbose>
 
