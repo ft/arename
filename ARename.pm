@@ -101,13 +101,14 @@ set_opt('shutup', 0);
 );
 
 @settables = (
-    'canonicalize', 'comp_template',
+    'canonicalize', 'checkprofilerc', 'comp_template',
+    'debug',
     'hookerrfatal',
     'prefix',
     'quiet', 'quiet_skip',
     'sepreplace',
     'template', 'tnpad',
-    'usehooks', 'uselocalhooks', 'uselocalrc',
+    'usehooks', 'uselocalhooks', 'uselocalrc', 'useprofiles',
     'verbose', 'warningsautodryrun'
 );
 
@@ -317,6 +318,7 @@ sub get_profile_list { #{{{
 sub set_default_options { #{{{
     set_opt("canonicalize",         0);
     set_opt("checkprofilerc",       1);
+    set_opt("debug",                0);
     set_opt("dryrun",               0);
     set_opt("force",                0);
     set_opt("hookerrfatal",         1);
@@ -360,6 +362,7 @@ sub set_postproc { #{{{
 
 sub usage { #{{{
     print " Usage:\n  $NAME [OPTION(s)] FILE(s)...\n\n";
+    print "    -D                Enable debugging output.\n";
     print "    -d                Go into dryrun mode.\n";
     print "    -f                Overwrite files if needed.\n";
     print "    -H                Disable *all* hooks.\n";
@@ -568,6 +571,15 @@ err:
 #}}}
 # output subroutines {{{
 
+sub odebug { #{{{
+    my ($string) = @_;
+
+    # we cannot use the normal API here, because we're using odebug()
+    # in the API's subroutines. That would recurse endlessly.
+    return if (!$conf{'debug'} || $conf{'shutup'});
+    print "DEBUG: $string";
+}
+#}}}
 sub oprint { #{{{
     my ($string) = @_;
 
@@ -617,21 +629,21 @@ sub __home_find_file { #{{{
     # if not, but ~/.arename/, we read everything from there.
     # if both are not there, we're looking for stuff like ~/.arenamerc.
     if (-d $etcdir) {
-        #print "DEBUG: __home_find_file() using \"$etcdir\"\n";
+        odebug("__home_find_file() using \"$etcdir\"\n");
         $fn = "$etcdir/$name";
 
         if (-e $fn) {
             return $fn;
         }
     } elsif (-d $dotdir) {
-        #print "DEBUG: __home_find_file() using \"$dotdir\"\n";
+        odebug("__home_find_file() using \"$dotdir\"\n");
         $fn = "$dotdir/$name";
 
         if (-e $fn) {
             return $fn;
         }
     } else {
-        #print "DEBUG: __home_find_file() using \"$home\"\n";
+        odebug("__home_find_file() using \"$home\"\n");
         $fn = "$home/$dotname";
 
         if (-e $fn) {
@@ -669,7 +681,7 @@ sub home_find_file { #{{{
         die "home_find_file(): unknown code ($code). Please report!\n";
     }
 
-    #print "DEBUG: home_find_file($code, \"$spec\") returning ($name)\n";
+    odebug("home_find_file($code, \"$spec\") returning ($name)\n");
     return $name;
 }
 #}}}
@@ -821,6 +833,7 @@ sub read_rcs { #{{{
     '^checkprofilerc$'      => \&parse_bool,
     '^comp_template$'       => \&parse_string,
     '^default_.*$'          => \&parse_defaultvalues,
+    '^debug$'               => \&parse_bool,
     '^hookerrfatal$'        => \&parse_bool,
     '^prefix$'              => \&parse_string,
     '^profile$'             => \&parse_profile,
@@ -1169,7 +1182,7 @@ sub cmdopts { #{{{
         return 0 if (!defined $opts{$opt});
     }
 
-    #print "DEBUG: @_ options given!\n";
+    odebug("@_ options given!\n");
     return 1;
 }
 #}}}
@@ -1194,11 +1207,14 @@ sub read_cmdline_options { #{{{
     if ($#main::ARGV == -1) {
         $opts{h} = 1;
     } else {
-        if (!getopts('dfhHLlNQqsVvc:C:P:p:T:t:', \%opts)) {
+        if (!getopts('DdfhHLlNQqsVvc:C:P:p:T:t:', \%opts)) {
             checkstropts('c', 'C', 't', 'T', 'P', 'p');
             die "    Try $NAME -h\n";
         }
     }
+
+    # turn on debugging early
+    __set_opt("debug", 1) if (cmdopts('D'));
 
     set_opt('shutup', 1) if (cmdopts('L'));
 
@@ -1277,10 +1293,10 @@ sub section_matches { #{{{
     # section names first; that way /foo/bar/ supersedes /foo/.
     foreach my $section (sort { length $b <=> length $a } keys %sectconf) {
         my $substring = substr($filename, 0, length $section);
-        #print "DEBUG: <$section> ($filename) eq [generated from $filename] ($substring)\n";
+        odebug("<$section> ($filename) eq [generated from $filename] ($substring)\n");
 
         if ($substring eq $section) {
-            #print "DEBUG: $section MATCHED! returning it.\n";
+            odebug("$section MATCHED! returning it.\n");
             return $section;
         }
     }
@@ -1308,16 +1324,18 @@ sub get_opt { #{{{
     my ($opt) = @_;
     my ($section) = (undef);
 
-    #print "DEBUG: GET OPTION ($opt)\n";
+    odebug("GET OPTION ($opt)\n");
     if (is_locopt($opt)) {
         $section = section_matches(get_file());
     }
 
     if (defined $section && $sectconf{$section}{$opt}) {
-        #print "DEBUG: returning $conf{$opt} (section: $section)\n";
+        odebug("returning $conf{$opt} (section: $section)\n");
         return $sectconf{$section}{$opt};
     } else {
-        #print "DEBUG: returning $conf{$opt}\n";
+        if (defined $conf{$opt}) {
+            odebug("returning $conf{$opt}\n");
+        }
         return $conf{$opt};
     }
 }
@@ -1352,7 +1370,7 @@ sub set_opt { #{{{
             __set_opt('quiet', 1);
         }
     } else {
-        #print "DEBUG: (-$opttab{$opt}) given on the cmdline, not touching $opt (will not set to $val).\n";
+        odebug("(-$opttab{$opt}) given on the cmdline, not touching $opt (will not set to $val).\n");
     }
 }
 #}}}
@@ -1367,10 +1385,10 @@ sub __set_opt { #{{{
     }
 
     if (!defined $s) {
-        #print "DEBUG: set_opt() ($opt) = ($val)\n";
+        odebug("set_opt() ($opt) = ($val)\n");
         $conf{$opt} = $val;
     } else {
-        #print "DEBUG: set_opt() ($opt) = ($val) [$s]\n";
+        odebug("set_opt() ($opt) = ($val) [$s]\n");
         $sectconf{$s}{$opt} = $val;
     }
 }

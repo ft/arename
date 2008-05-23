@@ -18,6 +18,11 @@ arename [OPTION(s)] FILE(s)...
 
 =over 8
 
+=item B<-D>
+
+Enable debugging output. This is likely to be very noisy. You probably want
+to use the I<-v> option (setting: I<verbose>) in addition to this.
+
 =item B<-d>
 
 Go into dryrun mode. This means, that no action will be taken. B<arename>
@@ -452,6 +457,12 @@ Defines a template to use with files that provide a compilation tag
 (for 'various artist' CDs, for example). This setting can still be
 overwritten by the B<-T> command line option. (default value:
 I<va/&album/&tracknumber - &artist - &tracktitle>)
+
+=item B<debug>
+
+Enable debugging by default. This is probably only useful, if you want
+debugging to be enabled as soon as possible, when you are trying to chase
+bugs. Do not set this for normal execution. (default value: I<false>)
 
 =item B<default_*>
 
