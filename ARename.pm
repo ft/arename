@@ -1264,6 +1264,7 @@ sub set_opt { #{{{
         quiet_skip    => "Q",
         usehooks      => "H",
         uselocalhooks => "H",
+        useprofiles   => "N",
         verbose       => "v"
     );
 
