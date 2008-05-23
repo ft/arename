@@ -977,7 +977,7 @@ sub parse_profile { #{{{
     }
 
     if ($name =~ m/[^a-zA-Z0-9_-]/) {
-        owarn("Disallowed charaters in profile name ($name)!");
+        owarn("Disallowed charaters in profile name ($name)!\n");
         return 1;
     }
 
