@@ -12,6 +12,18 @@
       errors.
     + Broken section definition starts are fatal now.
     + Beautified -L output
+    + Setup files are looked up in more then one place now:
+        i)   ~/etc/arename/{rc,hooks}
+        ii)  ~/.arename/{rc,hooks}
+        iii) ~/.arename{rc,.hooks}
+      The first setup directory, that is found wins.
+    + Adding new feature: configuration profiles.
+      Additional configuration file sets depending on the current
+      working directory (see manual for details).
+    + -S prints a list of profiles in the active configuration.
+    + debugging can be switched on at runtime, now (see the -D option
+      and the 'debug' setting in the manual).
+    + Improved zsh completion for all new command line options.
 1.5 -> 1.6
     = No big user-visible changes in this release...
     + Introducing a testsuite, that should catch stupid bugs, which
