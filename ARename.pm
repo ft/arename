@@ -1580,6 +1580,15 @@ sub dump_config { #{{{
         print "set $key = " . dump_string($sets{$key}) . "\n";
     }
 
+    if (%profiles) {
+        print "\n# profile definitions (commented out on purpose)\n\n";
+    }
+    foreach my $key (sort keys %profiles) {
+        foreach my $pat (@{ $profiles{$key} }) {
+            print "#profile $key $pat\n";
+        }
+    }
+
     if (%sectconf) {
         print "\n# section definition(s)\n";
 
