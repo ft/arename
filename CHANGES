@@ -24,9 +24,11 @@
     + debugging can be switched on at runtime, now (see the -D option
       and the 'debug' setting in the manual).
     + Improved zsh completion for all new command line options.
+    + Slightly changed, enhanced and improved test suite; See
+      TESTING for details.
 1.5 -> 1.6
     = No big user-visible changes in this release...
-    + Introducing a testsuite, that should catch stupid bugs, which
+    + Introducing a test suite, that should catch stupid bugs, which
       I overlooked in the past.
     + Cleanups in the Makefile.
     + Greatly improved the infrastructure of the project.
