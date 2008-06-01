@@ -3,7 +3,7 @@ use warnings;
 use strict;
 use ARename;
 
-# documentation {{{
+# documentation
 =pod
 
 =head1 NAME
@@ -26,7 +26,7 @@ to use the I<-v> option (setting: I<verbose>) in addition to this.
 =item B<-d>
 
 Go into dryrun mode. This means, that no action will be taken. B<arename>
-will print what it would do, if called without L<-d>.
+will print what it would do, if called without I<-d>.
 
 =item B<-f>
 
@@ -51,8 +51,8 @@ configuration setting.
 
 =item B<-N>
 
-Do I<not> use configuration profiles (see below). Overwrites the
-B<useprofiles> setting.
+Do I<not> use L<configuration profiles|/Configuration profiles> (see below).
+Overwrites the B<useprofiles> setting.
 
 =item B<-q>
 
@@ -126,8 +126,8 @@ a file's tagging information. It uses this information to assemble a
 consistent destination file name. The user can define the format of the
 destination filename by the use of template strings.
 
-Templates can be defined in the L<Configuration Files|arename>, by the
-I<template> and I<comp_template> settings (See L<SETTINGS|arename> below).
+Templates can be defined in the L</Configuration files>, by the
+I<template> and I<comp_template> settings (See L</SETTINGS> below).
 
 By default, B<arename> will refuse to overwrite destination files,
 if the file in question already exists. You can force overwriting by
@@ -203,10 +203,10 @@ B<arename>'s behaviour can be altered by a number of files it reads when
 starting up.
 
 Normal configuration tasks are done in (how convenient)
-L<Configuration Files|arename>, described below.
+L</Configuration files>, described below.
 
 If you need more control, or want to solve special problems you are having,
-you can do so by supplying Perl code in L<Hook definition files|arename>.
+you can do so by supplying Perl code in L</Hook definition files>.
 
 B<arename> can be configured to read configuration files as well as hook
 definition files from the current working directory. This feature is
@@ -226,8 +226,9 @@ The first setup directory we find always wins. B<arename> does not consider
 more than one setup directory.
 
 If, for example, I<~/etc/arename/> exists and we are looking for the normal
-configuration file (see below), but I<~/etc/arename/rc> could not be found,
-we do B<not> try to find it in I<~/.arename/> or the user's home directory.
+L<configuration file|/Configuration files> (see below), but
+I<~/etc/arename/rc> could not be found, we do B<not> try to find it in
+I<~/.arename/> or the user's home directory.
 
 =head2 Configuration files
 
@@ -308,9 +309,10 @@ named I</foo/bar/baz.ogg>. So, the longest match wins.
 Another possible configuration file entry is a user variable, which is
 defined via the B<set> command. These settings are very different from the
 normal settings. Therefore, they are defined in a different way. That way
-is described in the L<User defined variables> subsection below.
+is described in the L</User defined variables> subsection below.
 
-Last but not least, you may define so called profiles, see below.
+Last but not least, you may define so called
+L<profiles|/Configuration profiles>, see below.
 
 =head3 Configuration profiles
 
@@ -320,8 +322,8 @@ local hook definition files) can be substituted in a secure way; even on
 multi-user systems.
 
 Reading local files (configs and hook-files) is still supported for backwards
-compatibility (see I<uselocalrc> and I<uselocalhooks> options). However, you
-are strongly encouraged to use profiles whenever you can.
+compatibility (see I<uselocalrc> and I<uselocalhooks> L<options|/SETTINGS>).
+However, you are strongly encouraged to use profiles whenever you can.
 
 As normal configuration files and global hook-files, profile-related files are
 searched in one of the setup directories described above. They are using the
@@ -346,7 +348,7 @@ a local config file (if enabled).
 
 =item B<~/.arename.PROFILENAME.hooks>
 
-Profile related hook-definition files (see below for details); read if
+Profile related L</Hook definition files> (see below for details); read if
 I<PROFILENAME> is active.
 
 These files are read, between global and local hook-definition files.
@@ -458,7 +460,7 @@ option is set to B<true>).
 
 =back
 
-For details about hooks in B<arename>, see L<HOOKS|arename> below.
+For details about hooks in B<arename>, see L</HOOKS> below.
 
 =head1 SETTINGS
 
@@ -607,7 +609,7 @@ backslash character (just like with the normal settings, a leading
 backslash is always ignored).
 
 User defined variables are useful to make hooks configurable (see
-L<HOOKS|arename> below).
+L</HOOKS> below).
 
 =head1 TEMPLATE FORMAT
 
@@ -669,7 +671,7 @@ The number of the position of the track on the disc. Obviously. However, this
 can be in the form of '12' or '12/23'. In the second form, only the part left
 of the slash is used. The tracknumber is a little special, as you can define
 to what width it should be padded with zeros on the left (see I<tnpad> setting
-in L<SETTINGS|arename>).
+in L</SETTINGS>).
 
 =item B<tracktitle>
 
@@ -680,6 +682,50 @@ Well...
 Year (id3v1), TYER (id3v2) or DATE tag (.ogg/.flac).
 
 =back
+
+=head1 GENERAL USAGE
+
+When you are first confronted with B<arename> and you try to get started
+with the documentation you might argue, that a 1000+ lines manual, that
+is not filled with too many examples is hardly starter-friendly.
+
+Therefore, this section was introduced to give you the bare minimum of
+information in order to use the program without going through too much
+fuzz.
+
+If you are really afraid of documentation, you could of course just read
+the output of the I<-h> option and see which options to provide in order
+to get what you want. Then again, you will soon be pissed by the weird
+default values B<arename> uses.
+
+You will probably want other templates. After all, the ability to have
+these expanded strings is one of the points to use B<arename> in the first
+place. They are described in the TEMPLATE section; and reading that
+section is the minimum effort you will want to go through.
+
+After that, you can open the file I<~/.arenamerc> in your favourite
+text editor and resemble the following text (and presumably change the
+few values in there to your liking):
+
+  # as soon as you get pissed by too much output, while arename is
+  # running, uncomment the following line:
+  #quiet
+
+  # now you certainly want your own templates, so define them here
+  # one for your normal files
+  template &artist - &album - &tracknumber. &tracktitle
+
+  # and another one for files that orignate from compilations
+  comp_template va - &album - &tracknumber. &artist - &tracktitle
+
+If you want more automation or more customization, you will not get
+around reading the above part of the manual. If you need to solve
+special problems, the L</HOOKS> part below is for you.
+
+=head1 EXIT STATUS
+
+B<arename> returns zero if everything went fine; non-zero on fatal
+problems. This may change in future versions.
 
 =head1 HOOKS
 
@@ -703,9 +749,9 @@ data structures. Still, post processing is probably the most useful
 feature they implement.
 
 Hooks are just Perl subroutines, which are defined in one of two files
-(see L<FILES|arename>). They are run at certain events during the
+(see L</FILES>). They are run at certain events during the
 execution of arename. The contents of the argument list for each hook
-depends on what hook is called (see the list of hook events below).
+depends on what hook is called (see the L</List of hook events> below).
 However, the first argument (argument zero aka. $_[0]) to all hooks is
 the hook namespace, the subroutine is called in.
 
@@ -718,7 +764,7 @@ know what you are doing anyway).
 
 Subroutines must be registered to arename, to be known as hooks.
 Once registered, a subroutine can be removed from the known hooks,
-if requested (see 'Utility subroutines' below).
+if requested (see L</Utility subroutines> below).
 
 The keys in various data hashes passed to the hooks can be one of
 the following: I<album>, I<artist>, I<compilation>, I<genre>,
@@ -876,7 +922,7 @@ Return the expanded version of I<template string>. The information, that
 is used to do the expansion is taken from the referenced data hash.
 
 Keep in mind that this function calls hooks itself. Avoid endless loops!
-See L<Hooks when expanding the template|arename> for details.
+See L</Hooks when expanding the template> for details.
 
 =item B<ensure_dir>(I<directory>)
 
@@ -964,7 +1010,7 @@ I<Arguments>:
 
 When all data has been gathered, B<arename> will go on to actually
 rename the files to their new destination name (which will be generated
-in the process, see L<Hooks when expanding the template> below).
+in the process, see L</Hooks when expanding the template> below).
 
 =over 4
 
@@ -1268,11 +1314,9 @@ Please report bugs.
 
 =cut
 
-#}}}
+my ( $NAME, $VERSION ) = qw( arename @@arenameversioninfo@@ );
 
-my ( $NAME, $VERSION ) = ( 'arename', '@@arenameversioninfo@@' );
-
-# Initialisation {{{
+# Initialisation
 
 ARename::set_nameversion($NAME, $VERSION);
 ARename::set_default_options();
@@ -1293,8 +1337,7 @@ ARename::read_hook_files();
 ARename::set_default_methods();
 ARename::startup_hook();
 
-#}}}
-# customisation and cosmetics {{{
+# status messages and cosmetics
 
 sub dvr_newline {
     if (   ARename::get_opt("dryrun")
@@ -1302,37 +1345,26 @@ sub dvr_newline {
         || ARename::get_opt("verbose")) {
         print "\n";
     }
+    return 1;
 }
 
 # clear the line prefix, if we're running quietly.
-if (ARename::get_opt("quiet")) {
-    ARename::set_opt("oprefix", "");
-}
+ARename::set_opt("oprefix", q{}) if (ARename::get_opt("quiet"));
 
 print "\n";
-
-if (ARename::get_opt("dryrun")) {
-    print "+++ We are on a dry run!\n";
-}
-
-if (ARename::get_opt("verbose")) {
-    print "+++ Running verbosely.\n";
-}
-
-if (ARename::get_opt("readstdin")) {
-    print "+++ Reading stdin for filenames (after \@ARGV).\n";
-}
-
+print "+++ We are on a dry run!\n"  if (ARename::get_opt("dryrun"));
+print "+++ Running verbosely.\n"    if (ARename::get_opt("verbose"));
+print "+++ Reading stdin for filenames (after \@ARGV).\n"
+                                    if (ARename::get_opt("readstdin"));
 dvr_newline();
-
-# }}}
 
 foreach my $file (@ARGV) {
     ARename::process_file($file);
 }
 
 if (ARename::get_opt("readstdin")) {
-    while (<STDIN>) {
+    while (<STDIN>) {           ## no critic
+                                # *STDIN should be the right thing to do here.
         chomp;
         ARename::process_file($_);
     }

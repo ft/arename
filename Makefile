@@ -4,6 +4,7 @@
 prefix="/usr/local"
 libpath="lib/site_perl"
 fakeroot="/usr/bin/fakeroot"
+critic=""
 maxwidth="13"
 
 # the place where *I* keep the sources of arename's "website".
@@ -79,7 +80,11 @@ uninstall-doc:
 	@./bin/uninstall.sh d "$(prefix)/share/doc/arename"
 	@./bin/uninstall.sh f "$(prefix)/share/man/man1/arename.1"
 
-test: doc
+test: test-doc test-suite
+
+test-all: test-install test-code test-doc test-suite
+
+test-install: doc
 	@[ ! -e tests/data/input.wav ] && { \
 	  printf '\n  -- No data; Please read the TESTING file! --\n\n' ; \
 	  exit 1 ; \
@@ -91,6 +96,11 @@ test: doc
 	 fi ; \
 	 "$(fakeroot)" /bin/sh ./tests/inst_t.sh ; \
 	)
+
+test-code:
+	@CRITIC="$(critic)" ./bin/critic.sh
+
+test-doc:
 	@( \
 	 [ -e "arename.in" ] && PODFILE=arename.in || PODFILE=arename ; \
 	 printf 'Checking pod syntax in "%s"...\n\n' "$$PODFILE" ; \
@@ -104,6 +114,8 @@ test: doc
 	 fi ; \
 	 printf '\nPod syntax in "%s" passed all tests - okay.\n\n' "$$PODFILE" ; \
 	)
+
+test-suite:
 	prove -I. -v tests/*.t
 
 prepare-test-data:
