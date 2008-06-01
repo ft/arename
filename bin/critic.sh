@@ -1,7 +1,5 @@
 #!/bin/sh
 
-SOURCES="arename.in ARename.pm"
-
 crit=${CRITIC:-"$(which perlcritic)"}
 
 if [ ! -x "${crit}" ] ; then
@@ -13,7 +11,7 @@ fi
 printf 'Checking source code using Perl::Critic...\n\n'
 
 retval=0
-for file in ${SOURCES} ; do
+for file in "$@" ; do
     printf 'PERLCRITIC %s\n' "${file}"
     "${crit}" --profile perlcriticrc "${file}" || retval=$(( $retval + 1 ))
 done

@@ -24,7 +24,12 @@ all:
 test-help:
 	@printf '\nMakefile targets intended for testers:\n'
 	@printf 'DO NOT USE THESE UNLESS YOU READ THE '\''TESTINGS'\'' FILE!\n'
-	@printf '  test           run the test suite\n'
+	@printf '  test           run the important parts of the test suite\n'
+	@printf '  test-all       run every part of the test suite\n'
+	@printf '  test-code      Check coding style using perlcritic\n'
+	@printf '  test-doc       Check the pod syntax using podchecker\n'
+	@printf '  test-install   Check the installation process\n'
+	@printf '  test-suite     Run the ./tests/*.t test suite\n'
 	@printf '  prepare-test-data\n'
 	@printf '                 create audio data for the test suite\n'
 	@printf '  test-help      this text\n'
@@ -33,8 +38,6 @@ test-help:
 dev-help: all test-help
 	@printf '\nMakefile targets intended for developers:\n'
 	@printf 'DO NOT USE THESE UNLESS YOU KNOW WHAT YOU ARE DOING!\n'
-	@printf '  arename.1      generate manpage\n'
-	@printf '  arename.html   generate manpage in html format\n'
 	@printf '  doc            generate arename.1 and arename.html\n'
 	@printf '  dev-help       this text\n'
 	@printf '  clean          clean up working tree\n'
@@ -80,15 +83,17 @@ uninstall-doc:
 	@./bin/uninstall.sh d "$(prefix)/share/doc/arename"
 	@./bin/uninstall.sh f "$(prefix)/share/man/man1/arename.1"
 
-test: test-doc test-suite
+test: test-check test-doc test-suite
 
-test-all: test-install test-code test-doc test-suite
+test-all: test-check test-install test-code test-doc test-suite
 
-test-install: doc
+test-check:
 	@[ ! -e tests/data/input.wav ] && { \
 	  printf '\n  -- No data; Please read the TESTING file! --\n\n' ; \
 	  exit 1 ; \
 	} || true
+
+test-install: doc
 	@( \
 	 if [ ! -x "$(fakeroot)" ] ; then \
 	  printf 'fakeroot binary (%s) not found. Skipping installation test (see TESTING).\n' "$(fakeroot)" ;\
@@ -98,7 +103,10 @@ test-install: doc
 	)
 
 test-code:
-	@CRITIC="$(critic)" ./bin/critic.sh
+	@( \
+	 [ -e "arename.in" ] && SCRIPTFILE=arename.in || SCRIPTFILE=arename ; \
+	 CRITIC="$(critic)" ./bin/critic.sh "$${SCRIPTFILE}" ARename.pm ; \
+	)
 
 test-doc:
 	@( \
@@ -115,7 +123,7 @@ test-doc:
 	 printf '\nPod syntax in "%s" passed all tests - okay.\n\n' "$$PODFILE" ; \
 	)
 
-test-suite:
+test-suite: test-check
 	prove -I. -v tests/*.t
 
 prepare-test-data:
@@ -130,4 +138,4 @@ removeweb:
 	@printf 'Remove webpages...\n'
 	rm -f "$(ikiroot)"/arename.mdwn "$(ikisubroot)"/*
 
-.PHONY: install install-doc distclean clean all doc
+.PHONY: install install-doc distclean clean all doc test-check

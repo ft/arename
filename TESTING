@@ -4,20 +4,24 @@ arename's test suite
  PRELIMINARIES
 
   To use this test suite, you will (in addition to the modules arename
-  needs anyway) need the Perl modules Make::More and Make:Exception.
+  needs anyway) need the Perl modules Test::More, Test::Exception and
+  Test::Harness.
 
   In addition to that, you will need a few audio related tools (because the
   testsuite generates audio data to do tests with):
-      + arecord        - record a wav file
-      + oggenc         - encode to ogg vorbis
-      + flac           - encode to flac
-      + lame           - encode to mp3
-      + vorbiscomment  - manipulate tags in ogg vorbis files
-      + metaflac       - manipulate tags in flac files
-      + id3v2          - manipulate tags in mp3 files
-      + fakeroot (opt) - fake root previleges
-      + podchecker     - check the syntax of the plain old documentation
-                         in arename.in
+      + arecord          - record a wav file
+      + oggenc           - encode to ogg vorbis
+      + flac             - encode to flac
+      + lame             - encode to mp3
+      + vorbiscomment    - manipulate tags in ogg vorbis files
+      + metaflac         - manipulate tags in flac files
+      + id3v2            - manipulate tags in mp3 files
+      + prove            - from Test::Harness to run the ./tests/*.t tests
+      + podchecker       - check the syntax of the plain old documentation
+                           in arename.in
+
+      + fakeroot (opt)   - fake root previleges
+      + perlcritic (opt) - check code style using ./perlcriticrc.
 
 
   This test suite should run without failing tests on all systems. If
@@ -35,7 +39,27 @@ arename's test suite
   That step needed *once* (or after you cleaned the working directory).
 
   You can run the complete test suite by simply doing:
+    % make test-all
+
+  This takes some time, as this tests absolutely every test available.
+
+  The following is a short hand for 'make test-doc test-suite':
     % make test
+
+  'test' should always run successfully, even for the smallest changes.
+
+  If you want to check if the pod syntax of the documentation is okay,
+  run:
+    % make test-doc
+
+  To just run the perlcritic test for coding style, run:
+    % make test-code
+
+  Checking the installation process is done via:
+    % make test-install
+
+  To run the Perl test suite from ./tests/*.t, do:
+    % make test-suite
 
   If you want to run tests by hand, you can use the 'prove' utility,
   from Test::Harness (if you want to look at a problem in detail, for
@@ -45,11 +69,12 @@ arename's test suite
 
  TESTING THE INSTALLATION PROCESS
 
-  The installation procedure test case needs the 'fakeroot' utility to
-  be installed on the system. By default, the test suite looks for
-  '/usr/bin/fakeroot'. If you installed it in another location do:
+  As mentioned above, the 'test-install' target checks the installation
+  procedure. This test case needs the 'fakeroot' utility to be installed
+  on the system. By default, the test suite looks for '/usr/bin/fakeroot'.
+  If you installed it in another location do:
 
-    % make test fakeroot=/usr/local/bin/fakeroot
+    % make test-install fakeroot=/usr/local/bin/fakeroot
 
   If the test suite cannot find fakeroot at all, the installation test
   will be skipped. Thus, fakeroot is optional for the testsuite.
