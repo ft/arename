@@ -5,7 +5,7 @@
 *.orig
 *.log
 *.tar.gz
-arename.pl
+arename
 arename.1
 arename.html
 tests/data/*
