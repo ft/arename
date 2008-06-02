@@ -14,7 +14,7 @@ printf 'Generating arename... '
 pre="$(./bin/getversion.sh prerelease)"
 if [ -n "${pre}" ] ; then
     snap="$(./bin/getversion.sh snapshot)"
-    [ -z "${snap}" ] && version="${pre}"
+    [ -z "${snap}" ] && version="${pre}" || version="${pre}+git-${snap}"
 fi
 
 if [ -z "${version}" ] ; then
