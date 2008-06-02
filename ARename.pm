@@ -1581,7 +1581,7 @@ sub dump_config {
         }
     }
 
-    __dump_config_print(\%profiles, "\n# section definition(s)\n");
+    __dump_config_print(\%sectconf, "\n# section definition(s)\n");
     foreach my $sect (sort keys %sectconf) {
         print "\n[$sect]\n";
 
