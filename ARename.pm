@@ -1101,7 +1101,7 @@ sub read_cmdline_options {
     }
 
     if (cmdopts(q{V})) {
-        print " $NAME $VERSION\n";
+        print "$NAME $VERSION\n";
         exit 0;
     }
 

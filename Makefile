@@ -86,6 +86,7 @@ uninstall-doc:
 test: test-check test-doc test-suite
 
 test-all: test-check test-install test-code test-doc test-suite
+	@printf '\nTested: '\''%s'\''\n\n' "$$(perl -I. ./arename -V)"
 
 test-check:
 	@[ ! -e tests/data/input.wav ] && { \
