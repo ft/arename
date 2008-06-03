@@ -11,7 +11,7 @@ use warnings;
 use strict;
 use ARename;
 
-my ( $NAME, $VERSION ) = ( 'ataglist', 'v0.6' );
+my ( $NAME, $VERSION ) = ( 'ataglist', 'v0.7' );
 
 sub list {
     my ($datref, $ext) = @_;
@@ -24,8 +24,12 @@ sub list {
 }
 
 if ($#ARGV < 0) {
-    warn "$NAME $VERSION\n";
-    die  "  usage: $NAME FILE\n";
+    print "$NAME $VERSION\n";
+    print "From arename version:\n";
+    print '            @@arenameversioninfo@@' . "\n";
+    ARename::show_version();
+    print "\n  usage: $NAME FILE\n";
+    exit 0;
 }
 
 my $file = $ARGV[0];

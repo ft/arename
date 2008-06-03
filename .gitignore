@@ -5,6 +5,8 @@
 *.orig
 *.log
 *.tar.gz
+ARename.pm
+ataglist
 arename
 arename.1
 arename.html

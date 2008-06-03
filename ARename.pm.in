@@ -1600,5 +1600,8 @@ sub dump_profiles {
 
     return 1;
 }
-
+sub show_version {
+    print 'ARename.pm: @@arenameversioninfo@@' . "\n";
+    return 1;
+};
 1;
