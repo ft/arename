@@ -49,6 +49,12 @@ List the current configuration in the actual configuration format.
 Read a local config file (./.arename.local). Overwrites the B<uselocalrc>
 configuration setting.
 
+=item B<-M>
+
+Prints the version of the arename script and the version of the Perl module,
+that contains most of the code. These versions should be the same. If not,
+that would indicate a possibly broken installation.
+
 =item B<-N>
 
 Do I<not> use L<configuration profiles|/Configuration profiles> (see below).

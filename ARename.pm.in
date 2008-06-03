@@ -1080,7 +1080,7 @@ sub read_cmdline_options {
     if ($#main::ARGV == -1) {
         $opts{h} = 1;
     } else {
-        if (!getopts('DdfhHLlNQqSsVvc:C:P:p:T:t:', \%opts)) {
+        if (!getopts('DdfhHLlMNQqSsVvc:C:P:p:T:t:', \%opts)) {
             checkstropts(q{c}, q{C}, q{t}, q{T}, q{P}, q{p});
             croak("    Try $NAME -h\n");
         }
@@ -1102,6 +1102,12 @@ sub read_cmdline_options {
 
     if (cmdopts(q{V})) {
         print "$NAME $VERSION\n";
+        exit 0;
+    }
+
+    if (cmdopts(q{M})) {
+        print "scriptver : $VERSION\n";
+        show_version();
         exit 0;
     }
 
