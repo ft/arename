@@ -18,7 +18,7 @@ set_p_sym () {
 
 shaprint () {
     [ -z "$1" ] && return 1
-    git-rev-list --abbrev=12 --abbrev-commit --max-count=1 "$1"
+    git rev-list --abbrev=12 --abbrev-commit --max-count=1 "$1"
 }
 
 xprint () {
