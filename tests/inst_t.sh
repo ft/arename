@@ -125,7 +125,7 @@ ROOT="$(pwd)/tests/data/install"
 
 PREFIX="${ROOT}/local"
 LIBDIR="lib/site_perl"
-make genperlscript
+make genperlscripts
 make install install-doc prefix="${PREFIX}" # libpath="${LIBDIR}"
 
 if [ "${?}" -ne 0 ] ; then
@@ -154,7 +154,7 @@ cleanup "${ROOT}"
 
 PREFIX="${ROOT}/home with spaces"
 LIBDIR="lib/perl/perl x.y.z"
-make genperlscript
+make genperlscripts
 make install install-doc prefix="${PREFIX}" libpath="${LIBDIR}"
 
 if [ "${?}" -ne 0 ] ; then
