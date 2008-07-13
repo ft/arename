@@ -290,7 +290,9 @@ severity   = 4
 [Perl::Critic::Policy::Modules::RequireExplicitPackage]
 severity   = 4
 
-[Perl::Critic::Policy::Modules::RequireFilenameMatchesPackage]
+##
+# not for us. ARename.pm.in generates ARename.pm - all is fine.
+[-Perl::Critic::Policy::Modules::RequireFilenameMatchesPackage]
 severity   = 5
 
 [-Perl::Critic::Policy::Modules::RequireVersionVar]
