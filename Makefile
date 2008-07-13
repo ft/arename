@@ -105,8 +105,10 @@ test-install: doc
 
 test-code:
 	@( \
-	 [ -e "arename.in" ] && SCRIPTFILE=arename.in || SCRIPTFILE=arename ; \
-	 CRITIC="$(critic)" ./bin/critic.sh "$${SCRIPTFILE}" ARename.pm ; \
+	 f=arename    ; ./bin/exists_in.sh "$$f" && SCRIPTFILE0="$$f".in || SCRIPTFILE0="$$f" ; \
+	 f=ataglist   ; ./bin/exists_in.sh "$$f" && SCRIPTFILE1="$$f".in || SCRIPTFILE1="$$f" ; \
+	 f=ARename.pm ; ./bin/exists_in.sh "$$f" && SCRIPTFILE2="$$f".in || SCRIPTFILE2="$$f" ; \
+	 CRITIC="$(critic)" ./bin/critic.sh "$${SCRIPTFILE0}" "$${SCRIPTFILE1}" "$${SCRIPTFILE2}" ; \
 	)
 
 test-doc:
