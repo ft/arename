@@ -17,6 +17,7 @@ set_p_sym () {
 }
 
 shaprint () {
+    [ -z "$1" ] && return 1
     git-rev-list --abbrev=12 --abbrev-commit --max-count=1 "$1"
 }
 
@@ -31,7 +32,7 @@ xprint () {
 case "${keyword}" in
 release)
     set_r_sym
-    xprint "${r_sym}"
+    [ -n "${r_sym}" ] && xprint "${r_sym}"
     ;;
 
 prerelease)
@@ -43,7 +44,7 @@ prerelease)
         exit 0
         ;;
     *)
-        xprint "${p_sym}"
+        [ -n "${p_sym}" ] && xprint "${p_sym}"
         ;;
     esac
     ;;
