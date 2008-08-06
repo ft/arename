@@ -1328,6 +1328,7 @@ ARename::set_nameversion($NAME, $VERSION);
 ARename::set_default_options();
 ARename::read_cmdline_options();
 ARename::read_rcs();
+ARename::read_cmdline_options_late();
 
 if (ARename::cmdopts('S')) {
     ARename::dump_profiles();

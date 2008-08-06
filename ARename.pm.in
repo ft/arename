@@ -1118,6 +1118,15 @@ sub read_cmdline_options {
     __set_opt("useprofiles", 0) if (cmdopts(q{N}));
     __set_opt("readstdin", 1) if (cmdopts(q{s}));
     __set_opt("uselocalrc", 1) if (cmdopts(q{l}));
+
+    if ($#main::ARGV < 0 && !cmdopts(q{L}) && !cmdopts(q{S}) && !get_opt('readstdin')) {
+        croak("No input files given; try $NAME -h.\n");
+    }
+
+    return 1;
+}
+
+sub read_cmdline_options_late {
     __set_opt("verbose", 1) if (cmdopts(q{v}));
     __set_opt("quiet", 1) if (cmdopts_or(q{q}, q{Q}));
     __set_opt("quiet_skip", 1) if (cmdopts(q{Q}));
@@ -1127,10 +1136,6 @@ sub read_cmdline_options {
     __set_opt("comp_template", cmdoptstr(q{T})) if (cmdopts(q{T}));
     __set_opt("prefix", cmdoptstr(q{p})) if (cmdopts(q{p}));
     disable_hooks() if (cmdopts(q{H}));
-
-    if ($#main::ARGV < 0 && !cmdopts(q{L}) && !cmdopts(q{S}) && !get_opt('readstdin')) {
-        croak("No input files given; try $NAME -h.\n");
-    }
 
     return 1;
 }
