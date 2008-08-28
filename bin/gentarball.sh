@@ -23,7 +23,7 @@ if ! git checkout -b createtargz "${tag}" ; then
     exit 1
 fi
 
-make genperlscript
+make genperlscripts
 make doc
 
 for file in ${EXCLUDE} ; do
