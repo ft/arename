@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 8;
+use Test::More tests => 9;
 use Test::Exception;
 
 use ARename;
@@ -38,6 +38,7 @@ dies_ok { ARename::read_cmdline_options() } "allowed combination: (-Q -d -l), bu
 ARename::data_reset();
 @main::ARGV=( '-Q', '-l', 'foo.ogg' );
 lives_ok { ARename::read_cmdline_options() } "allowed combination: (-Q -l)";
+lives_ok { ARename::read_cmdline_options_late() } "read_cmdline_options_late() should live, too";
 is( ARename::get_opt('quiet_skip'), 1, "-Q should set quiet_skip");
 is( ARename::get_opt('quiet'),      1, "-Q should also force quiet to be set");
 
