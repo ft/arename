@@ -34,6 +34,7 @@ arguments=(
     '-f[overwrite file(s) if needed]'
     '-H[disable all hooks]'
     '-L[list current configuration]:'
+    '-M[compare versions of script and module]'
     '-l[read local config file]'
     '-d[go into dry-run mode]'
     '-q[enable quiet output]'
