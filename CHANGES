@@ -1,4 +1,6 @@
 1.6 -> 2.0
+    = Quite a few changes in this release, these are the important
+      ones, that are visible to the user:
     + Dropping the .pl suffix of the scripts.
     + boolean parsing is stricter now.
     + string and interger settings are parsed seperately now,
@@ -21,11 +23,16 @@
       Additional configuration file sets depending on the current
       working directory (see manual for details).
     + -S prints a list of profiles in the active configuration.
+    + Use -P to force one or more profiles.
     + debugging can be switched on at runtime, now (see the -D option
       and the 'debug' setting in the manual).
     + Improved zsh completion for all new command line options.
     + Slightly changed, enhanced and improved test suite; See
       TESTING for details.
+    + ataglist, when called without arguments tells exactly from which
+      arename version it originated from.
+    + Adding -M option to arename, to enable the user to check if the
+      version of the script and the ARename.pm module comply.
 1.5 -> 1.6
     = No big user-visible changes in this release...
     + Introducing a test suite, that should catch stupid bugs, which
