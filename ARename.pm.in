@@ -768,6 +768,7 @@ sub __rcload {
     my ($count, $warnings, $lnum) = (0, 0, 0);
 
     if (!open($fh, q{<}, $file)) {      ## no critic
+        ## use critic
         carp("Failed to read $desc ($file).\n");
         owarn("Reason: $!\n");
         return 1;
@@ -1612,7 +1613,9 @@ sub dump_profiles {
     return 1;
 }
 sub show_version {
+    ## no critic
     print 'ARename.pm: @@arenameversioninfo@@' . "\n";
+    ## use critic
     return 1;
 };
 1;

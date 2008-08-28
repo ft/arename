@@ -389,6 +389,8 @@ severity   = 4
 [Perl::Critic::Policy::ValuesAndExpressions::RequireUpperCaseHeredocTerminator]
 severity   = 4
 
+[-ValuesAndExpressions::ProhibitMagicNumbers]
+
 [Perl::Critic::Policy::Variables::ProhibitConditionalDeclarations]
 severity   = 5
 
