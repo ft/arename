@@ -203,6 +203,45 @@ A last solution for zsh users would be zargs (which requires
 
   % zargs -- **/*.mp3 -- arename -d
 
+=head1 GENERAL USAGE
+
+When you are first confronted with B<arename> and you try to get started
+with the documentation you might argue, that a 1000+ lines manual, that
+is not filled with too many examples is hardly starter-friendly.
+
+Therefore, this section was introduced to give you the bare minimum of
+information in order to use the program without going through too much
+fuzz.
+
+If you are really afraid of documentation, you could of course just read
+the output of the I<-h> option and see which options to provide in order
+to get what you want. Then again, you will soon be pissed by the weird
+default values B<arename> uses.
+
+You will probably want other templates. After all, the ability to have
+these expanded strings is one of the points to use B<arename> in the first
+place. They are described in the TEMPLATE section; and reading that
+section is the minimum effort you will want to go through.
+
+After that, you can open the file I<~/.arenamerc> in your favourite
+text editor and resemble the following text (and presumably change the
+few values in there to your liking):
+
+  # as soon as you get pissed by too much output, while arename is
+  # running, uncomment the following line:
+  #quiet
+
+  # now you certainly want your own templates, so define them here
+  # one for your normal files
+  template &artist - &album - &tracknumber. &tracktitle
+
+  # and another one for files that orignate from compilations
+  comp_template va - &album - &tracknumber. &artist - &tracktitle
+
+If you want more automation or more customization, you will not get
+around reading the manual below. If you need to solve special
+problems, the L</HOOKS> part even further below is for you.
+
 =head1 FILES
 
 B<arename>'s behaviour can be altered by a number of files it reads when
@@ -688,45 +727,6 @@ Well...
 Year (id3v1), TYER (id3v2) or DATE tag (.ogg/.flac).
 
 =back
-
-=head1 GENERAL USAGE
-
-When you are first confronted with B<arename> and you try to get started
-with the documentation you might argue, that a 1000+ lines manual, that
-is not filled with too many examples is hardly starter-friendly.
-
-Therefore, this section was introduced to give you the bare minimum of
-information in order to use the program without going through too much
-fuzz.
-
-If you are really afraid of documentation, you could of course just read
-the output of the I<-h> option and see which options to provide in order
-to get what you want. Then again, you will soon be pissed by the weird
-default values B<arename> uses.
-
-You will probably want other templates. After all, the ability to have
-these expanded strings is one of the points to use B<arename> in the first
-place. They are described in the TEMPLATE section; and reading that
-section is the minimum effort you will want to go through.
-
-After that, you can open the file I<~/.arenamerc> in your favourite
-text editor and resemble the following text (and presumably change the
-few values in there to your liking):
-
-  # as soon as you get pissed by too much output, while arename is
-  # running, uncomment the following line:
-  #quiet
-
-  # now you certainly want your own templates, so define them here
-  # one for your normal files
-  template &artist - &album - &tracknumber. &tracktitle
-
-  # and another one for files that orignate from compilations
-  comp_template va - &album - &tracknumber. &artist - &tracktitle
-
-If you want more automation or more customization, you will not get
-around reading the above part of the manual. If you need to solve
-special problems, the L</HOOKS> part below is for you.
 
 =head1 EXIT STATUS
 
