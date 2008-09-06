@@ -23,7 +23,11 @@ if ! git checkout -b createtargz "${tag}" ; then
     exit 1
 fi
 
-make genperlscripts
+if [ "${ver}" = "v1.6" ] ; then
+    make genperlscript
+else
+    make genperlscripts
+fi
 make doc
 
 for file in ${EXCLUDE} ; do
