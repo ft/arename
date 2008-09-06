@@ -589,6 +589,7 @@ sub process_ogg {
     @tags = $ogg->comment_tags;
 
     foreach my $tag (@tags) {
+        next if ($tag eq '');
         handle_vorbistag(\%data, $tag, join(q{ }, $ogg->comment($tag)));
     }
 
