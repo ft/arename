@@ -73,6 +73,11 @@ severity   = 5
 [-Perl::Critic::Policy::RegularExpressions::RequireLineBoundaryMatching]
 severity   = 5
 
+##
+# force /s in regexes (DISABLED)
+[-Perl::Critic::Policy::RegularExpressions::RequireDotMatchAnything]
+severity   = 2
+
 [Perl::Critic::Policy::BuiltinFunctions::ProhibitSleepViaSelect]
 severity   = 5
 
