@@ -8,6 +8,9 @@ Information about [arename's git repository can be found here](http://git.bewate
 <br />
 A brief [Changelog](http://git.bewatermyfriend.org/browse/arename/CHANGES).<br />
 <br />
+If you're on a Gentoo system, there's an Ebuild by Maximilian Gaß at:<br />
+&nbsp;&nbsp;&lt;<a href="http://github.com/mxey/ebuilds/tree/master/media-sound/arename">http://github.com/mxey/ebuilds/tree/master/media-sound/arename</a>&gt;<br />
+<br />
 Downloads:<br />
 @@release@@
 @@prerelease@@
