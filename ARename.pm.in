@@ -427,7 +427,9 @@ sub expand_template {
             if (defined $2) { $len = $2; }
 
             if (!defined $datref->{$tag} || $datref->{$tag} eq q{}) {
-                owarn("$tag not defined, but required by template. Giving up.\n");
+                my $file = get_file();
+                owarn("-!- $file\n");
+                owarn(" -> $tag not defined, but required by template. Giving up.\n");
                 return;
             }
 
@@ -638,7 +640,7 @@ sub owarn {
     my ($string) = @_;
 
     return 0 if (get_opt('shutup'));
-    carp(get_opt("oprefix") . $string);
+    warn(get_opt("oprefix") . $string);
 
     return 1;
 }
