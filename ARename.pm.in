@@ -537,12 +537,6 @@ sub process_mp3 {
 
     $mp3->get_tags;
 
-    if (!exists $mp3->{ID3v1} && !exists $mp3->{ID3v2}) {
-        oprint("No tag found. Ignoring.\n");
-        $mp3->close();
-        return 0;
-    }
-
     run_hook('pre_handle_mp3tag', $mp3, \%data);
     if (exists $mp3->{ID3v2}) {
         ($data{artist},      $info) = $mp3->{ID3v2}->get_frame("TPE1");
