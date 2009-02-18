@@ -1,0 +1,39 @@
+Roadmap for arename version 4
+
+...a roadmap is the death certificate for every open source project...
+
+Things I'd like arename to do:
+
++ more powerful templates:
+    - defaults if tags are unset or empty:
+      template = %{album:unset album} should expand to "unset album"
+      if &album is unset or empty.
+    - if ... else ... -like tag expansion:
+      Consider: template = %[album?- &album !]
+      Say &album is empty or unset, in that case the above
+      should expand to ''.
+      If &album is set to "Reign in Blood", it should expand
+      to: "- Reign in Blood ".
+
++ support more tags (and meta information):
+    - The switch to Audio::Scan already enhances the situation a
+      little:
+    - Also, support some non-portable tags, like &flac_wordsize.
+      The support for more complex templates above should ensure, we
+      can still create consistent file names.
+
++ Support different file extensions:
+    - Audio::Scan does that already
+    - We should provide ways to change extensions to a default for
+      each file type (again, file name consistency) or to explicitly
+      keep the file name extension of every file arename processes.
+
++ Update hooks API:
+    - The switch to Audio::Scan will definately break the hook API
+      as it is in arename3.x; it will however become more consistent,
+      so that's a good thing[tm]. However breaking user visible API
+      will require us to bump the major version number again...
+
++ Update documentation:
+    - This, of course, won't be avoidable and I cannot *wait* to get
+      to working on that... ...wait, that's a lie. Oh, well..
