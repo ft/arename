@@ -42,16 +42,7 @@ use File::Copy;
 use Cwd;
 use Cwd 'abs_path';
 
-# These are external modules. On debian systems, do:
-#   % aptitude install libogg-vorbis-header-perl \
-#                      libmp3-tag-perl           \
-#                      libaudio-flac-header-perl
-#
-# If you don't know how to get them for your OS, get them
-# from CPAN: <http://cpan.org>.
-use MP3::Tag;
-use Ogg::Vorbis::Header;
-use Audio::FLAC::Header;
+use Audio::Scan;
 
 # variables
 my (
@@ -118,25 +109,6 @@ $postproc = \&arename;
 
 # high level code
 
-sub apply_methods {
-    my ($exit) = @_;
-
-    my $file = get_file();
-
-    foreach my $method (sort keys %methods) {
-        if ($file =~ m/$method/i) {
-            run_hook('pre_method', \$method);
-            $methods{$method}->($file);
-            run_hook('post_method', \$method);
-            if ($exit) {
-                exit 0;
-            } else {
-                return 1;
-            }
-        }
-    }
-    return 0;
-}
 sub __arename_file_eq {
     my ($newname, $oldname) = @_;
 
@@ -259,10 +231,143 @@ sub getdat {
     return defined $datref->{$tag} ? q{"} . $datref->{$tag} . q{"} : "(undefined)";
 }
 
-sub process_file {
-    my ($file) = @_;
+sub fill_data_flac {
+    # $rd is a hash reference
+    my ($rd, $datref) = @_;
 
-    set_file($file);
+    $datref->{'info'}->{'flac_wordsize'} = $rd->{'info'}->{'bits_per_sample'};
+
+    $datref->{'bitrate'} = $rd->{'info'}->{'bitrate'};
+    $datref->{'channels'} = $rd->{'info'}->{'channels'};
+    $datref->{'length_ms'} = $rd->{'info'}->{'song_length_ms'};
+    $datref->{'samplerate'} = $rd->{'info'}->{'samplerate'};
+
+    $datref->{'album'} = $rd->{'tags'}->{'ALBUM'};
+    $datref->{'artist'} = $rd->{'tags'}->{'ARTIST'};
+    $datref->{'compilation'} = $rd->{'tags'}->{'ALBUMARTIST'};
+    $datref->{'genre'} = $rd->{'tags'}->{'GENRE'};
+    $datref->{'tracknumber'} = $rd->{'tags'}->{'TRACKNUMBER'};
+    $datref->{'tracktitle'} = $rd->{'tags'}->{'TITLE'};
+    $datref->{'year'} = $rd->{'tags'}->{'DATE'};
+
+    return 0;
+}
+sub fill_data_mp3 {
+    # $rd is a hash reference
+    my ($rd, $datref) = @_;
+
+    $datref->{'mp3_id3_version'} = $rd->{'info'}->{'id3_version'};
+
+    $datref->{'bitrate'} = $rd->{'info'}->{'bitrate'};
+    if ($rd->{'info'}->{'stereo'} eq '1') {
+        $datref->{'channels'} = 2;
+    } else {
+        $datref->{'channels'} = 1;
+    }
+    $datref->{'length_ms'} = $rd->{'info'}->{'song_length_ms'};
+    $datref->{'samplerate'} = $rd->{'info'}->{'samplerate'};
+
+    $datref->{'album'} = $rd->{'tags'}->{'TALB'};
+    $datref->{'artist'} = $rd->{'tags'}->{'TPE1'};
+    $datref->{'compilation'} = $rd->{'tags'}->{'TPE2'};
+    $datref->{'genre'} = $rd->{'tags'}->{'TCON'};
+    $datref->{'tracknumber'} = $rd->{'tags'}->{'TRCK'};
+    $datref->{'tracktitle'} = $rd->{'tags'}->{'TIT2'};
+    $datref->{'year'} = $rd->{'tags'}->{'TDRC'};
+
+    return 0;
+}
+sub fill_data_ogg {
+    # $rd is a hash reference
+    my ($rd, $datref) = @_;
+
+    $datref->{'bitrate'} = $rd->{'info'}->{'bitrate_nominal'};
+    $datref->{'channels'} = $rd->{'info'}->{'channels'};
+    $datref->{'length_ms'} = $rd->{'info'}->{'song_length_ms'};
+    $datref->{'samplerate'} = $rd->{'info'}->{'samplerate'};
+
+    $datref->{'album'} = $rd->{'tags'}->{'ALBUM'};
+    $datref->{'artist'} = $rd->{'tags'}->{'ARTIST'};
+    $datref->{'compilation'} = $rd->{'tags'}->{'ALBUMARTIST'};
+    $datref->{'genre'} = $rd->{'tags'}->{'GENRE'};
+    $datref->{'tracknumber'} = $rd->{'tags'}->{'TRACKNUMBER'};
+    $datref->{'tracktitle'} = $rd->{'tags'}->{'TITLE'};
+    $datref->{'year'} = $rd->{'tags'}->{'DATE'};
+
+    return 0;
+}
+sub fill_default {
+    my ($datref, $key, $default) = @_;
+
+    if (!defined $datref->{$key} || $datref->{$key} eq q{}) {
+        $datref->{$key} = $default;
+    }
+
+    return 0;
+}
+sub fill_data_sanitize {
+    my ($datref) = @_;
+
+    fill_default($datref, 'length_ms', 0);
+    fill_default($datref, 'bitrate', 0);
+    fill_default($datref, 'samplerate', 0);
+
+    return 0;
+}
+sub fill_data_additional {
+    my ($datref) = @_;
+
+    # others would be length_minsec, length_hourminsec
+    $datref->{'length_sec'} = $datref->{'length_ms'} / 1000;
+    $datref->{'kbitrate'} = $datref->{'bitrate'} / 1000;
+    $datref->{'ksamplerate'} = $datref->{'samplerate'} / 1000;
+
+    return 0;
+}
+sub fill_data {
+    # Like $datref, $rd is a hash reference (for the raw data from
+    # Audio::Scan->scan()..
+    my ($rd, $datref, $type) = @_;
+
+    run_hook("pre_fill_$type");
+    if ($type eq 'ogg') {
+        fill_data_ogg($rd, $datref);
+    } elsif ($type eq 'flac') {
+        fill_data_flac($rd, $datref);
+    } elsif ($type eq 'mp3') {
+        fill_data_mp3($rd, $datref);
+    } else {
+        owarn("BUG: unknown type ($type). This should never happen!\n");
+        return 0;
+    }
+    fill_data_sanitize($datref);
+    fill_data_additional($datref);
+    run_hook("post_fill_$type");
+
+    return 1;
+}
+
+sub scan_file {
+    my ($datref, $type) = @_;
+    my $file = get_file();
+    my ($rc, $rd);
+
+    return 0 if (!defined $file);
+    run_hook('pre_scan');
+    $rd = Audio::Scan->scan($file);
+    run_hook('post_scan');
+
+    run_hook('pre_fill');
+    $rc = fill_data($rd, $datref, $type);
+    run_hook('post_fill');
+    return $rc;
+}
+sub process_file {
+    # process_file() assumes, that set_file() was used to tell
+    # ARename.pm which file to work on currently.
+    my (%data, $file);
+
+    $file = get_file();
 
     run_hook('next_file_early');
 
@@ -286,14 +391,40 @@ sub process_file {
 
     run_hook('next_file_late');
 
-    if (!apply_methods(0)) {
+    if (!Audio::Scan->is_supported(get_file())) {
         run_hook('filetype_unknown');
         process_warn();
     } else {
+        my $type = get_file_type($file);
+        if (!scan_file(\%data, $type)) {
+            owarn("Bug: Unexpected result from ARename::scan_file()");
+            return 0;
+        }
+        run_hook('pre_rename');
+        $postproc->(\%data, $type);
+        run_hook('post_rename');
+
         run_hook('file_done');
     }
 
+
     return 1;
+}
+
+sub get_file_type {
+    my ($name) = @_;
+
+    # TODO: This should be done in Audio::Scan, I think.
+    # So, let's just create a rudimentary hack in its place for now.
+    if ($name =~ m/\.mp3$/i) {
+        return 'mp3';
+    } elsif ($name =~ m/\.ogg$/i) {
+        return 'ogg';
+    } elsif ($name =~ m/\.flac$/i) {
+        return 'flac';
+    }
+
+    return '-unknown-';
 }
 
 sub get_profile_list {
@@ -502,159 +633,6 @@ sub expand_template {
     run_hook('post_expand_template', \$template, $datref);
 
     return $template;
-}
-
-# processing audio files
-
-sub handle_vorbistag {
-    my ($datref, $tag, $value) = @_;
-    my ($realtag);
-
-    run_hook('pre_handle_vorbistag', \$tag, \$value, $datref);
-
-    if (!(
-            $tag =~ m/^ALBUM$/i         ||
-            $tag =~ m/^ARTIST$/i        ||
-            $tag =~ m/^TITLE$/i         ||
-            $tag =~ m/^TRACKNUMBER$/i   ||
-            $tag =~ m/^DATE$/i          ||
-            $tag =~ m/^GENRE$/i         ||
-            $tag =~ m/^ALBUMARTIST$/i
-        )) { return 0; }
-
-    if ($tag =~ m/^ALBUM$/i) {
-        $realtag = 'album';
-    } elsif ($tag =~ m/^ARTIST$/i) {
-        $realtag = 'artist';
-    } elsif ($tag =~ m/^TITLE$/i) {
-        $realtag = 'tracktitle';
-    } elsif ($tag =~ m/^TRACKNUMBER$/i) {
-        $realtag = 'tracknumber';
-    } elsif ($tag =~ m/^DATE$/i) {
-        $realtag = 'year';
-    } elsif ($tag =~ m/^GENRE$/i) {
-        $realtag = 'genre';
-    } elsif ($tag =~ m/^ALBUMARTIST$/i) {
-        $realtag = 'compilation';
-    } else {
-        croak("This should not happen. Report this BUG. ($tag, $value)");
-    }
-
-    if (!defined $datref->{$realtag}) {
-        $datref->{$realtag} = $value;
-    }
-
-    run_hook('post_handle_vorbistag', \$tag, \$value, \$realtag, $datref);
-
-    return 1;
-}
-sub process_flac {
-    my ($flac, %data, $tags);
-
-    my $file = get_file();
-
-    run_hook('pre_process_flac');
-
-    $flac = Audio::FLAC::Header->new($file);
-
-    if (!defined $flac) {
-        oprint(qq{Failed to open "$file".\n});
-        oprint("Reason: $!\n");
-        return 0;
-    }
-
-    $tags = $flac->tags();
-
-    foreach my $tag (keys %{ $tags }) {
-        handle_vorbistag(\%data, $tag, $tags->{$tag});
-    }
-
-    $postproc->(\%data, 'flac');
-
-    run_hook('post_process_flac');
-
-    return 1;
-}
-sub process_mp3 {
-    my ($mp3, %data, $info);
-
-    my $file = get_file();
-
-    run_hook('pre_process_mp3');
-
-    $mp3 = MP3::Tag->new($file);
-
-    if (!defined $mp3) {
-        oprint(qq{Failed to open "$file".\n});
-        oprint("Reason: $!\n");
-        return 0;
-    }
-
-    $mp3->get_tags;
-
-    run_hook('pre_handle_mp3tag', $mp3, \%data);
-    if (exists $mp3->{ID3v2}) {
-        ($data{artist},      $info) = $mp3->{ID3v2}->get_frame("TPE1");
-        ($data{compilation}, $info) = $mp3->{ID3v2}->get_frame("TPE2");
-        ($data{album},       $info) = $mp3->{ID3v2}->get_frame("TALB");
-        ($data{tracktitle},  $info) = $mp3->{ID3v2}->get_frame("TIT2");
-        ($data{tracknumber}, $info) = $mp3->{ID3v2}->get_frame("TRCK");
-        ($data{genre},       $info) = $mp3->{ID3v2}->get_frame("TCON");
-        ($data{year},        $info) = $mp3->{ID3v2}->get_frame("TYER");
-    } elsif (exists $mp3->{ID3v1}) {
-        if ($NAME eq 'arename') {
-            oprint("Only found ID3v1 tag.\n");
-        }
-        $data{artist}      = $mp3->{ID3v1}->artist;
-        $data{album}       = $mp3->{ID3v1}->album;
-        $data{tracktitle}  = $mp3->{ID3v1}->title;
-        $data{tracknumber} = $mp3->{ID3v1}->track;
-        $data{genre}       = $mp3->{ID3v1}->genre;
-        $data{year}        = $mp3->{ID3v1}->year;
-    }
-    run_hook('post_handle_mp3tag', $mp3, \%data);
-
-    $mp3->close();
-
-    $postproc->(\%data, 'mp3');
-
-    run_hook('post_process_mp3');
-
-    return 1;
-}
-sub process_ogg {
-    my ($ogg, %data, @tags);
-
-    my $file = get_file();
-
-    run_hook('pre_process_ogg');
-
-    $ogg = Ogg::Vorbis::Header->load($file);
-
-    if (!defined $ogg) {
-        oprint(qq{Failed to open "$file".\n});
-        oprint("Reason: $!\n");
-        return 0;
-    }
-
-    @tags = $ogg->comment_tags;
-
-    foreach my $tag (@tags) {
-        next if ($tag eq q{});
-        handle_vorbistag(\%data, $tag, join(q{ }, $ogg->comment($tag)));
-    }
-
-    $postproc->(\%data, 'ogg');
-
-    run_hook('post_process_ogg');
-
-    return 1;
-}
-sub process_warn {
-    my $file = get_file();
-
-    owarn(qq{No method for handling "$file".\n});
-    return 1;
 }
 
 # output subroutines

@@ -1436,6 +1436,7 @@ if (!ARename::get_opt('load_quiet')) {
 }
 
 foreach my $file (@ARGV) {
+    ARename::set_file($file);
     ARename::process_file($file);
 }
 
@@ -1443,6 +1444,7 @@ if (ARename::get_opt("readstdin")) {
     while (<STDIN>) {           ## no critic
                                 # *STDIN should be the right thing to do here.
         chomp;
+        ARename::set_file($_);
         ARename::process_file($_);
     }
 }
