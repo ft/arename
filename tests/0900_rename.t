@@ -10,7 +10,7 @@ use Test::Exception;
 
 use ARename;
 
-# test if the template is correctly choosen {{{
+# test if the template is correctly choosen
 
 ARename::set_default_options();
 
@@ -40,21 +40,18 @@ ARename::set_opt("comp_template", "compilation template");
 ARename::set_opt("template", "normal template");
 
 ARename::set_file('./tests/data/Bazooka George and the Shirt - Bodyfluids - 02. Crap me!.ogg');
-ARename::process_ogg();
+ARename::process_file();
 $curtemp = ARename::choose_template($dr);
 is( is_comp(), 0, "Didn't choose the compilation template for Bazooka George...");
 is( is_norm(), 1, "Chose the normal template for Bazooka George...");
 
 ARename::set_file('./tests/data/Tequilla - Compilation from Hell - 12. Ghost Busters.ogg');
-ARename::process_ogg();
+ARename::process_file();
 $curtemp = ARename::choose_template($dr);
 is( is_norm(), 0, "Didn't choose the normal template for Tequilla...");
 is( is_comp(), 1, "Chose the compilation template for Tequilla...");
 
-#}}}
-
-# do a real renaming run {{{
-
+# do a real renaming run
 ARename::set_default_options();
 ARename::set_postproc(\&ARename::arename);
 
@@ -87,9 +84,7 @@ ARename::set_opt('shutup', 1);
 ARename::set_opt('quiet',  1);
 
 ARename::set_file('./tests/data/Bazooka George and the Shirt - Bodyfluids - 02. Crap me!.ogg');
-ARename::process_ogg();
+ARename::process_file();
 
 is( equal($main::newname, "./blah/(2006) - Bazooka George and the Shirt - Bodyfluids - 02. Crap me!.ogg"),
     1, "See if the correct filename would be generated");
-
-#}}}
