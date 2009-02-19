@@ -9,7 +9,7 @@ Things I'd like arename to do:
       template = %{album:unset album} should expand to "unset album"
       if &album is unset or empty.
     - if ... else ... -like tag expansion:
-      Consider: template = %[album?- &album !]
+      Consider: template = %{album?- &album !}
       Say &album is empty or unset, in that case the above
       should expand to ''.
       If &album is set to "Reign in Blood", it should expand
