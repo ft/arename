@@ -12,7 +12,7 @@ If you're on a Gentoo system, there's an Ebuild by Maximilian Gaß at:<br />
 &nbsp;&nbsp;&lt;<a href="http://github.com/mxey/ebuilds/tree/master/media-sound/arename">http://github.com/mxey/ebuilds/tree/master/media-sound/arename</a>&gt;<br />
 <br />
 I've also been informed by Maximilian, that arename's ebuild is now in the<br />
-<a href="http://overlays.gentoo.org/proj/sunrise/wiki">sunshine</a> <a href="http://www.gentoo.org/proj/en/overlays/userguide.xml">overlay</a> as media-sound/arename.<br />
+<a href="http://overlays.gentoo.org/proj/sunrise/wiki">sunrise</a> <a href="http://www.gentoo.org/proj/en/overlays/userguide.xml">overlay</a> as media-sound/arename.<br />
 If you're a gentoo user, you probably know what that's about, so there you go!<br />
 <br />
 Downloads:<br />
