@@ -1236,6 +1236,26 @@ err:
 
 # {get,set}_opt() API
 
+sub option_as_cmdopt {
+    my ($opt) = @_;
+
+    my %opttab = (
+        comp_template => q{T},
+        force         => q{f},
+        prefix        => q{p},
+        quiet         => q{q},
+        quiet_skip    => q{Q},
+        template      => q{t},
+        usehooks      => q{H},
+        uselocalhooks => q{H},
+        useprofiles   => q{N},
+        useprofiles   => q{N},
+        verbose       => q{v},
+    );
+
+    return 1 if (defined $opttab{$opt} && cmdopts($opttab{$opt}));
+    return 0;
+}
 sub get_opt {
     my ($opt) = @_;
     my ($section) = (undef);
@@ -1245,7 +1265,10 @@ sub get_opt {
         $section = section_matches(get_file());
     }
 
-    if (defined $section && $sectconf{$section}{$opt}) {
+    if (!option_as_cmdopt($opt) &&
+        defined $section &&
+        $sectconf{$section}{$opt}) {
+
         odebug("returning $conf{$opt} (section: $section)\n");
         return $sectconf{$section}{$opt};
     } else {
@@ -1258,16 +1281,6 @@ sub get_opt {
 sub set_opt {
     my ($opt, $val) = @_;
 
-    my %opttab = (
-        force         => q{f},
-        quiet         => q{q},
-        quiet_skip    => q{Q},
-        usehooks      => q{H},
-        uselocalhooks => q{H},
-        useprofiles   => q{N},
-        verbose       => q{v},
-    );
-
     if (
         ($opt eq 'verbose' && $val == 1 && get_opt('quiet')) ||
         ($opt eq 'quiet' && $val == 1 && get_opt('verbose'))
@@ -1279,14 +1292,14 @@ sub set_opt {
         croak("verbose and quiet set at the same time. Check your config.\n");
     }
 
-    if (!defined $opttab{$opt} || !cmdopts($opttab{$opt})) {
+    if (option_as_cmdopt($opt)) {
+        odebug("($opt given on the cmdline, not touching $opt (will not set to $val).\n");
+    } else {
         __set_opt($opt, $val);
 
         if ($opt eq 'quiet_skip' && $val == 1 && !get_opt('quiet')) {
             __set_opt('quiet', 1);
         }
-    } else {
-        odebug("(-$opttab{$opt}) given on the cmdline, not touching $opt (will not set to $val).\n");
     }
 
     return 1;
