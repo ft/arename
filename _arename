@@ -36,6 +36,7 @@ arguments=(
     '-L[list current configuration]:'
     '-M[compare versions of script and module]'
     '-l[read local config file]'
+    '-m[do not move, copy file(s)]'
     '-d[go into dry-run mode]'
     '-q[enable quiet output]'
     '-s[read filenames from stdin]'

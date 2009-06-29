@@ -1360,6 +1360,7 @@ ARename::set_opt("oprefix", q{}) if (ARename::get_opt("quiet"));
 
 print "\n";
 print "+++ We are on a dry run!\n"  if (ARename::get_opt("dryrun"));
+print "+++ copymode enabled!\n"     if (ARename::get_opt("copymode"));
 print "+++ Running verbosely.\n"    if (ARename::get_opt("verbose"));
 print "+++ Reading stdin for filenames (after \@ARGV).\n"
                                     if (ARename::get_opt("readstdin"));
