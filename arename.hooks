@@ -38,6 +38,26 @@ sub replace_spaces_by_underscore {
 }
 register_hook('post_expand_template', \&replace_spaces_by_underscore);
 
+sub kill_nonascii {
+    # When I tried to copy files (and arename can *copy* now, instead
+    # of moving if you use -c or --copy) to my samsung Q1 audio player,
+    # such copies failed when files contained certain characters. Like
+    # u umlaut, or any other umlaut character for that matter So this
+    # hook kills off all non-ascii characters by replacing them with an
+    # underscore (which the most retarded of all filesystems should
+    # groak...) - if you ask for it.
+    #
+    #   % arename -c -p /media/q1 -u killnonascii=yes *.mp3
+    #
+    # Problem solved - at least for me. :)
+    my ($namespace, $templateref, $datref) = @_;
+
+    return if (!get_opt("copymode"));
+    return if (!defined user_get("killnonascii"));
+    $$templateref =~ s/[^[:ascii:]]+/_/g;
+}
+register_hook('post_expand_template', \&kill_nonascii);
+
 sub remove_empty_subdirs {
     # When arename renames files, it can be quite likely, that
     # due to the rename the directory a file was in previously will
