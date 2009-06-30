@@ -10,7 +10,7 @@ use strict;
 use Readonly;
 use Carp;
 use English '-no_match_vars';
-use Getopt::Std;
+use Getopt::Long;
 use File::Basename;
 use File::Copy;
 use Cwd;
@@ -839,8 +839,8 @@ sub rcload {
 sub read_rcs {
     my ($rc);
 
-    if (cmdopts(q{c})) {
-        $rc = cmdoptstr(q{c});
+    if (cmdopts("config")) {
+        $rc = cmdoptstr("config");
     } else {
         $rc = home_find_file($FIND_RC, $FIND_NONAME);
     }
@@ -851,8 +851,8 @@ sub read_rcs {
         rcload($rc, "main configuration");
     }
 
-    if (cmdopts(q{C})) {
-        $rc = cmdoptstr(q{C});
+    if (cmdopts("post-rc")) {
+        $rc = cmdoptstr("post-rc");
         rcload($rc, "additional configuration");
     }
 
@@ -1087,52 +1087,99 @@ sub cmdoptstr {
     return $opts{$opt};
 }
 
+sub __handle_options {
+    my ($opt, $key, $val) = @_;
+
+    if (!defined $val) {
+        print "$opt: \"$key\"\n";
+    } else {
+        print "$opt: \"$key\" ($val)\n";
+    }
+
+    if ($opt eq 'userset') {
+        $sets{$key} = $val;
+    } else {
+        $opts{$opt} = $key;
+    }
+
+    return 0;
+}
+
 sub read_cmdline_options {
-    my ($tmp);
+    my ($tmp, $rc);
 
     if ($#main::ARGV == -1) {
-        $opts{h} = 1;
+        $opts{'help'} = 1;
     } else {
-        if (!getopts('DdfHhLlMmNQqSsVvc:C:P:p:T:t:', \%opts)) {
-            checkstropts(q{c}, q{C}, q{t}, q{T}, q{P}, q{p});
+        Getopt::Long::Configure('require_order', 'no_gnu_compat',
+            'auto_abbrev', 'no_ignore_case');
+
+        $rc = GetOptions(
+            "help|h" => \&__handle_options,
+            "debug|D" => \&__handle_options,
+            "dryrun|d" => \&__handle_options,
+            "disable-hooks|H" => \&__handle_options,
+            "enable-hooks" => \&__handle_options, # new
+            "force|f" => \&__handle_options,
+            "list-cfg|L" => \&__handle_options,
+            "list-profiles|S" => \&__handle_options,
+            "read-local|l" => \&__handle_options,
+            "compare-ver" => \&__handle_options,
+            "copy|c" => \&__handle_options,
+            "disable-profiles|N" => \&__handle_options,
+            "quiet|q" => \&__handle_options,
+            "uber-quiet|Q" => \&__handle_options,
+            "verbose|v" => \&__handle_options,
+            "version|V" => \&__handle_options,
+            "stdin|s" => \&__handle_options,
+            "rc=s" => \&__handle_options,
+            "post-rc=s" => \&__handle_options,
+            "prefix|p=s" => \&__handle_options,
+            "profile|P=s" => \&__handle_options,
+            "compilation-template|T=s" => \&__handle_options,
+            "template|t=s" => \&__handle_options,
+            "userset|u=s%" => \&__handle_options,
+        );
+        if (!$rc) {
             croak("    Try $NAME -h\n");
         }
     }
 
     # turn on debugging early
-    __set_opt("debug", 1) if (cmdopts(q{D}));
+    __set_opt("debug", 1) if (cmdopts("debug"));
 
-    set_opt('shutup', 1) if (cmdopts(q{L}) || cmdopts(q{S}));
+    set_opt('shutup', 1) if (cmdopts("list-cfg") || cmdopts("list-profiles"));
 
-    if (cmdopts(q{h})) {
+    if (cmdopts("help")) {
         usage();
         exit 0;
     }
 
-    if (cmdopts_or(q{q}, q{Q}) && cmdopts(q{v})) {
+    if (cmdopts_or("quiet", "uber-quiet") && cmdopts("verbose")) {
         croak("Verbose *and* quiet? Please decide!\n");
     }
 
-    if (cmdopts(q{V})) {
+    if (cmdopts("version")) {
         print "$NAME $VERSION\n";
         exit 0;
     }
 
-    if (cmdopts(q{M})) {
+    if (cmdopts("compare-ver")) {
         print "scriptver : $VERSION\n";
         show_version();
         exit 0;
     }
 
-    $tmp = cmdoptstr(q{P});
+    $tmp = cmdoptstr("profile");
     if (defined $tmp && $tmp ne q{}) {
         @cmdline_profiles = split /,/, $tmp;
     }
-    __set_opt("useprofiles", 0) if (cmdopts(q{N}));
-    __set_opt("readstdin", 1) if (cmdopts(q{s}));
-    __set_opt("uselocalrc", 1) if (cmdopts(q{l}));
+    __set_opt("useprofiles", 0) if (cmdopts("disable-profiles"));
+    __set_opt("readstdin", 1) if (cmdopts("stdin"));
+    __set_opt("uselocalrc", 1) if (cmdopts("read-local"));
 
-    if ($#main::ARGV < 0 && !cmdopts(q{L}) && !cmdopts(q{S}) && !get_opt('readstdin')) {
+    if ($#main::ARGV < 0 && !cmdopts("list-cfg")
+        && !cmdopts("list-profiles") && !get_opt('readstdin')) {
         croak("No input files given; try $NAME -h.\n");
     }
 
@@ -1140,16 +1187,17 @@ sub read_cmdline_options {
 }
 
 sub read_cmdline_options_late {
-    __set_opt("verbose", 1) if (cmdopts(q{v}));
-    __set_opt("quiet", 1) if (cmdopts_or(q{q}, q{Q}));
-    __set_opt("quiet_skip", 1) if (cmdopts(q{Q}));
-    __set_opt("force", 1) if (cmdopts(q{f}));
-    __set_opt("dryrun", 1) if (cmdopts(q{d}));
-    __set_opt("copymode", 1) if (cmdopts(q{m}));
-    __set_opt("template", cmdoptstr(q{t})) if (cmdopts(q{t}));
-    __set_opt("comp_template", cmdoptstr(q{T})) if (cmdopts(q{T}));
-    __set_opt("prefix", cmdoptstr(q{p})) if (cmdopts(q{p}));
-    disable_hooks() if (cmdopts(q{H}));
+    __set_opt("verbose", 1) if (cmdopts("verbose"));
+    __set_opt("quiet", 1) if (cmdopts_or("quiet", "uber-quiet"));
+    __set_opt("quiet_skip", 1) if (cmdopts("uber-quiet"));
+    __set_opt("force", 1) if (cmdopts("force"));
+    __set_opt("dryrun", 1) if (cmdopts("dryrun"));
+    __set_opt("copymode", 1) if (cmdopts("copy"));
+    __set_opt("template", cmdoptstr("template")) if (cmdopts("template"));
+    __set_opt("comp_template", cmdoptstr("compilation-template"))
+        if (cmdopts("compilation-template"));
+    __set_opt("prefix", cmdoptstr("prefix")) if (cmdopts("prefix"));
+    disable_hooks() if (cmdopts("disable-hooks"));
 
     return 1;
 }
@@ -1261,7 +1309,7 @@ sub option_as_cmdopt {
 
     my %opttab = (
         comp_template => q{T},
-        copymode      => q{m},
+        copymode      => q{c},
         force         => q{f},
         prefix        => q{p},
         quiet         => q{q},
@@ -1307,8 +1355,9 @@ sub set_opt {
         ($opt eq 'quiet' && $val == 1 && get_opt('verbose'))
        ) {
 
-        return 0 if ($opt eq 'quiet' && cmdopts(q{v}));
-        return 0 if ($opt eq 'verbose' && (cmdopts(q{q}) || cmdopts(q{Q})));
+        return 0 if ($opt eq 'quiet' && cmdopts("verbose"));
+        return 0 if ($opt eq 'verbose' &&
+            (cmdopts("quiet") || cmdopts("uber-quiet")));
 
         croak("verbose and quiet set at the same time. Check your config.\n");
     }
