@@ -361,3 +361,6 @@ severity   = 4
 
 [-Perl::Critic::Policy::BuiltinFunctions::ProhibitReverseSortBlock]
 severity   = 1
+
+[-Perl::Critic::Policy::Documentation::PodSpelling]
+severity   = 1
