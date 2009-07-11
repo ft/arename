@@ -670,11 +670,27 @@ Readonly::Scalar my $FIND_NONAME => q{};        # file name to find not further 
 
 sub __home_find_file {
     my ($home, $name, $dotname) = @_;
-    my ($etcdir, $dotdir, $fn);
+    my ($etcdir, $dotdir, $fn, $xdg);
 
     $etcdir = "$home/etc/arename";
     $dotdir = "$home/.arename";
 
+    # Support for $XDG_CONFIG_HOME.
+    if (defined $ENV{'XDG_CONFIG_HOME'}) {
+        $xdg= $ENV{'XDG_CONFIG_HOME'} . '/arename';
+        if (-d $xdg) {
+            odebug(qq{__home_find_file() using "$xdg"\n});
+            $fn = "$xdg/$name";
+
+            if (-e $fn) {
+                return $fn;
+            } else {
+                goto error;
+            }
+        }
+    }
+
+    # If $XDG_CONFIG_HOME didn't stick, use the old ways:
     # if ~/etc/arename/ exists, we read *everything* from there.
     # if not, but ~/.arename/, we read everything from there.
     # if both are not there, we're looking for stuff like ~/.arenamerc.
@@ -701,6 +717,7 @@ sub __home_find_file {
         }
     }
 
+error:
     return q{};
 }
 sub home_find_file {
