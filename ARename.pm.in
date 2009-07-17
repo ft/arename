@@ -669,6 +669,7 @@ Readonly::Scalar my $FIND_PROFHOOKS => 3;       # find .arename.profilename.hook
 Readonly::Scalar my $FIND_NONAME => q{};        # file name to find not further specified
 
 sub __home_find_file {
+    # TODO: Someone should clean this up. Seriously.
     my ($home, $name, $dotname) = @_;
     my ($etcdir, $dotdir, $fn, $xdg);
 
@@ -689,6 +690,7 @@ sub __home_find_file {
             }
         }
     }
+    $xdg = "$home/.config/arename";
 
     # If $XDG_CONFIG_HOME didn't stick, use the old ways:
     # if ~/etc/arename/ exists, we read *everything* from there.
@@ -697,6 +699,13 @@ sub __home_find_file {
     if (-d $etcdir) {
         odebug(qq{__home_find_file() using "$etcdir"\n});
         $fn = "$etcdir/$name";
+
+        if (-e $fn) {
+            return $fn;
+        }
+    } elsif (-d $xdg) {
+        odebug(qq{__home_find_file() using "$xdg"\n});
+        $fn = "$xdg/$name";
 
         if (-e $fn) {
             return $fn;
