@@ -29,7 +29,8 @@ use Audio::FLAC::Header;
 
 # variables
 my (
-    %conf, %defaults, %hooks, %methods, %parsers, %profiles, %opts, %sectconf, %sets,
+    %cmdline_protect, %conf, %defaults, %hooks, %methods, %parsers, %profiles,
+    %opts, %sectconf, %sets,
     $__arename_file, $postproc, $sect,
     @cmdline_profiles, @localizables, @settables, @supported_tags,
 );
@@ -1076,6 +1077,7 @@ sub parse_set {
 }
 
 # handling commandline options
+Readonly::Scalar my $CMDLINE_PROTECT => 1;
 
 sub checkstropts {
     my (@o) = @_;
@@ -1117,9 +1119,9 @@ sub __handle_options {
     my ($opt, $key, $val) = @_;
 
     if (!defined $val) {
-        print "$opt: \"$key\"\n";
+        odebug("$opt: \"$key\"\n");
     } else {
-        print "$opt: \"$key\" ($val)\n";
+        odebug("$opt: \"$key\" ($val)\n");
     }
 
     if ($opt eq 'userset') {
@@ -1172,9 +1174,10 @@ sub read_cmdline_options {
     }
 
     # turn on debugging early
-    __set_opt("debug", 1) if (cmdopts("debug"));
+    __set_opt("debug", 1, $CMDLINE_PROTECT) if (cmdopts("debug"));
 
-    set_opt('shutup', 1) if (cmdopts("list-cfg") || cmdopts("list-profiles"));
+    set_opt('shutup', 1, $CMDLINE_PROTECT)
+        if (cmdopts("list-cfg") || cmdopts("list-profiles"));
 
     if (cmdopts("help")) {
         usage();
@@ -1200,9 +1203,12 @@ sub read_cmdline_options {
     if (defined $tmp && $tmp ne q{}) {
         @cmdline_profiles = split /,/, $tmp;
     }
-    __set_opt("useprofiles", 0) if (cmdopts("disable-profiles"));
-    __set_opt("readstdin", 1) if (cmdopts("stdin"));
-    __set_opt("uselocalrc", 1) if (cmdopts("read-local"));
+    __set_opt("useprofiles", 0, $CMDLINE_PROTECT)
+        if (cmdopts("disable-profiles"));
+    __set_opt("readstdin", 1, $CMDLINE_PROTECT)
+        if (cmdopts("stdin"));
+    __set_opt("uselocalrc", 1, $CMDLINE_PROTECT)
+    if (cmdopts("read-local"));
 
     if ($#main::ARGV < 0 && !cmdopts("list-cfg")
         && !cmdopts("list-profiles") && !get_opt('readstdin')) {
@@ -1213,16 +1219,25 @@ sub read_cmdline_options {
 }
 
 sub read_cmdline_options_late {
-    __set_opt("verbose", 1) if (cmdopts("verbose"));
-    __set_opt("quiet", 1) if (cmdopts_or("quiet", "uber-quiet"));
-    __set_opt("quiet_skip", 1) if (cmdopts("uber-quiet"));
-    __set_opt("force", 1) if (cmdopts("force"));
-    __set_opt("dryrun", 1) if (cmdopts("dryrun"));
-    __set_opt("copymode", 1) if (cmdopts("copy"));
-    __set_opt("template", cmdoptstr("template")) if (cmdopts("template"));
-    __set_opt("comp_template", cmdoptstr("compilation-template"))
+    __set_opt("verbose", 1, $CMDLINE_PROTECT)
+        if (cmdopts("verbose"));
+    __set_opt("quiet", 1, $CMDLINE_PROTECT)
+        if (cmdopts_or("quiet", "uber-quiet"));
+    __set_opt("quiet_skip", 1, $CMDLINE_PROTECT)
+        if (cmdopts("uber-quiet"));
+    __set_opt("force", 1, $CMDLINE_PROTECT)
+        if (cmdopts("force"));
+    __set_opt("dryrun", 1, $CMDLINE_PROTECT)
+        if (cmdopts("dryrun"));
+    __set_opt("copymode", 1, $CMDLINE_PROTECT)
+        if (cmdopts("copy"));
+    __set_opt("template", cmdoptstr("template"), $CMDLINE_PROTECT)
+        if (cmdopts("template"));
+    __set_opt("comp_template", cmdoptstr("compilation-template"),
+              $CMDLINE_PROTECT)
         if (cmdopts("compilation-template"));
-    __set_opt("prefix", cmdoptstr("prefix")) if (cmdopts("prefix"));
+    __set_opt("prefix", cmdoptstr("prefix"), $CMDLINE_PROTECT)
+        if (cmdopts("prefix"));
     disable_hooks() if (cmdopts("disable-hooks"));
 
     return 1;
@@ -1330,40 +1345,20 @@ sub xcopy {
 
 # {get,set}_opt() API
 
-sub option_as_cmdopt {
-    my ($opt) = @_;
-
-    my %opttab = (
-        comp_template => q{T},
-        copymode      => q{c},
-        force         => q{f},
-        prefix        => q{p},
-        quiet         => q{q},
-        quiet_skip    => q{Q},
-        template      => q{t},
-        usehooks      => q{H},
-        uselocalhooks => q{H},
-        useprofiles   => q{N},
-        useprofiles   => q{N},
-        verbose       => q{v},
-    );
-
-    return 1 if (defined $opttab{$opt} && cmdopts($opttab{$opt}));
-    return 0;
-}
 sub get_opt {
     my ($opt) = @_;
     my ($section) = (undef);
 
     odebug("GET OPTION ($opt)\n");
+    if (defined $cmdline_protect{$opt} && $cmdline_protect{$opt} eq 'yes') {
+        return $conf{$opt};
+    }
+
     if (is_locopt($opt)) {
         $section = section_matches(get_file());
     }
 
-    if (!option_as_cmdopt($opt) &&
-        defined $section &&
-        $sectconf{$section}{$opt}) {
-
+    if (defined $section && $sectconf{$section}{$opt}) {
         odebug("returning $conf{$opt} (section: $section)\n");
         return $sectconf{$section}{$opt};
     } else {
@@ -1388,25 +1383,28 @@ sub set_opt {
         croak("verbose and quiet set at the same time. Check your config.\n");
     }
 
-    if (option_as_cmdopt($opt)) {
-        odebug("($opt given on the cmdline, not touching $opt (will not set to $val).\n");
-    } else {
-        __set_opt($opt, $val);
+    return 0 if (!__set_opt($opt, $val));
 
-        if ($opt eq 'quiet_skip' && $val == 1 && !get_opt('quiet')) {
-            __set_opt('quiet', 1);
-        }
+    if ($opt eq 'quiet_skip' && $val == 1 && !get_opt('quiet')) {
+        __set_opt('quiet', 1);
     }
 
     return 1;
 }
 sub __set_opt {
-    my ($opt, $val) = @_;
+    my ($opt, $val, $protect) = @_;
 
     my $s = sect_get();
 
     if (defined $s && !is_locopt($opt)) {
         owarn(qq{"$opt" is *not* a localizable setting (will not set to $val).\n});
+        return 0;
+    }
+
+    if ((!defined $protect || $protect == 0)
+        && defined $cmdline_protect{$opt} && $cmdline_protect{$opt} eq 'yes') {
+
+        owarn(qq{"$opt" was set on the command line. Not overwriting.\n});
         return 0;
     }
 
@@ -1416,6 +1414,10 @@ sub __set_opt {
     } else {
         odebug("set_opt() ($opt) = ($val) [$s]\n");
         $sectconf{$s}{$opt} = $val;
+    }
+    if (defined $protect && $protect > 0) {
+        odebug("Protecting $opt from being overidden later.\n");
+        $cmdline_protect{$opt} = 'yes';
     }
 
     return 1;
