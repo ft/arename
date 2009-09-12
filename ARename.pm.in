@@ -1152,7 +1152,7 @@ sub read_cmdline_options {
             "list-cfg|L" => \&__handle_options,
             "list-profiles|S" => \&__handle_options,
             "read-local|l" => \&__handle_options,
-            "compare-ver" => \&__handle_options,
+            "compare-versions" => \&__handle_options,
             "copy|c" => \&__handle_options,
             "disable-profiles|N" => \&__handle_options,
             "quiet|q" => \&__handle_options,
@@ -1193,7 +1193,7 @@ sub read_cmdline_options {
         exit 0;
     }
 
-    if (cmdopts("compare-ver")) {
+    if (cmdopts("compare-versions")) {
         print "scriptver : $VERSION\n";
         show_version();
         exit 0;
