@@ -351,28 +351,37 @@ sub set_postproc {
 
 sub usage {
     print " Usage:\n  $NAME [OPTION(s)] FILE(s)...\n\n";
-    print "    -D                Enable debugging output.\n";
-    print "    -d                Go into dryrun mode.\n";
-    print "    -f                Overwrite files if needed.\n";
-    print "    -H                Disable *all* hooks.\n";
-    print "    -h                Display this help text.\n";
-    print "    -L                List current configuration.\n";
-    print "    -l                Read local rc, if it exists.\n";
-    print "    -M                Compare versions of script and module.\n";
-    print "    -m                Do not move files, copy them.\n";
-    print "    -N                Deactivate all profiles.\n";
-    print "    -Q                Don't display skips in quiet mode.\n";
-    print "    -q                Enable quiet output.\n";
-    print "    -S                Show a list of defined profiles\n";
-    print "    -s                Read file names from stdin.\n";
-    print "    -V                Display version infomation.\n";
-    print "    -v                Enable verbose output.\n";
-    print "    -c <file>         Read file instead of ~/.arenamerc.\n";
-    print "    -C <file>         Read file after ~/.arenamerc.\n";
-    print "    -P <prof(s),...>  Comma seperated list of profiles to activate forcibly.\n";
-    print "    -p <prefix>       Define a prefix for destination files.\n";
-    print "    -T <template>     Define a compilation template.\n";
-    print "    -t <template>     Define a generic template.\n";
+    print "    --compare-versions           Compare versions of script and module.\n";
+    print "    --copy, -c                   Copy files, rather than renaming.\n";
+    print "    --debug, -D                  Enable debugging output.\n";
+    print "    --disable-hooks, -H          Disable *all* hooks.\n";
+    print "    --disable-profiles, -N       Deactivate all profiles.\n";
+    print "    --dryrun, -d                 Go into dryrun mode.\n";
+    print "    --enable-hooks               Enable hooks, if the configuration disabled\n";
+    print "                                 them.\n";
+    print "    --force, -f                  Overwrite files if needed.\n";
+    print "    --help, -h                   Display this help text.\n";
+    print "    --list-cfg, -L               List current configuration.\n";
+    print "    --list-profiles, -S          Show a list of defined profiles\n";
+    print "    --quiet, -q                  Enable quiet output.\n";
+    print "    --read-local, -l             Read local rc, if it exists.\n";
+    print "    --stdin, -s                  Read file names from stdin.\n";
+    print "    --uber-quiet, -Q             Don't display skips in quiet mode.\n";
+    print "    --version, -V                Display version infomation.\n";
+    print "    --verbose, -v                Enable verbose output.\n";
+    print "\n";
+    print "    --rc <file>                  Read file instead of ~/.arenamerc.\n";
+    print "    --post-rc <file>             Read file after ~/.arenamerc.\n";
+    print "\n";
+    print "    --prefix, -p <prefix>        Define a prefix for destination files.\n";
+    print "    --profile, -P <prof(s),...>  Comma seperated list of profiles to activate\n";
+    print "                                 forcibly.\n";
+    print "\n";
+    print "    --compilation-template -T <template>\n";
+    print "                                 Define a compilation template.\n";
+    print "    --template, -t <template>    Define a generic template.\n";
+    print "\n";
+    print "    --userset, -u <var=value...> Set a user variable.\n";
     print "\n";
 
     return 1;
@@ -1143,23 +1152,23 @@ sub read_cmdline_options {
             'auto_abbrev', 'no_ignore_case');
 
         $rc = GetOptions(
-            "help|h" => \&__handle_options,
-            "debug|D" => \&__handle_options,
-            "dryrun|d" => \&__handle_options,
-            "disable-hooks|H" => \&__handle_options,
-            "enable-hooks" => \&__handle_options, # new
-            "force|f" => \&__handle_options,
-            "list-cfg|L" => \&__handle_options,
-            "list-profiles|S" => \&__handle_options,
-            "read-local|l" => \&__handle_options,
             "compare-versions" => \&__handle_options,
             "copy|c" => \&__handle_options,
+            "debug|D" => \&__handle_options,
+            "disable-hooks|H" => \&__handle_options,
             "disable-profiles|N" => \&__handle_options,
+            "dryrun|d" => \&__handle_options,
+            "enable-hooks" => \&__handle_options,
+            "force|f" => \&__handle_options,
+            "help|h" => \&__handle_options,
+            "list-cfg|L" => \&__handle_options,
+            "list-profiles|S" => \&__handle_options,
             "quiet|q" => \&__handle_options,
+            "read-local|l" => \&__handle_options,
+            "stdin|s" => \&__handle_options,
             "uber-quiet|Q" => \&__handle_options,
             "verbose|v" => \&__handle_options,
             "version|V" => \&__handle_options,
-            "stdin|s" => \&__handle_options,
             "rc=s" => \&__handle_options,
             "post-rc=s" => \&__handle_options,
             "prefix|p=s" => \&__handle_options,
