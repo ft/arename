@@ -21,7 +21,8 @@ function _arename_profiles() {
 
     compset -P '*,'
     already=(${(s<,>)IPREFIX})
-    _wanted list expl 'profile(s)' compadd -S, -F already -q ${expl} -- ${(f)"$(arename -S)"}
+    _wanted list expl 'profile(s)' compadd -S, -F already -q ${expl} \
+        -- ${(f)"$(arename --list-profiles)"}
 }
 
 arguments=(
