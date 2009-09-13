@@ -36,11 +36,11 @@ arguments=(
     '(--help -h)'{--help,-h}'[display help information]:'
     '(--list-cfg -L)'{--list-cfg,-L}'[list current configuration]:'
     '(--list-profiles -S)'{--list-profiles,-S}'[list all profiles in active configuration]:'
-    '(--quiet -q)'{--quiet,-q}'[enable quiet output]'
+    '(--verbose -v --quiet -q)'{--quiet,-q}'[enable quiet output]'
     '(--read-local -l)'{--read-local,-l}'[read local config file]'
     '(--stdin -s)'{--stdin,-s}'[read filenames from stdin]'
-    '(--uber-quiet -Q)'{--uber-quiet,-Q}'[do not display skips in quiet mode]'
-    '(--verbose -v)'{--verbose,-v}'[enable verbose output]'
+    '(--verbose -v --uber-quiet -Q)'{--uber-quiet,-Q}'[do not display skips in quiet mode]'
+    '(--quiet -q --uber-quiet -Q --verbose -v)'{--verbose,-v}'[enable verbose output]'
     '(--version -V)'{--version,-v}'[display version infomation]:'
 
     '--rc[read a file instead of ~/.arenamerc]:config file:_files'
@@ -52,7 +52,7 @@ arguments=(
     '(--compilation-template -T)'{--compilation-template,-T}'[define a compilation template]:compilation template:'
     '(--template -t)'{--template,-t}'[define a generic template]:template:'
 
-    '(--userset -u)'{--userset,-u}'[set a user variable]:user variable (format var=value):'
+    '*'{--userset,-u}'[set a user variable]:user variable (format var=value):'
 
     '*:audio files:_arename_files'
 )
