@@ -1,3 +1,25 @@
+2.0 -> 3.0
+    + Changed option handling completely. Now every option has a
+      --long-option (and not all are available via short options)
+      Some short options even changed their meaning. Which is the
+      main reason for this to be a major version update.
+    + List of changed options:
+        -M is gone entirely, the option is now: --compare-versions.
+        The old -c option is --rc now.
+        -m is gone, it is now --copy.
+        -c now is the shorthand for --copy.
+        -C is gone entirely, the option is now: --post-rc.
+    + New options:
+        -c (--copy)
+        -u (--userset)
+        --enable-hooks
+    + XDG_CONFIG_HOME support
+      The config is now searched like this:
+        a) try $XDG_CONFIG_HOME/arename/
+           $XDG_CONFIG_HOME defaults to $HOME/.config/.
+        b) $HOME/etc/arename/
+        c) $HOME/.arename/
+        d) $HOME/.arenamerc, $HOME/.arename.hooks etc.
 1.6 -> 2.0
     = Quite a few changes in this release, these are the important
       ones, that are visible to the user:
