@@ -146,10 +146,10 @@ I<template> and I<comp_template> settings (See L</SETTINGS> below).
 
 By default, B<arename> will refuse to overwrite destination files,
 if the file in question already exists. You can force overwriting by
-supplying the B<-f> option.
+supplying the B<--force> option.
 
 In order to see what would happen instead of actually modifying files, you
-can use the B<-d> option. This way you can avoid problems, that would
+can use the B<--dryrun> option. This way you can avoid problems, that would
 occur if the situation (e.g. the information in the files or your
 configuration) is not exactly as you expected it.
 
@@ -190,7 +190,7 @@ option:
 
   % find . -name "*.mp3" -print | arename -d -s
 
-This will break for file names that contain newlines, because I<-s> will
+This will break for file names that contain newlines, because I<--stdin> will
 read one file name per line from the standard input stream.
 
 Another way of using B<find> to deal with this problem is to use find's
@@ -223,7 +223,7 @@ information in order to use the program without going through too much
 fuzz.
 
 If you are really afraid of documentation, you could of course just read
-the output of the I<-h> option and see which options to provide in order
+the output of the I<--help> option and see which options to provide in order
 to get what you want. Then again, you will soon be pissed by the weird
 default values B<arename> uses.
 
@@ -305,16 +305,16 @@ per-user normal configuration file.
 =item B<./.arename.local>
 
 per-directory local configuration file (only read if I<uselocalrc> is set
-or the I<-l> option is given on the command line).
+or the I<--read-local> option is given on the command line).
 
 =back
 
 The per-user normal configuration file can be substituted by another file,
-if specified via the I<-c> option.
+if specified via the I<--rc> option.
 
 Last but not least, you can specify an intermediate configuration file,
 that is read in between the normal and the per-directory file, via the
-I<-C> option.
+I<--post-rc> option.
 
 =head3 File format
 
@@ -393,7 +393,7 @@ following naming conventions:
 
 Profile related configuration files; read if I<PROFILENAME> is active.
 
-They are read after a intermediate config file defined by I<-C> and
+They are read after a intermediate config file defined by I<--post-rc> and
 a local config file (if enabled).
 
 =item B<~/etc/arename/profile.PROFILENAME.hooks>
@@ -549,8 +549,8 @@ file is active. (default: I<true>)
 
 Defines a template to use with files that provide a compilation tag
 (for 'various artist' CDs, for example). This setting can still be
-overwritten by the B<-T> command line option. (default value:
-I<va/&album/&tracknumber - &artist - &tracktitle>)
+overwritten by the B<--compilation-template> command line option. (default
+value: I<va/&album/&tracknumber - &artist - &tracktitle>)
 
 =item B<debug>
 
@@ -577,7 +577,7 @@ I<false>)
 Defines a prefix for destination files. Setting this to '/foo/bar' results
 in destination files named '/foo/bar/Expanded Template.ogg'
 
-This setting can still be overwritten by the B<-p> command line option.
+This setting can still be overwritten by the B<--profile> command line option.
 (default value: I<.>)
 
 =item B<quiet>
@@ -602,8 +602,9 @@ slashes with the value of this setting. (default value: I<_>)
 
 Defines a template to use with files that do not provide a compilation tag
 (or where the compilation tag and the artist tag are exactly the same).
-This setting can be overwritten by the B<-T> command line option.
-(default value: I<&artist[1]/&artist/&album/&tracknumber - &tracktitle>)
+This setting can be overwritten by the B<--compilation-template> command
+line option. (default value:
+I<&artist[1]/&artist/&album/&tracknumber - &tracktitle>)
 
 =item B<tnpad>
 
