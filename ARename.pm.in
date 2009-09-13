@@ -1248,6 +1248,10 @@ sub read_cmdline_options_late {
     __set_opt("prefix", cmdoptstr("prefix"), $CMDLINE_PROTECT)
         if (cmdopts("prefix"));
     disable_hooks() if (cmdopts("disable-hooks"));
+    if (cmdopts("list-profiles")) {
+        dump_profiles();
+        exit 0;
+    }
 
     return 1;
 }
