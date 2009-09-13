@@ -1248,6 +1248,7 @@ sub read_cmdline_options_late {
     __set_opt("prefix", cmdoptstr("prefix"), $CMDLINE_PROTECT)
         if (cmdopts("prefix"));
     disable_hooks() if (cmdopts("disable-hooks"));
+    enable_hooks() if (cmdopts("enable-hooks"));
     if (cmdopts("list-profiles")) {
         dump_profiles();
         exit 0;
@@ -1534,6 +1535,12 @@ sub sect_reset {
 
 # hooks code
 
+sub enable_hooks {
+    __set_opt("usehooks", 1);
+    __set_opt("uselocalhooks", 1);
+
+    return 1;
+}
 sub disable_hooks {
     __set_opt("usehooks", 0);
     __set_opt("uselocalhooks", 0);
