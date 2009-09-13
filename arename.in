@@ -270,11 +270,14 @@ systems.
 There are no such things as system wide configuration files in B<arename>.
 
 For all setup files B<arename> tries to find (except for the local ones)
-three different locations are tried. If the directory I<~/etc/arename/>
-exists, B<all> files are expected to be in there. If that directory does
-not exist, I<~/.arename/> is tried instead. If that one could not be found,
-either, B<arename> will try to find the file it is looking for directly in
-the user's home directory.
+four different locations are tried. If the $XDG_CONFIG_HOME/arename
+directory exists, B<all> files are expected to be there. If that directory
+does not exist, I<~/etc/arename/> and if that is not there I<~/.arename> are
+are tried instead. If those directories could not be found either, B<arename>
+will try to find the file it is looking for directly in the user's home
+directory.
+
+The default for I<$XDG_CONFIG_HOME> is I<~/.config>.
 
 The first setup directory we find always wins. B<arename> does not consider
 more than one setup directory.
@@ -293,6 +296,8 @@ configuration files, if it finds appropriately named files in the
 I<current directory> (and the I<uselocalrc> feature is enabled):
 
 =over 8
+
+=item B<$XDG_CONFIG_HOME/arename/rc>
 
 =item B<~/etc/arename/rc>
 
@@ -385,6 +390,8 @@ following naming conventions:
 
 =over 8
 
+=item B<$XDG_CONFIG_HOME/arename/profile.PROFILENAME>
+
 =item B<~/etc/arename/profile.PROFILENAME>
 
 =item B<~/.arename/profile.PROFILENAME>
@@ -395,6 +402,8 @@ Profile related configuration files; read if I<PROFILENAME> is active.
 
 They are read after a intermediate config file defined by I<--post-rc> and
 a local config file (if enabled).
+
+=item B<$XDG_CONFIG_HOME/arename/profile.PROFILENAME.hooks>
 
 =item B<~/etc/arename/profile.PROFILENAME.hooks>
 
