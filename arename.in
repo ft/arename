@@ -48,7 +48,7 @@ Overwrites the B<useprofiles> setting.
 Go into dryrun mode. This means, that no action will be taken. B<arename>
 will print what it would do, if called without I<-d>.
 
-=item B<--enable-hooks> (short option: B<-N>)
+=item B<--enable-hooks>
 
 Explicitly enable hooks.
 
