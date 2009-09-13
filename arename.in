@@ -18,15 +18,39 @@ arename [OPTION(s)] FILE(s)...
 
 =over 8
 
+=item B<--compare-versions>
+
+Prints the version of the arename script and the version of the Perl module,
+that contains most of the code. These versions should be the same. If not,
+that would indicate a possibly broken installation.
+
+=item B<--copy>
+
+Copy files instead of renaming (moving). This can be useful to copy tracks
+from your audio archive to a portable device for example.
+
 =item B<--debug> (short option: B<-D>)
 
 Enable debugging output. This is likely to be very noisy. You probably want
 to use the I<--verbose> option (setting: I<verbose>) in addition to this.
 
+=item B<--disable-hooks> B(short option: <-H>)
+
+Do not make use of hooks of any sort (neither global nor local ones).
+
+=item B<--disable-profiles> (short option: B<-N>)
+
+Do I<not> use L<configuration profiles|/Configuration profiles> (see below).
+Overwrites the B<useprofiles> setting.
+
 =item B<--dryrun> (short option: B<-d>)
 
 Go into dryrun mode. This means, that no action will be taken. B<arename>
 will print what it would do, if called without I<-d>.
+
+=item B<--enable-hooks> (short option: B<-N>)
+
+Explicitly enable hooks.
 
 =item B<--force> (short option: B<-f>)
 
@@ -36,29 +60,14 @@ Overwrite files if needed.
 
 Display a short help text.
 
-=item B<--disable-hooks> B(short option: <-H>)
-
-Do not make use of hooks of any sort (neither global nor local ones).
-
 =item B<--list-cfg> (short option: B<-L>)
 
 List the current configuration in the actual configuration format.
 
-=item B<--read-local> (short option: B<-l>)
+=item B<--list-profiles> (short option: B<-S>)
 
-Read a local config file (./.arename.local). Overwrites the B<uselocalrc>
-configuration setting.
-
-=item B<--compare-versions>
-
-Prints the version of the arename script and the version of the Perl module,
-that contains most of the code. These versions should be the same. If not,
-that would indicate a possibly broken installation.
-
-=item B<--disable-profiles> (short option: B<-N>)
-
-Do I<not> use L<configuration profiles|/Configuration profiles> (see below).
-Overwrites the B<useprofiles> setting.
+Print a list of profile names defined in the active configuration.
+(This is primarily used by the zsh completion for the I<--profile> option.)
 
 =item B<--quiet> (short option: B<-q>)
 
@@ -66,23 +75,23 @@ Make the output way more quiet, when processing files.
 
 This option conflicts with the verbose option.
 
-=item B<--uber-quiet> (short option: B<-Q>)
+=item B<--read-local> (short option: B<-l>)
 
-Be even more quiet (this option will suppress, if a file is skipped.
-Except for files, that are skipped because they would overwrite something).
-
-This option implies I<--quiet>.
-
-=item B<--list-profiles> (short option: B<-S>)
-
-Print a list of profile names defined in the active configuration.
-(This is primarily used by the zsh completion for the I<--profile> option.)
+Read a local config file (./.arename.local). Overwrites the B<uselocalrc>
+configuration setting.
 
 =item B<--stdin> (short option: B<-s>)
 
 Read filenames from stdin after processing files given on the command line.
 It reads one file name per line, which means that file names containing
 newlines are not supported.
+
+=item B<--uber-quiet> (short option: B<-Q>)
+
+Be even more quiet (this option will suppress, if a file is skipped.
+Except for files, that are skipped because they would overwrite something).
+
+This option implies I<--quiet>.
 
 =item B<--version> (short option: B<-V>)
 
@@ -100,14 +109,14 @@ Read I<file> instead of ~/.arenamerc.
 
 Read I<file> B<after> ~/.arenamerc and B<before> ./.arename.local.
 
+=item B<--prefix> E<lt>prefixE<gt> (short option: B<-p>)
+
+Define a prefix for destination files.
+
 =item B<--profile> E<lt>profile(s),...E<gt> (short option: B<-P>)
 
 Define a list of one or more profiles to use forcibly, no matter if they
 would be activated normally or not.
-
-=item B<--prefix> E<lt>prefixE<gt> (short option: B<-p>)
-
-Define a prefix for destination files.
 
 =item B<--compilation-template> E<lt>templateE<gt> (short option: B<-T>)
 
