@@ -48,6 +48,7 @@ dev-help: all test-help
 
 genperlscripts:
 	@./bin/genperlscripts.sh ARename.pm arename ataglist
+	@chmod -x ARename.pm
 
 doc:
 	@./bin/gendoc.sh
