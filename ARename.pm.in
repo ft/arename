@@ -1252,6 +1252,10 @@ sub read_cmdline_options_late {
         dump_profiles();
         exit 0;
     }
+    if (cmdopts("list-cfg")) {
+        dump_config();
+        exit 0;
+    }
 
     return 1;
 }
