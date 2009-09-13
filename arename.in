@@ -34,7 +34,7 @@ from your audio archive to a portable device for example.
 Enable debugging output. This is likely to be very noisy. You probably want
 to use the I<--verbose> option (setting: I<verbose>) in addition to this.
 
-=item B<--disable-hooks> B(short option: <-H>)
+=item B<--disable-hooks> (short option: B<-H>)
 
 Do not make use of hooks of any sort (neither global nor local ones).
 
