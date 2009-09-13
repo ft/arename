@@ -24,7 +24,7 @@ Prints the version of the arename script and the version of the Perl module,
 that contains most of the code. These versions should be the same. If not,
 that would indicate a possibly broken installation.
 
-=item B<--copy>
+=item B<--copy> (short option: B<-c>)
 
 Copy files instead of renaming (moving). This can be useful to copy tracks
 from your audio archive to a portable device for example.
