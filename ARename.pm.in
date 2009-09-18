@@ -1149,7 +1149,7 @@ sub read_cmdline_options {
         $opts{'help'} = 1;
     } else {
         Getopt::Long::Configure('require_order', 'no_gnu_compat',
-            'auto_abbrev', 'no_ignore_case');
+            'auto_abbrev', 'no_ignore_case', 'bundling');
 
         $rc = GetOptions(
             "compare-versions" => \&__handle_options,
