@@ -2,21 +2,7 @@
 
 [ ! -e "arename.in" ] && exit 0         # probably a tarball...
 
-pre="$(./bin/getversion.sh prerelease)"
-if [ -n "${pre}" ] ; then
-    snap="$(./bin/getversion.sh snapshot)"
-    [ -z "${snap}" ] && version="${pre}" || version="${pre}+git-${snap}"
-fi
-
-if [ -z "${version}" ] ; then
-    rel="$(./bin/getversion.sh release)"
-    snap="$(./bin/getversion.sh snapshot)"
-    if [ -n "${snap}" ] ; then
-        version="${rel}+git-${snap}"
-    else
-        version="${rel}"
-    fi
-fi
+version="$(./bin/getversion.sh build)"
 
 for scr in "${@}" ; do
 
