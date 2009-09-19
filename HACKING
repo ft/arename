@@ -7,7 +7,7 @@ Changes to any parts of the main Perl codebase (ARename.pm.in, ataglist.in
 and arename.in) need to pass the full test suite (make test-all - see
 the TESTING file for details). If the test suite fails due to warnings
 emitted by perlcritic, I am open to convincing arguments as to why the
-warning is wrong (accompanying patches again perlcriticrc would be nice
+warning is wrong (accompanying patches against perlcriticrc would be nice
 in case I agree).
 
 Please use *four* spaces (not tabs!) for indenting. The rest of the
