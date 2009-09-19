@@ -142,4 +142,13 @@ removeweb:
 	@printf 'Remove webpages...\n'
 	rm -f "$(ikiroot)"/arename.mdwn "$(ikisubroot)"/*
 
+release:
+	@./bin/dist.sh -r
+
+prerelease:
+	@./bin/dist.sh -p
+
+snapshot:
+	@./bin/dist.sh -s
+
 .PHONY: install install-doc distclean clean all doc test-check
