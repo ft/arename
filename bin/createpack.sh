@@ -35,9 +35,9 @@ PREFIX="${COMMON}/"
 export package version COMMON TARNAME PREFIX
 
 git archive --format=tar --prefix="${PREFIX}" HEAD > "${TARNAME}"
-if [ -e ./buildsys/createpack.hook.sh ] ; then
+if [ -e ./bin/createpack.hook.sh ] ; then
     # Adding files, that are needed in tarballs.
-    ${POSIX_SHELL} ./buildsys/createpack.hook.sh
+    ${POSIX_SHELL} ./bin/createpack.hook.sh
 fi
 
 case "${atype}" in
