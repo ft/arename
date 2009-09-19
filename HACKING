@@ -1,0 +1,79 @@
+    === Hacking on arename ===
+
+Documentation (pod) fixes, test suite enhancements, new features, more
+example hooks are all welcome contributions to arename.
+
+Changes to any parts of the main Perl codebase (ARename.pm.in, ataglist.in
+and arename.in) need to pass the full test suite (make test-all - see
+the TESTING file for details). If the test suite fails due to warnings
+emitted by perlcritic, I am open to convincing arguments as to why the
+warning is wrong (accompanying patches again perlcriticrc would be nice
+in case I agree).
+
+Please use *four* spaces (not tabs!) for indenting. The rest of the
+coding style is not set in stone. Just use the same conventions as used
+in the rest of the code for consistency.
+
+
+Other than that, go wild. :-)
+
+Just one thing, in order to avoid any trouble, arename will adopt the
+Sign-Off paradigm like it is used by other open source projects such
+as git or the linux kernel:
+
+
+    --- Sign your work ---
+
+The sign-off is a simple line at the end of the explanation for
+the patch, which certifies that you wrote it or otherwise have
+the right to pass it on as a open-source patch.  The rules are
+pretty simple: if you can certify the below:
+
+    Developer's Certificate of Origin 1.1
+
+    By making a contribution to this project, I certify that:
+
+    (a) The contribution was created in whole or in part by me and I
+        have the right to submit it under the open source license
+        indicated in the file; or
+
+    (b) The contribution is based upon previous work that, to the best
+        of my knowledge, is covered under an appropriate open source
+        license and I have the right under that license to submit that
+        work with modifications, whether created in whole or in part
+        by me, under the same open source license (unless I am
+        permitted to submit under a different license), as indicated
+        in the file; or
+
+    (c) The contribution was provided directly to me by some other
+        person who certified (a), (b) or (c) and I have not modified
+        it.
+
+    (d) I understand and agree that this project and the contribution
+        are public and that a record of the contribution (including all
+        personal information I submit with it, including my sign-off) is
+        maintained indefinitely and may be redistributed consistent with
+        this project or the open source license(s) involved.
+
+then you just add a line saying
+
+        Signed-off-by: Random J Developer <random@developer.example.org>
+
+This line can be automatically added by git if you run the git-commit
+command with the -s option.
+
+Notice that you can place your own Signed-off-by: line when
+forwarding somebody else's patch with the above rules for
+D-C-O.  Indeed you are encouraged to do so.  Do not forget to
+place an in-body "From: " line at the beginning to properly attribute
+the change to its true author (see (2) above).
+
+Also notice that a real name is used in the Signed-off-by: line. Please
+don't hide your real name.
+
+Some people also put extra tags at the end.
+
+"Acked-by:" says that the patch was reviewed by the person who
+is more familiar with the issues and the area the patch attempts
+to modify.  "Tested-by:" says the patch was tested by the person
+and found to have the desired effect.
