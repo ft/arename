@@ -134,6 +134,18 @@ Input files, that are subject for renaming.
 
 =back
 
+A word about option name stability: With I<arename version 3.0> we are now
+using Getopt::Long for parsing command lines options. That change was made,
+because the meaningful single letter options where used up. Every option
+is available via a I<--long-option>. B<That interface will remain stable>.
+So, if you want to use B<arename> in scripts, those are the options you
+should use. There are currently no plans of removing or changing any further
+short options, but there are no guarantees. If it is indeed better to change
+a short option, we will do so.
+
+A list of options that changed from B<arename> I<2.x> to I<3.0> can be
+found in the project's CHANGES file.
+
 =head1 DESCRIPTION
 
 B<arename> is a tool that is able to rename audio files by looking at
