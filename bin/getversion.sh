@@ -2,7 +2,7 @@
 
 # Get version information from git tree.
 # If called in a non-git tree (read: from an unpacked tarball), the
-# contents of buildsys/VERSION is used.
+# contents of VERSION is used.
 #
 #   usage:
 #       getversion.sh <keyword> [sha]
@@ -26,11 +26,11 @@
 POSIX_SHELL=${POSIX_SHELL:-"/bin/sh"}
 
 if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1 ; then
-    if [ -e ./buildsys/VERSION ] ; then
-        cat ./buildsys/VERSION
+    if [ -e ./VERSION ] ; then
+        cat ./VERSION
         exit 0
     else
-        printf 'buildsys/VERSION is missing. Broken tarball?\n'
+        printf 'VERSION is missing. Broken tarball?\n'
         exit 1
     fi
 fi
@@ -40,7 +40,7 @@ if [ -z "$1" ] ; then
     exit 1
 fi
 
-rm -f ./buildsys/VERSION
+rm -f ./VERSION
 keyword="$1"
 shamod="$2"
 

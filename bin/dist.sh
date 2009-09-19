@@ -73,13 +73,13 @@ done
 
 if [ -z "$1" ] ; then
     if [ "${release}" -gt 0 ] ; then
-        rel_version="v$(${POSIX_SHELL} ./buildsys/bin/getversion.sh release)"
+        rel_version="v$(${POSIX_SHELL} ./bin/getversion.sh release)"
     fi
     if [ "${prerelease}" -gt 0 ] ; then
-        pre_version="v$(${POSIX_SHELL} ./buildsys/bin/getversion.sh prerelease)"
+        pre_version="v$(${POSIX_SHELL} ./bin/getversion.sh prerelease)"
     fi
     if [ "${snapshot}" -gt 0 ] ; then
-        snap_version="v$(${POSIX_SHELL} ./buildsys/bin/getversion.sh snapshot)"
+        snap_version="v$(${POSIX_SHELL} ./bin/getversion.sh snapshot)"
         case "${snap_version}" in
         *-dirty)
             printf 'Building tarballs of -dirty versions does not work! Abort.\n'
@@ -115,17 +115,17 @@ fi
 
 if [ "${release}" -gt 0 ] && [ -n "${rel_version}" ] && [ "${rel_version}" != 'v' ]; then
     git checkout "${rel_version}"
-    ${POSIX_SHELL} ./buildsys/bin/createpack.sh "${rel_version}" gz
+    ${POSIX_SHELL} ./bin/createpack.sh "${rel_version}" gz
 fi
 if [ "${prerelease}" -gt 0 ] && [ -n "${pre_version}" ] && [ "${pre_version}" != 'v' ]; then
     git checkout "${pre_version}"
-    ${POSIX_SHELL} ./buildsys/bin/createpack.sh "${pre_version}" gz
+    ${POSIX_SHELL} ./bin/createpack.sh "${pre_version}" gz
 fi
 if [ "${snapshot}" -gt 0 ] && [ -n "${snap_version}" ] && [ "${snap_version}" != 'v' ]; then
-    ${POSIX_SHELL} ./buildsys/bin/createpack.sh "${snap_version}" gz
+    ${POSIX_SHELL} ./bin/createpack.sh "${snap_version}" gz
 fi
 if [ "${newrelease}" -gt 0 ] && [ -n "${version}" ] && [ "${version}" != 'v' ]; then
-    ${POSIX_SHELL} ./buildsys/bin/createpack.sh "${version}" gz
+    ${POSIX_SHELL} ./bin/createpack.sh "${version}" gz
 fi
 
 exit 0
