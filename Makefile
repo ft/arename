@@ -136,7 +136,7 @@ prepare-test-data:
 updateweb:
 	@printf 'Updating webpages...\n'
 	@./bin/updatewebsite.sh "$(ikiroot)" "$(ikisubroot)"
-	make distclean
+	#make distclean
 
 removeweb:
 	@printf 'Remove webpages...\n'
