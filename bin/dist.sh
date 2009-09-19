@@ -73,13 +73,13 @@ done
 
 if [ -z "$1" ] ; then
     if [ "${release}" -gt 0 ] ; then
-        rel_version="v$(${POSIX_SHELL} ./bin/getversion.sh release)"
+        rel_version="$(${POSIX_SHELL} ./bin/getversion.sh release)"
     fi
     if [ "${prerelease}" -gt 0 ] ; then
-        pre_version="v$(${POSIX_SHELL} ./bin/getversion.sh prerelease)"
+        pre_version="$(${POSIX_SHELL} ./bin/getversion.sh prerelease)"
     fi
     if [ "${snapshot}" -gt 0 ] ; then
-        snap_version="v$(${POSIX_SHELL} ./bin/getversion.sh snapshot)"
+        snap_version="$(${POSIX_SHELL} ./bin/getversion.sh snapshot)"
         case "${snap_version}" in
         *-dirty)
             printf 'Building tarballs of -dirty versions does not work! Abort.\n'
