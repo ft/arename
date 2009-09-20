@@ -8,6 +8,7 @@ generated file name is used as the destination for the renaming.
 
 The latest version of arename can be found here:
   <http://ft.bewatermyfriend.org/comp/arename.html>
+  <http://github.com/ft/arename/downloads>
 
 
 SCRIPTS
@@ -44,7 +45,7 @@ USING arename FROM ITS GIT REPOSITORY
   If you prefer to use arename from its git repo, you are welcome
   to do so. To clone the repo:
 
-    % git clone http://git.bewatermyfriend.org/arename.git
+    % git clone git://github.com/ft/arename.git
 
   Remember, that this is development in progress. Please be more
   careful with these versions.
