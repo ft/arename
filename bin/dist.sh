@@ -113,15 +113,15 @@ if [ "${newrelease}" -gt 0 ] ; then
     git tag -s -m "Release ${version}" "${version}"
 fi
 
-if [ "${release}" -gt 0 ] && [ -n "${rel_version}" ] && [ "${rel_version}" != 'v' ]; then
-    git checkout "${rel_version}"
+if [ "${release}" -gt 0 ] && [ -n "${rel_version}" ] ; then
+    git checkout "v${rel_version}"
     ${POSIX_SHELL} ./bin/createpack.sh "${rel_version}" gz
 fi
-if [ "${prerelease}" -gt 0 ] && [ -n "${pre_version}" ] && [ "${pre_version}" != 'v' ]; then
-    git checkout "${pre_version}"
+if [ "${prerelease}" -gt 0 ] && [ -n "${pre_version}" ] ; then
+    git checkout "v${pre_version}"
     ${POSIX_SHELL} ./bin/createpack.sh "${pre_version}" gz
 fi
-if [ "${snapshot}" -gt 0 ] && [ -n "${snap_version}" ] && [ "${snap_version}" != 'v' ]; then
+if [ "${snapshot}" -gt 0 ] && [ -n "${snap_version}" ] ; then
     ${POSIX_SHELL} ./bin/createpack.sh "${snap_version}" gz
 fi
 if [ "${newrelease}" -gt 0 ] && [ -n "${version}" ] && [ "${version}" != 'v' ]; then
