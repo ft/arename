@@ -666,7 +666,7 @@ interested in what is going on. (default value: I<false>)
 =item B<warningsautodryrun>
 
 Switches on the I<dryrun> option (if not enabled already), as soon as the
-configuration file parser encounters a non-fatal warnings. This option was
+configuration file parser encounters non-fatal warnings. This option was
 introduced to avoid destructive behaviour due to incorrect lines in any
 of the configuration files. (default value: I<true>)
 
