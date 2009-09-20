@@ -128,6 +128,11 @@ tag.
 Define a generic template (for all files that do I<not> contain a
 compilation tag).
 
+=item B<--userset> E<lt>I<variable>=I<value>E<gt> (short option: B<-u>)
+
+Set a user defined variable to a given value (see
+L<User defined variables> below).
+
 =item I<FILE(s)...>
 
 Input files, that are subject for renaming.
@@ -683,6 +688,12 @@ There may be an arbitrary amount of whitespace around the equal sign
 starts in a whitespace character, you may start the value with a
 backslash character (just like with the normal settings, a leading
 backslash is always ignored).
+
+You may also set user defined variables on the command line by using the
+I<--userset> option:
+
+  % arename --userset variable0=value
+  % arename -u variable0=value
 
 User defined variables are useful to make hooks configurable (see
 L</HOOKS> below).
