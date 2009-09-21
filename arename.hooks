@@ -81,7 +81,7 @@ sub remove_empty_subdirs {
 register_hook('file_done', \&remove_empty_subdirs);
 
 sub fix_template_albumless {
-    # This hook was submitted by Maximilian Gaﬂ <mxey@cloudconnected.org>.
+    # This hook was submitted by Maximilian Ga√ü <mxey@cloudconnected.org>.
     # It applies another template, if arename could not read an album
     # tag in file, that is currently processed.
     #
