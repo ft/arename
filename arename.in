@@ -274,15 +274,15 @@ problems, the L</HOOKS> part even further below is for you.
 
 =item B<ARENAME_LOAD_QUIET>
 
-When set to I<1>, I<arename> will not output any startup messages; not
-while reading the configuration or hook files, nor will I<arename> emit
+When set to I<1>, B<arename> will not output any startup messages; not
+while reading the configuration or hook files, nor will B<arename> emit
 messages about whether it is in copy mode or on a dry-run or similar.
 
 However, if warnings or errors are encoutered while loading the
 configuration, those messages are still emitted, of course.
 
 Any other value but I<1> - and that includes ARENAME_LOAD_QUIET being
-absent from the environment - will cause I<arename> to start up in
+absent from the environment - will cause B<arename> to start up in
 its normal manner.
 
 =back
@@ -1052,7 +1052,7 @@ I<Arguments>:
 Called in the main loop I<after> the file checks and canonicalizations
 are done.
 
-By file checks, checks for read-access and for symlinks are meant. I<arename>
+By file checks, checks for read-access and for symlinks are meant. B<arename>
 will refuse to process symlinks and files it cannot read.
 
 I<Arguments>:
@@ -1346,7 +1346,7 @@ L<Ogg::Vorbis::Header>, L<Audio::FLAC::Header> and L<MP3::Tag>.
 
 =head1 VERSION
 
-This manual describes I<arename> version I<@@arenameversioninfo@@>.
+This manual describes B<arename> version I<@@arenameversioninfo@@>.
 
 =head1 AUTHOR
 
