@@ -1344,6 +1344,10 @@ distribution.
 
 L<Ogg::Vorbis::Header>, L<Audio::FLAC::Header> and L<MP3::Tag>.
 
+=head1 VERSION
+
+This manual describes I<arename> version I<@@arenameversioninfo@@>.
+
 =head1 AUTHOR
 
 Frank Terbeck E<lt>ft@bewatermyfriend.orgE<gt>,

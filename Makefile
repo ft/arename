@@ -50,7 +50,7 @@ genperlscripts:
 	@./bin/genperlscripts.sh ARename.pm arename ataglist
 	@chmod -x ARename.pm
 
-doc:
+doc: genperlscripts
 	@./bin/gendoc.sh
 
 clean:
