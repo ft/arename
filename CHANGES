@@ -20,6 +20,8 @@
         b) $HOME/etc/arename/
         c) $HOME/.arename/
         d) $HOME/.arenamerc, $HOME/.arename.hooks etc.
+    + Turn off startup messages if $ARENAME_LOAD_QUIET is set to 1
+      in the environment at arename's startup.
 1.6 -> 2.0
     = Quite a few changes in this release, these are the important
       ones, that are visible to the user:

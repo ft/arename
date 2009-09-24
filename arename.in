@@ -268,6 +268,25 @@ If you want more automation or more customization, you will not get
 around reading the manual below. If you need to solve special
 problems, the L</HOOKS> part even further below is for you.
 
+=head1 ENVIRONMENT VARIABLES
+
+=over 8
+
+=item B<ARENAME_LOAD_QUIET>
+
+When set to I<1>, I<arename> will not output any startup messages; not
+while reading the configuration or hook files, nor will I<arename> emit
+messages about whether it is in copy mode or on a dry-run or similar.
+
+However, if warnings or errors are encoutered while loading the
+configuration, those messages are still emitted, of course.
+
+Any other value but I<1> - and that includes ARENAME_LOAD_QUIET being
+absent from the environment - will cause I<arename> to start up in
+its normal manner.
+
+=back
+
 =head1 FILES
 
 B<arename>'s behaviour can be altered by a number of files it reads when
@@ -1400,13 +1419,15 @@ sub dvr_newline {
 # clear the line prefix, if we're running quietly.
 ARename::set_opt("oprefix", q{}) if (ARename::get_opt("quiet"));
 
-print "\n";
-print "+++ We are on a dry run!\n"  if (ARename::get_opt("dryrun"));
-print "+++ copymode enabled!\n"     if (ARename::get_opt("copymode"));
-print "+++ Running verbosely.\n"    if (ARename::get_opt("verbose"));
-print "+++ Reading stdin for filenames (after \@ARGV).\n"
-                                    if (ARename::get_opt("readstdin"));
-dvr_newline();
+if (!ARename::get_opt('load_quiet')) {
+    print "\n";
+    print "+++ We are on a dry run!\n"  if (ARename::get_opt("dryrun"));
+    print "+++ copymode enabled!\n"     if (ARename::get_opt("copymode"));
+    print "+++ Running verbosely.\n"    if (ARename::get_opt("verbose"));
+    print "+++ Reading stdin for filenames (after \@ARGV).\n"
+                                        if (ARename::get_opt("readstdin"));
+    dvr_newline();
+}
 
 foreach my $file (@ARGV) {
     ARename::process_file($file);

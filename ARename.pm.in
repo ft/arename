@@ -326,6 +326,12 @@ sub get_profile_list {
 }
 
 sub set_default_options {
+    if (defined $ENV{'ARENAME_LOAD_QUIET'}
+        && $ENV{'ARENAME_LOAD_QUIET'} eq '1') {
+        set_opt("load_quiet",       1);
+    } else {
+        set_opt("load_quiet",       0);
+    }
     set_opt("canonicalize",         0);
     set_opt("copymode",             0);
     set_opt("checkprofilerc",       1);
@@ -822,12 +828,14 @@ sub __remove_leading_whitespace {
 sub __rcload_stats {
     my ($desc, $count, $warnings) = @_;
 
-    oprint("Read $desc.\n");
-    oprint("$count valid items.\n");
+    if (!get_opt('load_quiet')) {
+        oprint("Read $desc.\n");
+        oprint("$count valid items.\n");
+    }
     if ($warnings > 0) {
         oprint("$warnings warnings.\n");
         if (get_opt('warningsautodryrun') && !get_opt('dryrun')) {
-            owarn("Encountered warnings; enabling 'dryrun'.\n");
+            owarn("Encountered warnings in $desc; enabling 'dryrun'.\n");
             owarn("  (See 'warningsautodryrun' option.)\n");
             set_opt('dryrun', 1);
         }
@@ -847,7 +855,8 @@ sub __rcload {
         return 1;
     }
 
-    print qq{Reading "$file"...\n} if (!get_opt('shutup'));
+    print qq{Reading "$file"...\n} if (!get_opt('shutup')
+                                    && !get_opt('load_quiet'));
 
     while (my $line = <$fh>) {
         chomp $line;
@@ -1602,7 +1611,7 @@ sub __read_hook_file {
         } else {
             return 0;
         }
-    } elsif ($rc != 1) {
+    } elsif ($rc != 1 && !get_opt('load_quiet')) {
         owarn(qq{Reading hooks file "$file" did not return 1.\n});
         owarn("  While this is not a fatal problem, it is good practice, to let\n");
         owarn("  perl script files return 1. Just put a '1;' into the last line\n");
@@ -1611,7 +1620,7 @@ sub __read_hook_file {
         owarn("  them into the last line of the file will do the trick, too.\n");
     }
 
-    oprint("Hook file read ($file).\n");
+    oprint("Hook file read ($file).\n") if (!get_opt('load_quiet'));
     return 1;
 }
 sub read_hook_files {
