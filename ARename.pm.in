@@ -910,8 +910,8 @@ sub rcload {
 sub read_rcs {
     my ($rc);
 
-    if (cmdopts("config")) {
-        $rc = cmdoptstr("config");
+    if (cmdopts("rc")) {
+        $rc = cmdoptstr("rc");
     } else {
         $rc = home_find_file($FIND_RC, $FIND_NONAME);
     }
@@ -1252,7 +1252,7 @@ sub read_cmdline_options {
     __set_opt("readstdin", 1, $CMDLINE_PROTECT)
         if (cmdopts("stdin"));
     __set_opt("uselocalrc", 1, $CMDLINE_PROTECT)
-    if (cmdopts("read-local"));
+        if (cmdopts("read-local"));
 
     if ($#main::ARGV < 0 && !cmdopts("list-cfg")
         && !cmdopts("list-profiles") && !get_opt('readstdin')) {
