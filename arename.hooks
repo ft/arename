@@ -100,3 +100,39 @@ sub fix_template_albumless {
     }
 }
 register_hook('pre_expand_template', \&fix_template_albumless);
+
+use Encode;
+sub mp3_recode_iso_to_utf8 {
+    # Tags in mp3s suck.
+    # id3v2.2 uses iso encoding. 2.3 let's you use unicode, but just utf16.
+    # 2.4 let's you use utf8 instead of -16 if you ask nicely. But nobody
+    # really really supports 2.4.
+    #
+    # So, if you want your applications to work without mojibake, you probably
+    # want to remain with using an iso encoding. (Unless your language really
+    # doesn't work with iso at all - but in that case you probably know far
+    # more about handling such problems than I will ever...) But if you are
+    # on a recent-ish unix system and your default character encoding is
+    # UTF-8 you probably don't want your filenames to be encoded differently.
+    #
+    # So, this is an example hooks that shows how one *could* tackle the
+    # problem. Scan the tag strings for non-ascii data, assume iso encoding,
+    # and recode to UTF-8.
+    #
+    # This can be done more clever, probably by guessing the encoding of the
+    # source strings; but that's for someone else to tackle.
+    my ($namespace, $mp3ref, $datref) = @_;
+    my $name = 'mp3_recode_iso_to_utf8';
+    my $src;
+
+    foreach my $key (sort keys %{ $datref }) {
+        $src = $datref->{$key};
+        if ($src =~ m/[^[:ascii:]]/) {
+            $datref->{$key} = Encode::encode("UTF-8", $src);
+            oprint_verbose("$name: * Recoded ($key)\n");
+            oprint_verbose("$name: * From: \"$src\"\n");
+            oprint_verbose("$name: *   To: \"" . $datref->{$key} . "\"\n");
+        }
+    }
+}
+register_hook('post_handle_mp3tag', \&mp3_recode_iso_to_utf8);
