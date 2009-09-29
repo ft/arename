@@ -89,7 +89,7 @@ sub fix_template_albumless {
     # That way, you can do in your arenamerc file:
     #    set albumless_template = &artist/&tracknumber - &tracktitle
     # While '&artist/&tracktitle' remains the default, if you didn't.
-    my($namespace, $templateref, $datref) = @_;
+    my ($namespace, $templateref, $datref) = @_;
 
     unless($datref->{album}) {
         my $altemplate = user_get('albumless_template');
