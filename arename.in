@@ -1339,7 +1339,7 @@ underscores:
   register_hook('post_expand_template',
       \&replace_spaces_by_underscore);
 
-Further examples can be found in the B<arename.hook> file of the
+Further examples can be found in the B<arename.hooks> file of the
 distribution.
 
 =head1 SEE ALSO
