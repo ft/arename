@@ -83,7 +83,7 @@ register_hook('file_done', \&remove_empty_subdirs);
 sub fix_template_albumless {
     # This hook was submitted by Maximilian Gaß <mxey@cloudconnected.org>.
     # It applies another template, if arename could not read an album
-    # tag in file, that is currently processed.
+    # tag in the file, that is currently processed.
     #
     # ft: adding support user defined variable 'albumless_template'.
     # That way, you can do in your arenamerc file:
