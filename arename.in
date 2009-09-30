@@ -306,7 +306,7 @@ systems.
 There are no such things as system wide configuration files in B<arename>.
 
 For all setup files B<arename> tries to find (except for the local ones)
-four different locations are tried. If the $XDG_CONFIG_HOME/arename
+four different locations are tried. If the I<$XDG_CONFIG_HOME/arename>
 directory exists, B<all> files are expected to be there. If that directory
 does not exist, I<~/etc/arename/> and if that is not there I<~/.arename> are
 are tried instead. If those directories could not be found either, B<arename>
@@ -374,7 +374,7 @@ If the value is omitted, I<true> is assumed. I<true> and I<false> are
 recognized case insensitively, and a value of I<1> is synonymous to I<true>,
 as is I<0> to I<false>.
 
-Scalar settings are done very in a very similar way:
+Scalar settings are done in a very similar way:
 
   <setting> <value>
 
@@ -541,6 +541,8 @@ Of course, profile configuration files may introduce new sections, too.
 =head2 Hook definition files
 
 =over 4
+
+=item B<$XDG_CONFIG_HOME/arename/hooks>
 
 =item B<~/etc/arename/hooks>
 
