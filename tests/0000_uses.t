@@ -13,8 +13,9 @@ BEGIN { use_ok('File::Basename')      };
 BEGIN { use_ok('File::Copy')          };
 BEGIN { use_ok('Cwd')                 };
 
-BEGIN { use_ok('MP3::Tag')            };
-BEGIN { use_ok('Ogg::Vorbis::Header') };
-BEGIN { use_ok('Audio::FLAC::Header') };
+BEGIN { use_ok('Audio::Scan')         };
 
 BEGIN { use_ok('ARename')             };
+
+is( defined &Audio::Scan::is_supported, !0, "Audio::Scan has is_supported()" );
+is( Audio::Scan->is_supported("foo.mp3"), 1, "Audio::Scan->is_supported() works" );
