@@ -51,11 +51,12 @@ genperlscripts:
 	@chmod -x ARename.pm
 
 doc: genperlscripts
-	@./bin/gendoc.sh
+	@./bin/gendoc.sh arename
+	@./bin/gendoc.sh ataglist
 
 clean:
 	@[ ! -e arename.in ] && { printf 'DO NOT CALL THIS!\n' ; exit 1 ; } || true
-	rm -f arename.html arename.1 *.tmp .*~ *~ bin/*~ tests/*~ arename ataglist ARename.pm
+	rm -f arename.html arename.1 ataglist.html ataglist.1 *.tmp .*~ *~ bin/*~ tests/*~ arename ataglist ARename.pm
 	rm -Rf tests/data
 
 distclean: clean
@@ -72,6 +73,8 @@ install-doc:
 	@./bin/install.sh n CHANGES       "$(prefix)/share/doc/arename"          $(maxwidth)
 	@./bin/install.sh n arename.html  "$(prefix)/share/doc/arename"          $(maxwidth)
 	@./bin/install.sh n arename.1     "$(prefix)/share/man/man1"             $(maxwidth)
+	@./bin/install.sh n ataglist.html "$(prefix)/share/doc/arename"          $(maxwidth)
+	@./bin/install.sh n ataglist.1    "$(prefix)/share/man/man1"             $(maxwidth)
 	@./bin/install.sh n arename.hooks "$(prefix)/share/doc/arename/examples" $(maxwidth)
 	@./bin/install.sh n _arename      "$(prefix)/share/doc/arename/examples" $(maxwidth)
 
@@ -83,6 +86,7 @@ uninstall:
 uninstall-doc:
 	@./bin/uninstall.sh d "$(prefix)/share/doc/arename"
 	@./bin/uninstall.sh f "$(prefix)/share/man/man1/arename.1"
+	@./bin/uninstall.sh f "$(prefix)/share/man/man1/ataglist.1"
 
 test: test-check test-doc test-suite
 

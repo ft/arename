@@ -1,6 +1,6 @@
 #!/bin/sh
 
-NAME="arename"
+NAME="$1"
 
 if [ ! -e "${NAME}" ] ; then
     exit 0
