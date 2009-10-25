@@ -600,7 +600,7 @@ sub __template_token_sepreplace {
 
     return 1;
 }
-sub expand_template {
+sub expand_template_old {
     my ($template, $datref) = @_;
 
     run_hook('pre_expand_template', \$template, $datref);
@@ -630,6 +630,258 @@ sub expand_template {
         }
     }
 
+    run_hook('post_expand_template', \$template, $datref);
+
+    return $template;
+}
+sub __template_expand_tag {
+    my ($tokref, $datref) = @_;
+    my ($expanded, $val, $pad, $tag, $len);
+
+    $tag = $tokref->{'string'};
+    $len = $tokref->{'length'};
+    #print "expanding \"$tag\" (length is: $len)\n";
+    if (!defined $datref->{$tag} || $datref->{$tag} eq q{}) {
+        my $file = get_file();
+        owarn("-!- $file\n");
+        owarn(" -> $tag not defined, but required by template. Giving up.\n");
+        return 0;
+    }
+
+    if ($len > 0) {
+        $expanded = substr $datref->{$tag}, 0, $len;
+    } else {
+        if ($tag eq 'tracknumber') {
+
+            if ($datref->{$tag} =~ m/^([^\/]*)\/.*$/) {
+                $val = $1;
+            } else {
+                $val = $datref->{$tag};
+            }
+
+            $pad = get_opt('tnpad');
+            $expanded = sprintf q{%0} . ($pad ne q{0} ? "$pad" : q{} ) . q{d}, $val;
+        } else {
+            $expanded = $datref->{$tag};
+        }
+    }
+    $tokref->{'string'} = $expanded;
+
+    return 1;
+}
+sub __tag_find_ext_end {
+    my ($oc, $char, $quote, $odest, $lref) = @_;
+
+    odebug("oldchar: $oc, char: $char, quote: $quote, olddest: $odest, lref: \"$$lref\"\n");
+    if ($char eq '{' && $oc eq '&') {
+        $$lref++;
+    } elsif ($char eq '}') {
+        $$lref--;
+    }
+
+    if ($odest eq 'string') {
+        return '' if ($char !~ m/^[a-zA-Z0-9_?:-]$/);
+        return 'default' if ($$lref == 1 && $char eq ':');
+        return 'if_set' if ($$lref == 1 && $char eq '?');
+    } elsif ($odest eq 'if_set' && !$quote && $$lref == 1 && $char eq '!') {
+        return 'if_not_set';
+    }
+
+    return $odest;
+}
+sub __tag_find_end {
+    my ($char) = @_;
+
+    return 1 if ($char =~ m/^[a-zA-Z0-9_-]$/);
+    return 0;
+}
+sub __tokenize_template {
+    my ($tmpl, $retref) = @_;
+    my (@chars, %tok, $oldchar, $mode, $parenlvl, $len, $skip, $dest, $quote);
+
+    @chars = split //, $tmpl;
+
+    $parenlvl = 0;
+    $quote = 0;
+    $skip = 0;
+    $dest = '';
+    $oldchar = '';
+    $mode = 'normal';
+    TOK_CHAR: foreach my $char (@chars) {
+        if ($char eq '[' || $char eq ']') {
+            odebug("\$char is \"$char\"; \$oldchar is \"$oldchar\"; \$mode is \"$mode\"; \$quote is $quote; \$dest is \"$dest\"\n");
+        }
+        if ($parenlvl == 0 && $char eq '\\' && !$quote) {
+            $quote++;
+            next TOK_CHAR;
+        } elsif ($parenlvl == 0 && $quote && $quote < 2) {
+            $quote++;
+        } else {
+            $quote = 0;
+        }
+        if ($mode eq 'len') {
+            if ($char eq ']') {
+                $len = '0' if ($len eq '');
+                $tok{'length'} = $len;
+                push @{ $retref }, { %tok } if (%tok);
+                undef %tok;
+                $mode = 'normal';
+            } elsif ($char =~ m/^[0-9]$/) {
+                $len .= $char;
+            } else {
+                return;
+            }
+        } elsif ($mode eq 'tag' && $oldchar eq '&' && $char eq '{') {
+            # extended tag definition
+            $tok{'is_ext_tag'} = 1;
+            $mode = 'exttag';
+            $parenlvl = 1;
+        } elsif ($mode eq 'exttag' || $mode eq 'tag') {
+            if ($mode eq 'exttag') {
+                $dest = __tag_find_ext_end($oldchar, $char, $quote, $dest, \$parenlvl);
+                return if ($dest eq '');
+                if ($parenlvl == 1 &&
+                    (($dest eq 'default' && $char eq ':') ||
+                    ($dest eq 'if_set' && $char eq '?') ||
+                    ($dest eq 'if_not_set' && $char eq '!'))) {
+
+                    odebug("PING\n");
+                    $skip = 1;
+                    $tok{$dest} = '';
+                }
+            } else {
+                # paren level doesn't make sense for simple tags, but we use
+                # the variable anyway to avoid introducing yet another one.
+                $parenlvl = __tag_find_end($char);
+                $dest = 'string';
+            }
+            if ($parenlvl == 0) {
+                if ($mode eq 'exttag' && $char eq '}') {
+                    $skip = 1;
+                    $mode = 'normal';
+                    push @{ $retref }, { %tok } if (%tok);
+                    undef %tok;
+                } elsif ($mode eq 'tag' && $char eq '[') {
+                    $mode = 'len';
+                    $len = '';
+                    $skip = 1;
+                } else {
+                    $mode = 'normal';
+                    push @{ $retref }, { %tok } if (%tok);
+                    undef %tok;
+                }
+            }
+            if ($skip != 0) {
+                $skip = 0;
+            } else {
+                $tok{$dest} .= $char;
+            }
+        } elsif (!$quote && $mode eq 'normal' && $char eq '&') {
+            push @{ $retref }, { %tok } if (%tok);
+            undef %tok;
+            $tok{'is_tag'} = 1;
+            $tok{'is_ext_tag'} = 0;
+            $tok{'string'} = '';
+            $mode = 'tag';
+            $dest = 'string';
+        } else {
+            $tok{'is_tag'} = 0 if (!%tok);
+            $tok{'string'} .= $char;
+        }
+
+        $oldchar = $char;
+    }
+    push @{ $retref }, { %tok } if (%tok);
+    foreach my $hr (@{ $retref }) {
+        $hr->{'length'} = 0 if (!defined $hr->{'length'});
+        $hr->{'is_tag'} = 0 if (!defined $hr->{'is_tag'});
+        $hr->{'is_ext_tag'} = 0 if (!defined $hr->{'is_ext_tag'});
+    }
+
+    return 1;
+}
+sub __expand_template {
+    my ($template, $datref, $tokref) = @_;
+    my ($rc);
+
+    __tokenize_template($template, $tokref);
+
+    odebug("__expand: \"$template\"\n");
+    for my $i (reverse 0 .. $#{ $tokref }) {
+        my ($gotit);
+
+        next if ($$tokref[$i]->{'is_tag'} == 0 || $$tokref[$i]->{'is_ext_tag'} == 0);
+
+        if (defined $datref->{$$tokref[$i]->{'string'}} &&
+            $datref->{$$tokref[$i]->{'string'}} ne '') {
+            $gotit = 1;
+        } else {
+            $gotit = 0;
+        }
+
+        foreach my $key (qw{ string default if_set if_not_set }) {
+            odebug("EXT_TAG: \"$key\": \"" . $$tokref[$i]->{$key} . "\"\n") if (defined $$tokref[$i]->{$key});
+        }
+
+        if (defined $$tokref[$i]->{'default'} && !$gotit) {
+            my (@toks);
+            __expand_template($$tokref[$i]->{'default'}, $datref, \@toks);
+            splice @{ $tokref }, $i, 1, @toks;
+        } elsif (defined $$tokref[$i]->{'if_set'}
+                 && defined $$tokref[$i]->{'if_not_set'}) {
+            my (@toks);
+            if ($gotit) {
+                odebug("Got it (" . $$tokref[$i]->{'string'} . ")\n");
+                __expand_template($$tokref[$i]->{'if_set'}, $datref, \@toks);
+            } else {
+                odebug("Got it not (" . $$tokref[$i]->{'string'} . ")\n");
+                __expand_template($$tokref[$i]->{'if_not_set'}, $datref, \@toks);
+            }
+            splice @{ $tokref }, $i, 1, @toks;
+        }
+    }
+
+    return 1;
+}
+sub __tok_to_string {
+    my ($tokref) = @_;
+    my $template = q{};
+
+    my $i = 0;
+    foreach my $href (@{ $tokref }) {
+        for my $key (sort keys %{ $href }) {
+            odebug("$i: \"$key\": \"" . $href->{$key} . "\"\n");
+        }
+        $template = $template . $href->{'string'};
+        $i++;
+    }
+
+    return $template;
+}
+sub expand_template {
+    my ($template, $datref) = @_;
+    my (@tokens, $rc);
+
+    run_hook('pre_expand_template', \$template, $datref);
+    __expand_template($template, $datref, \@tokens);
+
+    foreach my $href (@tokens) {
+        odebug("string_of_tok: \"" . $href->{'string'} . "\"\n");
+        odebug("is_tag: \"" . $href->{'is_tag'} . "\"\n");
+        odebug("is_ext_tag: \"" . $href->{'is_ext_tag'} . "\"\n");
+        next if ($href->{'is_tag'} == 0);
+
+        run_hook('expand_template_next_tag', \$template, $datref);
+        $rc = __template_expand_tag($href, $datref);
+        if ($rc == 0) {
+            return;
+        }
+        __template_token_sepreplace(\$template);
+        run_hook('expand_template_postprocess_tag',
+            \$template, $href, $datref);
+    }
+
+    $template = __tok_to_string(\@tokens);
     run_hook('post_expand_template', \$template, $datref);
 
     return $template;
