@@ -47,7 +47,7 @@ use Audio::Scan;
 # variables
 my (
     %cmdline_protect, %conf, %defaults, %hooks, %methods, %parsers, %profiles,
-    %opts, %sectconf, %sets, %typemap,
+    %opts, %sectconf, %sets, %typemap, %infomap, %defaultmap,
     $__arename_file, $postproc, $sect,
     @cmdline_profiles, @localizables, @settables, @supported_tags,
 );
@@ -80,6 +80,76 @@ set_opt('shutup', 0);
     'ogg' => 'ogg',
 );
 
+%defaultmap = (
+    bitrate    => 0,
+    channels   => 1,
+    length_ms  => 0,
+    samplerate => 0,
+);
+
+%infomap = (
+    flac => {
+            # first, file type specific tags; their names always start
+            # in "$type"_; tag_supported relies on it.
+            flac_wordsize   => [ qw( info bits_per_sample ) ],
+
+            # next come all common tags. *Every* file needs to support
+            # these. tag_supported checks the 'flac' entry to check if
+            # a common tag is supported, all other types must follow.
+            bitrate         => [ qw( info bitrate ) ],
+            channels        => [ qw( info channels ) ],
+            length_ms       => [ qw( info song_length_ms ) ],
+            samplerate      => [ qw( info samplerate ) ],
+
+            album           => [ qw( tags ALBUM ) ],
+            artist          => [ qw( tags ARTIST ) ],
+            compilation     => [ qw( tags ALBUMARTIST ) ],
+            genre           => [ qw( tags GENRE ) ],
+            tracknumber     => [ qw( tags TRACKNUMBER ) ],
+            tracktitle      => [ qw( tags TITLE ) ],
+            year            => [ qw( tags DATE ) ],
+    },
+    mp3 => {
+            mp3_id3_version => [ qw( info id3_version ) ],
+
+            bitrate         => [ qw( info bitrate ) ],
+            # there is no channels entity in id3 meta information, but
+            # there is a stereo entity, which is 1 for 2 channels and 0 for
+            # 1 (mono). that information cannot be dealt with in a simple
+            # map, so we're handling it in fill_data_mp3().
+            channels        => [ qw( info stereo ) ],
+            length_ms       => [ qw( info song_length_ms ) ],
+            samplerate      => [ qw( info samplerate ) ],
+
+            album           => [ qw( tags TALB ) ],
+            artist          => [ qw( tags TPE1 ) ],
+            compilation     => [ qw( tags TPE2 ) ],
+            genre           => [ qw( tags TCON ) ],
+            tracknumber     => [ qw( tags TRCK ) ],
+            tracktitle      => [ qw( tags TIT2 ) ],
+            year            => [ qw( tags TDRC ) ],
+
+            # a dedicated function called after the data was filled initially.
+            # fill_function is not a valid tag name and tag_supported will return
+            # 0 (false) for it, if asked.
+            fill_function   => \&fill_data_mp3,
+    },
+    ogg => {
+            bitrate         => [ qw( info bitrate_nominal ) ],
+            channels        => [ qw( info channels ) ],
+            length_ms       => [ qw( info song_length_ms ) ],
+            samplerate      => [ qw( info samplerate ) ],
+
+            album           => [ qw( tags ALBUM ) ],
+            artist          => [ qw( tags ARTIST ) ],
+            compilation     => [ qw( tags ALBUMARTIST ) ],
+            genre           => [ qw( tags GENRE ) ],
+            tracknumber     => [ qw( tags TRACKNUMBER ) ],
+            tracktitle      => [ qw( tags TITLE ) ],
+            year            => [ qw( tags DATE ) ],
+    },
+);
+
 # settings that may occur in [sections]
 @localizables = qw(
     copymode
@@ -89,14 +159,6 @@ set_opt('shutup', 0);
     tnpad
     comp_template
     template
-);
-
-@supported_tags = qw(
-    album        artist
-    compilation
-    genre
-    tracknumber  tracktitle
-    year
 );
 
 @settables = qw(
@@ -207,9 +269,13 @@ sub apply_defaults {
 sub tag_supported {
     my ($tag) = @_;
 
-    foreach my $sub (@supported_tags) {
-        if ($tag eq $sub) {
-            return 1;
+    return 0 if ($tag eq 'fill_function');
+    foreach my $sup (grep !/^flac_/, keys %{ $infomap{'flac'} }) {
+        return 1 if ($tag eq $sup);
+    }
+    foreach my $type (keys %infomap) {
+        foreach my $sup (grep /^$type/, keys %{ $infomap{$type} }) {
+            return 2 if ($tag eq $sup);
         }
     }
 
@@ -237,69 +303,15 @@ sub getdat {
     return defined $datref->{$tag} ? q{"} . $datref->{$tag} . q{"} : "(undefined)";
 }
 
-sub fill_data_flac {
-    # $rd is a hash reference
-    my ($rd, $datref) = @_;
-
-    $datref->{'info'}->{'flac_wordsize'} = $rd->{'info'}->{'bits_per_sample'};
-
-    $datref->{'bitrate'} = $rd->{'info'}->{'bitrate'};
-    $datref->{'channels'} = $rd->{'info'}->{'channels'};
-    $datref->{'length_ms'} = $rd->{'info'}->{'song_length_ms'};
-    $datref->{'samplerate'} = $rd->{'info'}->{'samplerate'};
-
-    $datref->{'album'} = $rd->{'tags'}->{'ALBUM'};
-    $datref->{'artist'} = $rd->{'tags'}->{'ARTIST'};
-    $datref->{'compilation'} = $rd->{'tags'}->{'ALBUMARTIST'};
-    $datref->{'genre'} = $rd->{'tags'}->{'GENRE'};
-    $datref->{'tracknumber'} = $rd->{'tags'}->{'TRACKNUMBER'};
-    $datref->{'tracktitle'} = $rd->{'tags'}->{'TITLE'};
-    $datref->{'year'} = $rd->{'tags'}->{'DATE'};
-
-    return 0;
-}
 sub fill_data_mp3 {
     # $rd is a hash reference
     my ($rd, $datref) = @_;
 
-    $datref->{'mp3_id3_version'} = $rd->{'info'}->{'id3_version'};
-
-    $datref->{'bitrate'} = $rd->{'info'}->{'bitrate'};
     if ($rd->{'info'}->{'stereo'} eq '1') {
         $datref->{'channels'} = 2;
     } else {
         $datref->{'channels'} = 1;
     }
-    $datref->{'length_ms'} = $rd->{'info'}->{'song_length_ms'};
-    $datref->{'samplerate'} = $rd->{'info'}->{'samplerate'};
-
-    $datref->{'album'} = $rd->{'tags'}->{'TALB'};
-    $datref->{'artist'} = $rd->{'tags'}->{'TPE1'};
-    $datref->{'compilation'} = $rd->{'tags'}->{'TPE2'};
-    $datref->{'genre'} = $rd->{'tags'}->{'TCON'};
-    $datref->{'tracknumber'} = $rd->{'tags'}->{'TRCK'};
-    $datref->{'tracktitle'} = $rd->{'tags'}->{'TIT2'};
-    $datref->{'year'} = $rd->{'tags'}->{'TDRC'};
-
-    return 0;
-}
-sub fill_data_ogg {
-    # $rd is a hash reference
-    my ($rd, $datref) = @_;
-
-    $datref->{'bitrate'} = $rd->{'info'}->{'bitrate_nominal'};
-    $datref->{'channels'} = $rd->{'info'}->{'channels'};
-    $datref->{'length_ms'} = $rd->{'info'}->{'song_length_ms'};
-    $datref->{'samplerate'} = $rd->{'info'}->{'samplerate'};
-
-    $datref->{'album'} = $rd->{'tags'}->{'ALBUM'};
-    $datref->{'artist'} = $rd->{'tags'}->{'ARTIST'};
-    $datref->{'compilation'} = $rd->{'tags'}->{'ALBUMARTIST'};
-    $datref->{'genre'} = $rd->{'tags'}->{'GENRE'};
-    $datref->{'tracknumber'} = $rd->{'tags'}->{'TRACKNUMBER'};
-    $datref->{'tracktitle'} = $rd->{'tags'}->{'TITLE'};
-    $datref->{'year'} = $rd->{'tags'}->{'DATE'};
-
     return 0;
 }
 sub fill_default {
@@ -314,9 +326,9 @@ sub fill_default {
 sub fill_data_sanitize {
     my ($datref) = @_;
 
-    fill_default($datref, 'length_ms', 0);
-    fill_default($datref, 'bitrate', 0);
-    fill_default($datref, 'samplerate', 0);
+    foreach my $d (keys %defaultmap) {
+        fill_default($datref, $d, $defaultmap{$d});
+    }
 
     return 0;
 }
@@ -330,24 +342,31 @@ sub fill_data_additional {
 
     return 0;
 }
+sub __fill_data {
+    my ($type, $info, $mapref, $rd, $datref) = @_;
+    my ($value);
+
+    return 0 if ($info eq 'fill_function');
+    $value = $rd->{$mapref->[0]}->{$mapref->[1]};
+    return 0 if (!defined $value);
+    $datref->{$info} = $value;
+
+    return 1;
+}
 sub fill_data {
     # Like $datref, $rd is a hash reference (for the raw data from
     # Audio::Scan->scan()..
     my ($rd, $datref, $type) = @_;
 
     run_hook("pre_fill_$type");
-    if ($type eq 'ogg') {
-        fill_data_ogg($rd, $datref);
-    } elsif ($type eq 'flac') {
-        fill_data_flac($rd, $datref);
-    } elsif ($type eq 'mp3') {
-        fill_data_mp3($rd, $datref);
-    } else {
-        owarn("BUG: unknown type ($type). This should never happen!\n");
-        return 0;
+    foreach my $info (sort keys %{ $infomap{$type} }) {
+        __fill_data($type, $info, $infomap{$type}{$info}, $rd, $datref);
     }
     fill_data_sanitize($datref);
     fill_data_additional($datref);
+    if (defined $infomap{$type}{'fill_function'}) {
+        $infomap{$type}{'fill_function'}->($rd, $datref, $type);
+    }
     run_hook("post_fill_$type");
 
     return 1;
