@@ -719,6 +719,10 @@ I<--userset> option:
 User defined variables are useful to make hooks configurable (see
 L</HOOKS> below).
 
+It is, however, not allowed to define this kind of variable within the scope
+of a section. Doing so will trigger a warning, which will pull B<arename>
+into I<dryrun>, depending on whether I<warningsautodryrun> is set or not.
+
 =head1 TEMPLATE FORMAT
 
 B<arename>'s templates are quite simple, yet powerful.
