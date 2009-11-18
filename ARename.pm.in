@@ -1115,9 +1115,7 @@ sub parse_set {
 
     oprint_verbose(qq{user setting "$name" = '$value'\n});
 
-    user_set($name, $value);
-
-    return 0;
+    return user_set($name, $value);
 }
 
 # handling commandline options
@@ -1516,8 +1514,13 @@ sub user_get {
 sub user_set {
     my ($opt, $val) = @_;
 
+    if (defined sect_get()) {
+        owarn("User-variables in sections are not valid.\n");
+        return 1;
+    }
+
     $sets{$opt} = $val;
-    return 1;
+    return 0;
 }
 
 # section handling code
