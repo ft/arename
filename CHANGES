@@ -1,3 +1,8 @@
+3.0 -> 3.1
+    + Trying to set user variables within section triggers a
+      warning now to avoid confusion - user variables never
+      worked in sections before.
+      They changed the globally set ones.
 2.0 -> 3.0
     + Changed option handling completely. Now every option has a
       --long-option (and not all are available via short options)
