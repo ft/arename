@@ -696,11 +696,11 @@ of the configuration files. (default value: I<true>)
 =head2 User defined variables
 
 You can use the B<set> command in arenamerc files. This way the user can
-define his own variables. The namespace is seperate from B<arename>'s
+define his own variables. The namespace is separate from B<arename>'s
 normal settings. (That means, you cannot, for example,  overwrite the
 internal I<template> variable with this command.)
 
-The synax is quite simple (and B<different> to normal settings on purpose!):
+The sytnax is quite simple (and B<different> to normal settings on purpose!):
 
 B<set> I<varname> = I<value>
 
@@ -1291,7 +1291,7 @@ I<Arguments>: B<1:> data hash, B<2:> current key
 
 =item B<pre_method>
 
-This hook is called after a method for a file type is choosen but
+This hook is called after a method for a file type is chosen but
 I<before> the method was executed.
 
 I<Arguments>: B<1:> method name
