@@ -152,6 +152,7 @@ set_opt('shutup', 0);
 
 # settings that may occur in [sections]
 @localizables = qw(
+    ambiguoususefirst
     copymode
     force
     prefix
@@ -162,6 +163,7 @@ set_opt('shutup', 0);
 );
 
 @settables = qw(
+    ambiguoususefirst
     canonicalize checkprofilerc comp_template
     debug
     hookerrfatal
@@ -351,11 +353,15 @@ sub __fill_data {
     return 0 if (!defined $value);
     if (ref($value) eq 'ARRAY') {
         # ambiguous result
-        owarn(get_file() . " has more than one `$info' tag:\n");
-        foreach my $val (@{ $value }) {
-            owarn("    $val\n");
+        if (get_opt('ambiguoususefirst')) {
+            $value = $value->[0];
+        } else {
+            owarn(get_file() . " has more than one `$info' tag:\n");
+            foreach my $val (@{ $value }) {
+                owarn("    $val\n");
+            }
+            return -1;
         }
-        return -1;
     }
     if ($info eq 'tracknumber') {
         my ($max);
@@ -514,6 +520,7 @@ sub set_default_options {
     } else {
         set_opt("load_quiet",       0);
     }
+    set_opt("ambiguoususefirst",    0);
     set_opt("canonicalize",         0);
     set_opt("copymode",             0);
     set_opt("checkprofilerc",       1);
@@ -1288,6 +1295,7 @@ sub read_rcs {
 
 %parsers = (
     '^\s*\[.*\]\s*$'        => \&parse_new_section,
+    '^ambiguoususefirst$'   => \&parse_bool,
     '^canonicalize$'        => \&parse_bool,
     '^copymode$'            => \&parse_bool,
     '^checkprofilerc$'      => \&parse_bool,
