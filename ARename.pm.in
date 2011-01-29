@@ -598,7 +598,7 @@ sub usage {
     print "    --post-rc <file>             Read file after ~/.arenamerc.\n";
     print "\n";
     print "    --prefix, -p <prefix>        Define a prefix for destination files.\n";
-    print "    --profile, -P <prof(s),...>  Comma seperated list of profiles to activate\n";
+    print "    --profile, -P <prof(s),...>  Comma separated list of profiles to activate\n";
     print "                                 forcibly.\n";
     print "\n";
     print "    --compilation-template -T <template>\n";
@@ -873,7 +873,7 @@ sub __tag_expand {
     run_hook('expand_template_pre_expand_tag', \$tag, $dat);
     $retval = $dat->{$tag};
     return undef if (!defined $retval);
-    __template_seperator_replace($tag, \$retval);
+    __template_separator_replace($tag, \$retval);
     if ($tag eq 'tracknumber') {
         my ($pad);
         $pad = get_opt('tnpad');
@@ -884,13 +884,13 @@ sub __tag_expand {
     return $retval;
 }
 
-sub __template_seperator_replace {
+sub __template_separator_replace {
     my ($tag, $strref) = @_;
     my ($sr);
 
     if ($ { $strref } =~ m{/}) {
         $sr = get_opt("sepreplace");
-        oprint_verbose("Found directory seperator in `$tag'.\n");
+        oprint_verbose("Found directory separator in `$tag'.\n");
         oprint_verbose(qq{Replacing with "$sr".\n});
         ${ $strref } =~ s{/}{$sr}g;
     }
