@@ -349,6 +349,14 @@ sub __fill_data {
     return 0 if ($info eq 'fill_function');
     $value = $rd->{$mapref->[0]}->{$mapref->[1]};
     return 0 if (!defined $value);
+    if ($info eq 'tracknumber') {
+        my ($max);
+        if ($value =~ m@/@) {
+            $value =~ s@/(.*)$@@;
+            $max = $1;
+            $datref->{tracknummax} = $max;
+        }
+    }
     $datref->{$info} = $value;
 
     return 1;
@@ -842,6 +850,11 @@ sub __tag_expand {
     $retval = $dat->{$tag};
     return undef if (!defined $retval);
     __template_seperator_replace(\$retval);
+    if ($tag eq 'tracknumber') {
+        my ($pad);
+        $pad = get_opt('tnpad');
+        $retval = sprintf q{%0} . ($pad ne q{0} ? "$pad" : q{}) . q{d}, $retval;
+    }
     run_hook('expand_template_post_expand_tag', \$retval, $dat);
 
     return $retval;

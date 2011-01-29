@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 18;
+use Test::More tests => 19;
 use Test::Exception;
 
 use ARename;
@@ -14,7 +14,7 @@ ARename::set_opt('shutup', 1);
 ARename::set_opt('quiet',  1);
 ARename::set_file('need-no-file');
 
-my ($expanded, $expected, %waylon, %sob);
+my ($expanded, $expected, %waylon, %woot, %sob);
 
 %waylon = (
     artist      => "Waylon and his Banjo",
@@ -22,6 +22,14 @@ my ($expanded, $expected, %waylon, %sob);
     tracknumber => "01",
     tracktitle  => "...neck love",
     year        => "1952",
+);
+
+%woot = (
+    artist      => "Woot",
+    album       => "Gain or drain",
+    tracknumber => "7",
+    tracktitle  => "Wag a leg",
+    year        => "1992",
 );
 
 # check for infinite-loops
@@ -113,3 +121,7 @@ is( equal($expected, $expanded), 1, "Multiple nesting levels with complex tag ex
 $expanded = ARename::expand_template('&{bar:\&{album?&album!album}', \%waylon);
 $expected = "&{album?Red!album";
 is( equal($expected, $expanded), 1, "Quoting characters in extended tag expansions");
+
+$expanded = ARename::expand_template('&tracknumber', \%woot);
+$expected = "07";
+is( equal($expected, $expanded), 1, "Default track-no padding 7->07");
