@@ -26,6 +26,7 @@ function _arename_profiles() {
 }
 
 arguments=(
+    '--ambiguous-use-first[if a tag has multiple values, use the 1st]:'
     '--compare-versions[compare versions of script and module]:'
     '(--copy -c)'{--copy,-c}'[copy files, rather than rename]'
     '(--debug -D)'{--debug,-D}'[enable debugging output]'
