@@ -574,6 +574,7 @@ sub set_postproc {
 
 sub usage {
     print " Usage:\n  $NAME [OPTION(s)] FILE(s)...\n\n";
+    print "    --ambiguous-use-first        If a tag has multiple values, use the 1st one.\n";
     print "    --compare-versions           Compare versions of script and module.\n";
     print "    --copy, -c                   Copy files, rather than renaming.\n";
     print "    --debug, -D                  Enable debugging output.\n";
@@ -1537,6 +1538,7 @@ sub read_cmdline_options {
             'auto_abbrev', 'no_ignore_case', 'bundling');
 
         $rc = GetOptions(
+            "ambiguous-use-first" => \&__handle_options,
             "compare-versions" => \&__handle_options,
             "copy|c" => \&__handle_options,
             "debug|D" => \&__handle_options,
@@ -1632,6 +1634,8 @@ sub read_cmdline_options_late {
         if (cmdopts("compilation-template"));
     __set_opt("prefix", cmdoptstr("prefix"), $CMDLINE_PROTECT)
         if (cmdopts("prefix"));
+    __set_opt("ambiguoususefirst", 1, $CMDLINE_PROTECT)
+        if (cmdopts("ambiguous-use-first"));
     disable_hooks() if (cmdopts("disable-hooks"));
     enable_hooks() if (cmdopts("enable-hooks"));
     if (cmdopts("list-profiles")) {
