@@ -994,9 +994,9 @@ sub expand_template {
     $retval = __expand_tokens($data, $datref);
     if ($retval->[0] eq 'ERROR') {
         my $file = get_file();
-        owarn("-!- $file\n");
+        owarn("$file\n");
         foreach my $err (@{ $retval->[1] }) {
-            owarn("-!- $err\n");
+            owarn("$err\n");
         }
         return;
     }
