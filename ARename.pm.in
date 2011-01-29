@@ -592,328 +592,382 @@ sub choose_template {
         return get_opt("template");
     }
 }
-sub __template_create_token {
-    my ($datref, $tag, $len) = @_;
-    my ($token, $val, $pad);
 
-    if ($len > 0) {
-        $token = substr $datref->{$tag}, 0, $len;
+sub __tokverify {
+    my ($label, $name, $set, $unset) = @_;
+    my ($rc);
+
+    $rc = 1;
+    if ($label eq 'CPLXDEFAULT') {
+        $rc = 0 if (!defined $name || !defined $unset);
     } else {
-        if ($tag eq 'tracknumber') {
-
-            if ($datref->{$tag} =~ m/^([^\/]*)\/.*$/) {
-                $val = $1;
-            } else {
-                $val = $datref->{$tag};
-            }
-
-            $pad = get_opt('tnpad');
-            $token = sprintf q{%0} . ($pad ne q{0} ? "$pad" : q{} ) . q{d}, $val;
-        } else {
-            $token = $datref->{$tag};
-        }
+        # ...CPLXSETUNSET...
+        $rc = 0 if (!defined $name || !defined $unset || !defined $set);
     }
 
-    return $token;
+    return $rc;
 }
-sub __template_token_sepreplace {
-    my ($tokref) = @_;
+
+sub __tokenize_sized {
+    my ($in) = @_;
+
+    my ($name, $size);
+
+    if (($name, $size) = $in =~ m/^([A-Za-z0-9]+)\[(\d+)\]$/) {
+        my $data = {};
+        $data->{name} = $name;
+        $data->{size} = $size;
+        return $data;
+    }
+
+    return undef;
+}
+
+sub __tokenize_complex {
+    my ($label, $name, $set, $unset) = @_;
+    my ($data);
+
+    $data = {};
+    $data->{name} = $name;
+
+    if ($label eq 'CPLXDEFAULT') {
+        $data->{default} = $unset;
+        $data->{defaulttokens} = __tokenize_template($unset);
+    } else {
+        # ...CPLXSETUNSET...
+        $data->{set} = $set;
+        $data->{settokens} = __tokenize_template($set);
+        $data->{default} = $unset;
+        $data->{defaulttokens} = __tokenize_template($unset);
+    }
+
+    return $data;
+}
+
+# Okay, here's how the data structure, created by the tokenizing process
+# looks like:
+#
+# $result -> AoA
+#            [ 'LABEL', $string, <<optional:more>> ],
+#            ...
+#
+# where `LABEL' is one of:
+#     - LITERAL
+#     - TRIVIAL
+#     - SIZED
+#     - CPLXDEFAULT
+#     - CPLXSETUNSET
+#
+# more -> hash
+#     name:            name of the tag, which we're working on.
+#     size:            if a size parameter was given, this is it.
+#     default:         the string, which needs to be lexed, if `name' is unset.
+#     set:             the string, which needs to be lexed, if `name' is set.
+#     defaulttokens:   AoA of the lexed `default' string.
+#     settokens:       AoA of the lexed `set' string.
+sub __tokenize_template {
+    my ($in, $pos) = @_;
+    my ($buf, $nest, $label, $out);
+    my ($cplxbuf, $cplxset, $cplxunset, $seenunsetmark, $cplxname);
+
+    $buf = '';
+    $cplxbuf = '';
+    $label = '';
+    $out = [];
+    $nest = 0;
+    $seenunsetmark = 0;
+    pos($in) = (defined $pos) ? $pos : 0;
+
+    while (pos($in) < length($in)) {
+        # First we'll need to see if a backslash (our quotation mark) is
+        # quoted itself by another backslash.
+        if ($in =~ m/\G\\\\/gc) {
+            $buf .= ($nest) ? '\\\\' : '\\';
+            $cplxbuf .= ($nest) ? '\\\\' : '\\';
+
+        # Since quoted backslashes are gone now, let's look at quoted
+        # ampersands; that way, ampersands may be used in templates.
+        } elsif ($in =~ m/\G\\\&/gc) {
+            $buf .= ($nest) ? '\\&' : '&';
+            $cplxbuf .= ($nest) ? '\\&' : '&';
+
+        # If we've decided, that we're looking at a `CPLXSETUNSET' expansion,
+        # we need to find the point where the "set" and the "unset" parts
+        # are separated. That would be an unquoted exclamation mark. If we
+        # haven't found the mark yet, a quoted exclamation mark should insert
+        # an unquoted one.
+        } elsif ($nest == 1 && $seenunsetmark
+                 && $label eq 'CPLXSETUNSET' && $in =~ m/\G\\!/gc)
+        {
+            $buf .= '!';
+            $cplxbuf .= '\\!';
+
+        # Okay, here it is, an unquoted exclamation mark. Found the beginning
+        # of the unset expression.
+        } elsif ($nest == 1 && $label eq 'CPLXSETUNSET' && $in =~ m/\G!/gc) {
+            $seenunsetmark = 1;
+            $cplxset = $buf;
+            $buf = '';
+            $cplxbuf .= '!';
+
+        # Now for stuff we can read at once:
+
+        # The complex and simple sized expression types.
+        } elsif (!$nest && ($in =~ m/\G\&{([A-Za-z0-9]+\[\d+\])}/gc ||
+                            $in =~ m/\G\&([A-Za-z0-9]+\[\d+\])/gc))
+        {
+            my ($match, $more) = ($1, '');
+            push @{ $out }, [ 'LITERAL', $buf ] if ($buf ne '');
+            $more = __tokenize_sized($match);
+            if (!defined $more) {
+                return [ [ 'ERROR',
+                           "Broken sized expression (at '$match')." ] ];
+            }
+            push @{ $out }, [ 'SIZED', $match, $more ];
+            $buf = '';
+
+        # The trivial expression (the complex-looking one and the real deal).
+        } elsif (!$nest && ($in =~ m/\G\&{([A-Za-z0-9]+)}/gc ||
+                            $in =~ m/\G\&([A-Za-z0-9]+)/gc))
+        {
+            push @{ $out }, [ 'LITERAL', $buf ] if ($buf ne '');
+            push @{ $out }, [ 'TRIVIAL', $1 ];
+            $buf = '';
+
+        # "&{" starts a "complex" tag expansion. Everything from
+        # here on out needs to be copied literally until the matching
+        # "}" is found. That is why the token-handling above looks
+        # at `$nest', too.
+        } elsif (!$nest && $in =~ m/\G\&{/gc) {
+            $nest++;
+            push @{ $out }, [ 'LITERAL', $buf ] if ($buf ne '');
+            $buf = '';
+
+        # When we're looking at a nested expression already, we need
+        # to read the "&{" literally.
+        } elsif ($nest && $in =~ m/\G\&{/gc) {
+            $nest++;
+            $buf .= '&{';
+            $cplxbuf .= '&{';
+
+        # A quoted curly brace (no matter where) needs to be read as
+        # "}" and leave the nesting level in `$nest' untouched.
+        } elsif ($in =~ m/\G\\}/gc) {
+            $buf .= '}';
+
+        # When we're looking at a nested expression, and we encounter
+        # an unquoted "}", that means the nesting level needs to be
+        # decreased. When we're reaching "$nest == 0", we just found the
+        # matching brace for the "&{" which initially opened the
+        # complex tag expression.
+        } elsif ($nest && $in =~ m/\G}/gc) {
+            $nest--;
+            if ($nest == 0) {
+                my ($more);
+                $cplxunset = $buf;
+                # Okay then. Found the matching closing curly brace. The
+                # information is split already into `$cplxname', `$cplxset'
+                # and `$cplxunset'. Let's verify everything looks sane...
+                if (!__tokverify($label, $cplxname, $cplxset, $cplxunset)) {
+                    return [ [ 'ERROR',
+                               "Broken $label expression (at '$buf')." ] ];
+                }
+
+                # Recurse...
+                $more = __tokenize_complex(
+                    $label, $cplxname, $cplxset, $cplxunset);
+                if (!defined $more) {
+                    return [ [ 'ERROR', "Broken complex expansion!" ] ];
+                }
+
+                # Reassemble the original expression for completeness.
+                #$buf = __toktext($label, $cplxname, $cplxset, $cplxunset);
+                push @{ $out }, [ $label, $cplxbuf, $more ];
+
+                # Reset everything.
+                $buf = '';
+                $label = '';
+                undef $cplxname;
+                undef $cplxset;
+                undef $cplxunset;
+            } else {
+                $buf .= '}';
+                $cplxbuf .= '}';
+            }
+
+        # If `$label' is set already (meaning, we decided what type of
+        # expression we're looking at - like `CPLXDEFAULT' or `LITERAL')
+        # and `$nest' is set (which means we're looking at "CPLX*"), we
+        # need to copy everything that wasn't handled above untouched.
+        } elsif ($nest && $label ne '' && $in =~ m/\G(.)/gc) {
+            $buf .= $1;
+            $cplxbuf .= $1;
+
+        # Alright, we're "complex", and after the tag-name there is a
+        # colon. So that's `CPLXDEFAULT'.
+        } elsif ($nest && $in =~ m/\G([A-Za-z0-9]+):/gc) {
+            $buf .= $1;
+            $cplxbuf .= $1 . ':';
+            $cplxname = $buf;
+            $buf = '';
+            $label = "CPLXDEFAULT";
+
+        # Like before, but since there's a `?' this is `CPLXSETUNSET'.
+        } elsif ($nest && $in =~ m/\G([A-Za-z0-9]+)\?/gc) {
+            $buf .= $1;
+            $cplxbuf .= $1 . '?';
+            $cplxname = $buf;
+            $buf = '';
+            $label = "CPLXSETUNSET";
+
+        # When we are here, we're not looking at anything special. So
+        # just copy anything that doesn't look special into the current
+        # token buffer.
+        } elsif ($in =~ m/\G([^\\\&]*)/gc) {
+            $buf .= $1;
+        }
+    }
+    if ($nest) {
+        return [ [ 'ERROR', "Fucked template! (Nesting still at $nest.)" ] ];
+    }
+    push @{ $out }, [ 'LITERAL', $buf ] if ($buf ne '');
+    return $out;
+}
+
+sub __tag_expand {
+    my ($tag, $dat) = @_;
+    my ($retval);
+
+    run_hook('expand_template_pre_expand_tag', \$tag, $dat);
+    $retval = $dat->{$tag};
+    return undef if (!defined $retval);
+    __template_seperator_replace(\$retval);
+    run_hook('expand_template_post_expand_tag', \$retval, $dat);
+
+    return $retval;
+}
+
+sub __template_seperator_replace {
+    my ($strref) = @_;
     my ($sr);
 
-    if (${ $tokref } =~ m{/}) {
+    if ($ { $strref } =~ m{/}) {
         $sr = get_opt("sepreplace");
         oprint_verbose("Found directory seperator in token.\n");
         oprint_verbose(qq{Replacing with "$sr".\n});
-        ${ $tokref } =~ s{/}{$sr}g;
+        ${ $strref } =~ s{/}{$sr}g;
     }
 
     return 1;
 }
-sub expand_template_old {
-    my ($template, $datref) = @_;
 
-    run_hook('pre_expand_template', \$template, $datref);
+# This traverses the data structure created by `__tokenize_template()' and
+# actually expands the tag-expressions as needed.
+sub __expand_tokens {
+    my ($tok, $dat) = @_;
+    my ($buf, $rtype, $tmp, $required);
 
-    foreach my $tag (@supported_tags) {
-        my ($len, $token);
+    $buf = '';
+    $required = sub {
+        my ($tag) = @_;
+        return "$tag not defined, but required by template. Giving up.";
+    };
+    $rtype = 'DONE';
+    TOKEN: foreach my $token (@{ $tok }) {
+        my $type = $token->[0];
+        if ($type eq 'ERROR') {
+            $buf = [];
+            push @{$buf}, '__expand_tokens(): BUG: ERROR should not be set here.';
+            $rtype = 'ERROR';
+            last TOKEN;
 
-        while ($template =~ m/&$tag(\[(\d+)\]|)/) {
-            $len = 0;
-            if (defined $2) { $len = $2; }
+        } elsif ($type eq 'LITERAL') {
+            $buf .= $token->[1];
 
-            if (!defined $datref->{$tag} || $datref->{$tag} eq q{}) {
-                my $file = get_file();
-                owarn("-!- $file\n");
-                owarn(" -> $tag not defined, but required by template. Giving up.\n");
-                return;
+        } elsif ($type eq 'TRIVIAL') {
+            $tmp = __tag_expand($token->[1], $dat);;
+            if (!defined $tmp) {
+                $buf = [];
+                push @{ $buf }, $required->(\$buf, $token->[1]);
+                $rtype = 'ERROR';
+                last TOKEN;
             }
+            $buf .= $tmp;
 
-            run_hook('expand_template_next_tag', \$template, \$tag, \$len, $datref);
+        } elsif ($type eq 'SIZED') {
+            my $name = $token->[2]->{name};
+            $tmp = __tag_expand($name, $dat);;
+            if (!defined $tmp) {
+                $buf = [];
+                push @{ $buf }, $required->(\$buf, $token->[1]);
+                $rtype = 'ERROR';
+                last TOKEN;
+            }
+            $buf .= substr $tmp, 0, $token->[2]->{size};
 
-            $token = __template_create_token($datref, $tag, $len);
-            __template_token_sepreplace(\$token);
-
-            run_hook('expand_template_postprocess_tag', \$template, \$token, \$tag, \$len, $datref);
-
-            $template =~ s/&$tag(\[(\d+)\]|)/$token/;
-        }
-    }
-
-    run_hook('post_expand_template', \$template, $datref);
-
-    return $template;
-}
-sub __template_expand_tag {
-    my ($tokref, $datref) = @_;
-    my ($expanded, $val, $pad, $tag, $len);
-
-    $tag = $tokref->{'string'};
-    $len = $tokref->{'length'};
-    #print "expanding \"$tag\" (length is: $len)\n";
-    if (!defined $datref->{$tag} || $datref->{$tag} eq q{}) {
-        my $file = get_file();
-        owarn("-!- $file\n");
-        owarn(" -> $tag not defined, but required by template. Giving up.\n");
-        return 0;
-    }
-
-    if ($len > 0) {
-        $expanded = substr $datref->{$tag}, 0, $len;
-    } else {
-        if ($tag eq 'tracknumber') {
-
-            if ($datref->{$tag} =~ m/^([^\/]*)\/.*$/) {
-                $val = $1;
+        } elsif ($type eq 'CPLXDEFAULT') {
+            my ($rv);
+            $tmp = __tag_expand($token->[2]->{name}, $dat);;
+            if (defined $tmp) {
+                $buf .= $tmp;
             } else {
-                $val = $datref->{$tag};
-            }
-
-            $pad = get_opt('tnpad');
-            $expanded = sprintf q{%0} . ($pad ne q{0} ? "$pad" : q{} ) . q{d}, $val;
-        } else {
-            $expanded = $datref->{$tag};
-        }
-    }
-    $tokref->{'string'} = $expanded;
-
-    return 1;
-}
-sub __tag_find_ext_end {
-    my ($oc, $char, $quote, $odest, $lref) = @_;
-
-    odebug("oldchar: $oc, char: $char, quote: $quote, olddest: $odest, lref: \"$$lref\"\n");
-    if ($char eq '{' && $oc eq '&') {
-        $$lref++;
-    } elsif ($char eq '}') {
-        $$lref--;
-    }
-
-    if ($odest eq 'string') {
-        return '' if ($char !~ m/^[a-zA-Z0-9_?:-]$/);
-        return 'default' if ($$lref == 1 && $char eq ':');
-        return 'if_set' if ($$lref == 1 && $char eq '?');
-    } elsif ($odest eq 'if_set' && !$quote && $$lref == 1 && $char eq '!') {
-        return 'if_not_set';
-    }
-
-    return $odest;
-}
-sub __tag_find_end {
-    my ($char) = @_;
-
-    return 1 if ($char =~ m/^[a-zA-Z0-9_-]$/);
-    return 0;
-}
-sub __tokenize_template {
-    my ($tmpl, $retref) = @_;
-    my (@chars, %tok, $oldchar, $mode, $parenlvl, $len, $skip, $dest, $quote);
-
-    @chars = split //, $tmpl;
-
-    $parenlvl = 0;
-    $quote = 0;
-    $skip = 0;
-    $dest = '';
-    $oldchar = '';
-    $mode = 'normal';
-    TOK_CHAR: foreach my $char (@chars) {
-        if ($char eq '[' || $char eq ']') {
-            odebug("\$char is \"$char\"; \$oldchar is \"$oldchar\"; \$mode is \"$mode\"; \$quote is $quote; \$dest is \"$dest\"\n");
-        }
-        if ($parenlvl == 0 && $char eq '\\' && !$quote) {
-            $quote++;
-            next TOK_CHAR;
-        } elsif ($parenlvl == 0 && $quote && $quote < 2) {
-            $quote++;
-        } else {
-            $quote = 0;
-        }
-        if ($mode eq 'len') {
-            if ($char eq ']') {
-                $len = '0' if ($len eq '');
-                $tok{'length'} = $len;
-                push @{ $retref }, { %tok } if (%tok);
-                undef %tok;
-                $mode = 'normal';
-            } elsif ($char =~ m/^[0-9]$/) {
-                $len .= $char;
-            } else {
-                return;
-            }
-        } elsif ($mode eq 'tag' && $oldchar eq '&' && $char eq '{') {
-            # extended tag definition
-            $tok{'is_ext_tag'} = 1;
-            $mode = 'exttag';
-            $parenlvl = 1;
-        } elsif ($mode eq 'exttag' || $mode eq 'tag') {
-            if ($mode eq 'exttag') {
-                $dest = __tag_find_ext_end($oldchar, $char, $quote, $dest, \$parenlvl);
-                return if ($dest eq '');
-                if ($parenlvl == 1 &&
-                    (($dest eq 'default' && $char eq ':') ||
-                    ($dest eq 'if_set' && $char eq '?') ||
-                    ($dest eq 'if_not_set' && $char eq '!'))) {
-
-                    odebug("PING\n");
-                    $skip = 1;
-                    $tok{$dest} = '';
+                $rv = __expand_tokens($token->[2]->{defaulttokens}, $dat);
+                if ($rv->[0] eq 'ERROR') {
+                    $rtype = 'ERROR';
+                    $buf = [];
+                    push @{ $buf }, 'Error expanding ' . $token->[2]->{default};
+                    last TOKEN;
                 }
+                $buf .= $rv->[1];
+            }
+
+        } elsif ($type eq 'CPLXSETUNSET') {
+            my ($rv, $str, $strtok);
+            $tmp = __tag_expand($token->[2]->{name}, $dat);;
+            if (defined $tmp) {
+                $str = $token->[2]->{set};
+                $strtok = $token->[2]->{settokens};
             } else {
-                # paren level doesn't make sense for simple tags, but we use
-                # the variable anyway to avoid introducing yet another one.
-                $parenlvl = __tag_find_end($char);
-                $dest = 'string';
+                $strtok = $token->[2]->{defaulttokens};
             }
-            if ($parenlvl == 0) {
-                if ($mode eq 'exttag' && $char eq '}') {
-                    $skip = 1;
-                    $mode = 'normal';
-                    push @{ $retref }, { %tok } if (%tok);
-                    undef %tok;
-                } elsif ($mode eq 'tag' && $char eq '[') {
-                    $mode = 'len';
-                    $len = '';
-                    $skip = 1;
-                } else {
-                    $mode = 'normal';
-                    push @{ $retref }, { %tok } if (%tok);
-                    undef %tok;
-                }
+            $rv = __expand_tokens($strtok, $dat);
+            if ($rv->[0] eq 'ERROR') {
+                $rtype = 'ERROR';
+                $buf = [];
+                push @{ $buf }, 'Error expanding ' . $str;
+                last TOKEN;
             }
-            if ($skip != 0) {
-                $skip = 0;
-            } else {
-                $tok{$dest} .= $char;
-            }
-        } elsif (!$quote && $mode eq 'normal' && $char eq '&') {
-            push @{ $retref }, { %tok } if (%tok);
-            undef %tok;
-            $tok{'is_tag'} = 1;
-            $tok{'is_ext_tag'} = 0;
-            $tok{'string'} = '';
-            $mode = 'tag';
-            $dest = 'string';
+            $buf .= $rv->[1];
         } else {
-            $tok{'is_tag'} = 0 if (!%tok);
-            $tok{'string'} .= $char;
+            $buf = [];
+            push @{ $buf }, 'Unknown token-type: ', $type;
+            last TOKEN;
         }
-
-        $oldchar = $char;
     }
-    push @{ $retref }, { %tok } if (%tok);
-    foreach my $hr (@{ $retref }) {
-        $hr->{'length'} = 0 if (!defined $hr->{'length'});
-        $hr->{'is_tag'} = 0 if (!defined $hr->{'is_tag'});
-        $hr->{'is_ext_tag'} = 0 if (!defined $hr->{'is_ext_tag'});
-    }
-
-    return 1;
+    return [ $rtype, $buf ]
 }
-sub __expand_template {
-    my ($template, $datref, $tokref) = @_;
-    my ($rc);
 
-    __tokenize_template($template, $tokref);
-
-    odebug("__expand: \"$template\"\n");
-    for my $i (reverse 0 .. $#{ $tokref }) {
-        my ($gotit);
-
-        next if ($$tokref[$i]->{'is_tag'} == 0 || $$tokref[$i]->{'is_ext_tag'} == 0);
-
-        if (defined $datref->{$$tokref[$i]->{'string'}} &&
-            $datref->{$$tokref[$i]->{'string'}} ne '') {
-            $gotit = 1;
-        } else {
-            $gotit = 0;
-        }
-
-        foreach my $key (qw{ string default if_set if_not_set }) {
-            odebug("EXT_TAG: \"$key\": \"" . $$tokref[$i]->{$key} . "\"\n") if (defined $$tokref[$i]->{$key});
-        }
-
-        if (defined $$tokref[$i]->{'default'} && !$gotit) {
-            my (@toks);
-            __expand_template($$tokref[$i]->{'default'}, $datref, \@toks);
-            splice @{ $tokref }, $i, 1, @toks;
-        } elsif (defined $$tokref[$i]->{'if_set'}
-                 && defined $$tokref[$i]->{'if_not_set'}) {
-            my (@toks);
-            if ($gotit) {
-                odebug("Got it (" . $$tokref[$i]->{'string'} . ")\n");
-                __expand_template($$tokref[$i]->{'if_set'}, $datref, \@toks);
-            } else {
-                odebug("Got it not (" . $$tokref[$i]->{'string'} . ")\n");
-                __expand_template($$tokref[$i]->{'if_not_set'}, $datref, \@toks);
-            }
-            splice @{ $tokref }, $i, 1, @toks;
-        }
-    }
-
-    return 1;
-}
-sub __tok_to_string {
-    my ($tokref) = @_;
-    my $template = q{};
-
-    my $i = 0;
-    foreach my $href (@{ $tokref }) {
-        for my $key (sort keys %{ $href }) {
-            odebug("$i: \"$key\": \"" . $href->{$key} . "\"\n");
-        }
-        $template = $template . $href->{'string'};
-        $i++;
-    }
-
-    return $template;
-}
 sub expand_template {
     my ($template, $datref) = @_;
-    my (@tokens, $rc);
+    my ($data, $retval, $expanded);
 
     run_hook('pre_expand_template', \$template, $datref);
-    __expand_template($template, $datref, \@tokens);
 
-    foreach my $href (@tokens) {
-        odebug("string_of_tok: \"" . $href->{'string'} . "\"\n");
-        odebug("is_tag: \"" . $href->{'is_tag'} . "\"\n");
-        odebug("is_ext_tag: \"" . $href->{'is_ext_tag'} . "\"\n");
-        next if ($href->{'is_tag'} == 0);
-
-        run_hook('expand_template_next_tag', \$template, $datref);
-        $rc = __template_expand_tag($href, $datref);
-        if ($rc == 0) {
-            return;
+    $data = __tokenize_template($template);
+    $retval = __expand_tokens($data, $datref);
+    if ($retval->[0] eq 'ERROR') {
+        my $file = get_file();
+        owarn("-!- $file\n");
+        foreach my $err (@{ $retval->[1] }) {
+            owarn("-!- $err\n");
         }
-        __template_token_sepreplace(\$template);
-        run_hook('expand_template_postprocess_tag',
-            \$template, $href, $datref);
+        return;
     }
+    $expanded = $retval->[1];
 
-    $template = __tok_to_string(\@tokens);
-    run_hook('post_expand_template', \$template, $datref);
+    run_hook('post_expand_template', \$expanded, $datref);
 
-    return $template;
+    return $expanded;
 }
 
 # output subroutines
