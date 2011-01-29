@@ -352,7 +352,9 @@ sub __fill_data {
     $value = $rd->{$mapref->[0]}->{$mapref->[1]};
     return 0 if (!defined $value);
     if (ref($value) eq 'ARRAY') {
-        # ambiguous result
+        run_hook('ambiguoustag', \$info, \$value);
+    }
+    if (ref($value) eq 'ARRAY') {
         if (get_opt('ambiguoususefirst')) {
             $value = $value->[0];
         } else {
