@@ -883,7 +883,7 @@ sub __expand_tokens {
     $buf = '';
     $required = sub {
         my ($tag) = @_;
-        return "$tag not defined, but required by template. Giving up.";
+        return "`$tag' not defined, but required by template. Giving up.";
     };
     $rtype = 'DONE';
     TOKEN: foreach my $token (@{ $tok }) {
@@ -901,7 +901,7 @@ sub __expand_tokens {
             $tmp = __tag_expand($token->[1], $dat);;
             if (!defined $tmp) {
                 $buf = [];
-                push @{ $buf }, $required->(\$buf, $token->[1]);
+                push @{ $buf }, $required->($token->[1]);
                 $rtype = 'ERROR';
                 last TOKEN;
             }
@@ -912,7 +912,7 @@ sub __expand_tokens {
             $tmp = __tag_expand($name, $dat);;
             if (!defined $tmp) {
                 $buf = [];
-                push @{ $buf }, $required->(\$buf, $token->[1]);
+                push @{ $buf }, $required->($token->[1]);
                 $rtype = 'ERROR';
                 last TOKEN;
             }
