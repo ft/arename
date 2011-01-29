@@ -5,15 +5,7 @@ Roadmap for arename version 4
 Things I'd like arename to do:
 
 + more powerful templates:
-    - defaults if tags are unset or empty:
-      template = %{album:unset album} should expand to "unset album"
-      if &album is unset or empty.
-    - if ... else ... -like tag expansion:
-      Consider: template = %{album?- &album !}
-      Say &album is empty or unset, in that case the above
-      should expand to ''.
-      If &album is set to "Reign in Blood", it should expand
-      to: "- Reign in Blood ".
+    ...are done.
 
 + support more tags (and meta information):
     - The switch to Audio::Scan already enhances the situation a
