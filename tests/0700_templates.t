@@ -111,5 +111,5 @@ $expected = "FOO - Waylon and his Banjo - ...neck BOOM - BAR";
 is( equal($expected, $expanded), 1, "Multiple nesting levels with complex tag expansions");
 
 $expanded = ARename::expand_template('&{bar:\&{album?&album!album}', \%waylon);
-$expected = "&{album?Red!album}";
+$expected = "&{album?Red!album";
 is( equal($expected, $expanded), 1, "Quoting characters in extended tag expansions");
