@@ -349,6 +349,14 @@ sub __fill_data {
     return 0 if ($info eq 'fill_function');
     $value = $rd->{$mapref->[0]}->{$mapref->[1]};
     return 0 if (!defined $value);
+    if (ref($value) eq 'ARRAY') {
+        # ambiguous result
+        owarn(get_file() . " has more than one `$info' tag:\n");
+        foreach my $val (@{ $value }) {
+            owarn("    $val\n");
+        }
+        return -1;
+    }
     if ($info eq 'tracknumber') {
         my ($max);
         if ($value =~ m@/@) {
@@ -365,11 +373,17 @@ sub fill_data {
     # Like $datref, $rd is a hash reference (for the raw data from
     # Audio::Scan->scan()..
     my ($rd, $datref, $type) = @_;
+    my ($errout);
 
+    $errout = 0;
     run_hook("pre_fill_$type");
     foreach my $info (sort keys %{ $infomap{$type} }) {
-        __fill_data($type, $info, $infomap{$type}{$info}, $rd, $datref);
+        if (__fill_data($type, $info, $infomap{$type}{$info}, $rd, $datref) < 0)
+        {
+            $errout = 1;
+        }
     }
+    return 0 if ($errout);
     fill_data_sanitize($datref);
     fill_data_additional($datref);
     if (defined $infomap{$type}{'fill_function'}) {
@@ -452,7 +466,7 @@ sub process_file {
     }
 
     if (!scan_file(\%data, $type)) {
-        owarn("Bug: Unexpected result from ARename::scan_file()");
+        owarn("Warnings while gathering data. Skipping file.\n\n");
         return 0;
     }
     run_hook('pre_rename');
