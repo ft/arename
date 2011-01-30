@@ -8,11 +8,7 @@ Things I'd like arename to do:
     ...are done.
 
 + support more tags (and meta information):
-    - The switch to Audio::Scan already enhances the situation a
-      little:
-    - Also, support some non-portable tags, like &flac_wordsize.
-      The support for more complex templates above should ensure, we
-      can still create consistent file names.
+    ...done.
 
 + Support different file extensions:
     - Audio::Scan does that already
