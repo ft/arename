@@ -645,7 +645,7 @@ sub __tokenize_sized {
 
     my ($name, $size);
 
-    if (($name, $size) = $in =~ m/^([A-Za-z0-9]+)\[(\d+)\]$/) {
+    if (($name, $size) = $in =~ m/^([A-Za-z0-9_]+)\[(\d+)\]$/) {
         my $data = {};
         $data->{name} = $name;
         $data->{size} = $size;
@@ -745,8 +745,8 @@ sub __tokenize_template {
         # Now for stuff we can read at once:
 
         # The complex and simple sized expression types.
-        } elsif (!$nest && ($in =~ m/\G\&{([A-Za-z0-9]+\[\d+\])}/gc ||
-                            $in =~ m/\G\&([A-Za-z0-9]+\[\d+\])/gc))
+        } elsif (!$nest && ($in =~ m/\G\&{([A-Za-z0-9_]+\[\d+\])}/gc ||
+                            $in =~ m/\G\&([A-Za-z0-9_]+\[\d+\])/gc))
         {
             my ($match, $more) = ($1, '');
             push @{ $out }, [ 'LITERAL', $buf ] if ($buf ne '');
@@ -759,8 +759,8 @@ sub __tokenize_template {
             $buf = '';
 
         # The trivial expression (the complex-looking one and the real deal).
-        } elsif (!$nest && ($in =~ m/\G\&{([A-Za-z0-9]+)}/gc ||
-                            $in =~ m/\G\&([A-Za-z0-9]+)/gc))
+        } elsif (!$nest && ($in =~ m/\G\&{([A-Za-z0-9_]+)}/gc ||
+                            $in =~ m/\G\&([A-Za-z0-9_]+)/gc))
         {
             push @{ $out }, [ 'LITERAL', $buf ] if ($buf ne '');
             push @{ $out }, [ 'TRIVIAL', $1 ];
@@ -837,7 +837,7 @@ sub __tokenize_template {
 
         # Alright, we're "complex", and after the tag-name there is a
         # colon. So that's `CPLXDEFAULT'.
-        } elsif ($nest && $in =~ m/\G([A-Za-z0-9]+):/gc) {
+        } elsif ($nest && $in =~ m/\G([A-Za-z0-9_]+):/gc) {
             $buf .= $1;
             $cplxbuf .= $1 . ':';
             $cplxname = $buf;
@@ -845,7 +845,7 @@ sub __tokenize_template {
             $label = "CPLXDEFAULT";
 
         # Like before, but since there's a `?' this is `CPLXSETUNSET'.
-        } elsif ($nest && $in =~ m/\G([A-Za-z0-9]+)\?/gc) {
+        } elsif ($nest && $in =~ m/\G([A-Za-z0-9_]+)\?/gc) {
             $buf .= $1;
             $cplxbuf .= $1 . '?';
             $cplxname = $buf;
