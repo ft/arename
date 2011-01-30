@@ -472,6 +472,7 @@ sub process_file {
         process_warn();
         return 0;
     }
+    run_hook('filetype_known', \$file, \$ext, \$type);
     if (get_opt('usetypeasextension')) {
         $ext = $type;
     }
