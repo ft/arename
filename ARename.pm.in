@@ -412,7 +412,7 @@ sub filetype_supported {
      return if (!defined $type);
 
      foreach my $t (keys %typemap) {
-         return $typemap{$t} if ($t eq $type);
+         return ($typemap{$t}, $ext) if ($t eq $type);
      }
      return;
 }
@@ -440,7 +440,7 @@ sub process_warn {
 sub process_file {
     # process_file() assumes, that set_file() was used to tell
     # ARename.pm which file to work on currently.
-    my (%data, $file, $type);
+    my (%data, $file, $type, $ext);
 
     $file = get_file();
 
@@ -466,11 +466,14 @@ sub process_file {
 
     run_hook('next_file_late');
 
-    $type = filetype_supported($file);
+    ($type, $ext) = filetype_supported($file);
     if (!defined $type) {
         run_hook('filetype_unknown');
         process_warn();
         return 0;
+    }
+    if (get_opt('usetypeasextension')) {
+        $ext = $type;
     }
 
     if (!scan_file(\%data, $type)) {
@@ -478,7 +481,7 @@ sub process_file {
         return 0;
     }
     run_hook('pre_rename');
-    $postproc->(\%data, $type);
+    $postproc->(\%data, $ext);
     run_hook('post_rename');
 
     run_hook('file_done');
@@ -540,6 +543,7 @@ sub set_default_options {
     set_opt("usehooks",             1);
     set_opt("uselocalhooks",        0);
     set_opt("uselocalrc",           0);
+    set_opt("usetypeasextension",   1);
     set_opt("useprofiles",          1);
     set_opt("verbose",              0);
     set_opt("warningsautodryrun",   1);
@@ -1317,6 +1321,7 @@ sub read_rcs {
     '^usehooks$'            => \&parse_bool,
     '^uselocalhooks$'       => \&parse_bool,
     '^uselocalrc$'          => \&parse_bool,
+    '^usetypeasextension$'  => \&parse_bool,
     '^useprofiles$'         => \&parse_bool,
     '^verbose$'             => \&parse_bool,
     '^warningsautodryrun$'  => \&parse_bool,
