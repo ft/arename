@@ -11,10 +11,7 @@ Things I'd like arename to do:
     ...done.
 
 + Support different file extensions:
-    - Audio::Scan does that already
-    - We should provide ways to change extensions to a default for
-      each file type (again, file name consistency) or to explicitly
-      keep the file name extension of every file arename processes.
+    ...done.
 
 + Update hooks API:
     - The switch to Audio::Scan will definately break the hook API
