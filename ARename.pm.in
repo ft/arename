@@ -75,6 +75,7 @@ sub data_reset {
 set_opt('shutup', 0);
 
 %typemap = (
+    'aac' => 'aac',
     'flc' => 'flac',
     'mp3' => 'mp3',
     'mp4' => 'mp4',
@@ -89,6 +90,20 @@ set_opt('shutup', 0);
 );
 
 %infomap = (
+    aac => {
+            bitrate         => [ qw( info bitrate ) ],
+            channels        => [ qw( info stereo ) ],
+            length_ms       => [ qw( info song_length_ms ) ],
+            samplerate      => [ qw( info samplerate ) ],
+
+            album           => [ qw( tags TALB ) ],
+            artist          => [ qw( tags TPE1 ) ],
+            compilation     => [ qw( tags TPE2 ) ],
+            genre           => [ qw( tags TCON ) ],
+            tracknumber     => [ qw( tags TRCK ) ],
+            tracktitle      => [ qw( tags TIT2 ) ],
+            year            => [ qw( tags TDRC ) ],
+    },
     flac => {
             # first, file type specific tags; their names always start
             # in "$type"_; tag_supported relies on it.
