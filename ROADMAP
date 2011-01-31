@@ -13,6 +13,16 @@ Things I'd like arename to do:
 + Support different file extensions:
     ...done.
 
++ Support more file types:
+    - mp4            [done]
+    - aac            [done]
+    - wav            [    ]
+    - aiff           [    ]
+    - wavpack        [    ]
+    - monkeyaudio    [    ]
+    - musepackdio    [    ]
+    - asf            [    ]
+
 + Update hooks API:
     - The switch to Audio::Scan will definately break the hook API
       as it is in arename3.x; it will however become more consistent,
