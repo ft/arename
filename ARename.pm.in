@@ -77,6 +77,7 @@ set_opt('shutup', 0);
 %typemap = (
     'flc' => 'flac',
     'mp3' => 'mp3',
+    'mp4' => 'mp4',
     'ogg' => 'ogg',
 );
 
@@ -133,6 +134,20 @@ set_opt('shutup', 0);
             # fill_function is not a valid tag name and tag_supported will return
             # 0 (false) for it, if asked.
             fill_function   => \&fill_data_mp3,
+    },
+    mp4 => {
+            bitrate         => [ qw( info avg_bitrate ) ],
+            channels        => [ qw( info channels ) ],
+            length_ms       => [ qw( info song_length_ms ) ],
+            samplerate      => [ qw( info samplerate ) ],
+
+            album           => [ qw( tags ALB ) ],
+            artist          => [ qw( tags ART ) ],
+            compilation     => [ qw( tags AART ) ],
+            genre           => [ qw( tags GNRE ) ],
+            tracknumber     => [ qw( tags TRKN ) ],
+            tracktitle      => [ qw( tags NAM ) ],
+            year            => [ qw( tags DAY ) ],
     },
     ogg => {
             bitrate         => [ qw( info bitrate_nominal ) ],
