@@ -9,5 +9,6 @@ use strict;
 use Data::Dumper;
 use Audio::Scan;
 $Data::Dumper::Indent = 3;
+local $ENV{AUDIO_SCAN_NO_ARTWORK} = 1;
 my $dat = Audio::Scan->scan($ARGV[0]);
 print Dumper($dat);

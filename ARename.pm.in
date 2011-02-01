@@ -453,6 +453,7 @@ sub scan_file {
 
     return 0 if (!defined $file);
     run_hook('pre_scan');
+    local $ENV{AUDIO_SCAN_NO_ARTWORK} = 1;
     $rd = Audio::Scan->scan($file);
     run_hook('post_scan');
 
