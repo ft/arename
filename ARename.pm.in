@@ -325,6 +325,7 @@ sub __arename_file_eq {
 
     return 0;
 }
+
 sub arename {
     my ($datref, $ext) = @_;
     my ($t, $newname);
@@ -398,6 +399,7 @@ sub apply_defaults {
 
     return 1;
 }
+
 sub tag_supported {
     my ($tag) = @_;
 
@@ -429,6 +431,7 @@ sub arename_verbosity {
 
     return 1;
 }
+
 sub getdat {
     my ($datref, $tag) = @_;
 
@@ -446,6 +449,7 @@ sub fill_data_mp3 {
     }
     return 0;
 }
+
 sub fill_default {
     my ($datref, $key, $default) = @_;
 
@@ -455,6 +459,7 @@ sub fill_default {
 
     return 0;
 }
+
 sub fill_data_sanitize {
     my ($datref) = @_;
 
@@ -464,6 +469,7 @@ sub fill_data_sanitize {
 
     return 0;
 }
+
 sub fill_data_additional {
     my ($datref) = @_;
 
@@ -474,6 +480,7 @@ sub fill_data_additional {
 
     return 0;
 }
+
 sub __fill_data {
     my ($type, $info, $mapref, $rd, $datref) = @_;
     my ($value);
@@ -507,6 +514,7 @@ sub __fill_data {
 
     return 1;
 }
+
 sub fill_data {
     # Like $datref, $rd is a hash reference (for the raw data from
     # Audio::Scan->scan()..
@@ -546,6 +554,7 @@ sub filetype_supported {
      }
      return;
 }
+
 sub scan_file {
     my ($datref, $type) = @_;
     my $file = get_file();
@@ -562,12 +571,14 @@ sub scan_file {
     run_hook('post_fill');
     return $rc;
 }
+
 sub process_warn {
     my $file = get_file();
 
     owarn(qq{No method for handling "$file".\n});
     return 1;
 }
+
 sub process_file {
     # process_file() assumes, that set_file() was used to tell
     # ARename.pm which file to work on currently.
@@ -684,6 +695,7 @@ sub set_default_options {
 
     return 1;
 }
+
 sub set_default_methods {
 
     %methods = (
@@ -694,6 +706,7 @@ sub set_default_methods {
 
     return 1;
 }
+
 sub set_nameversion {
     my ($n, $v) = @_;
 
@@ -701,6 +714,7 @@ sub set_nameversion {
     $VERSION = $v;
     return 1;
 }
+
 sub set_postproc {
     my ($p) = @_;
 
@@ -1155,6 +1169,7 @@ sub odebug {
 
     return 1;
 }
+
 sub oprint {
     my ($string) = @_;
 
@@ -1163,6 +1178,7 @@ sub oprint {
 
     return 1;
 }
+
 sub oprint_verbose {
     my ($string) = @_;
 
@@ -1171,6 +1187,7 @@ sub oprint_verbose {
 
     return 1;
 }
+
 sub owarn {
     my ($string) = @_;
 
@@ -1179,6 +1196,7 @@ sub owarn {
 
     return 1;
 }
+
 sub owarn_verbose {
     my ($string) = @_;
 
@@ -1257,6 +1275,7 @@ sub __home_find_file {
 error:
     return q{};
 }
+
 sub home_find_file {
     my ($code, $spec) = @_;
     my ($name, $home);
@@ -1297,6 +1316,7 @@ sub __is_comment_or_blank {
 
     return 0;
 }
+
 sub __remove_leading_backslash {
     my ($strref) = @_;
 
@@ -1305,12 +1325,14 @@ sub __remove_leading_backslash {
     }
     return 1;
 }
+
 sub __remove_leading_whitespace {
     my ($strref) = @_;
 
     ${ $strref } =~ s/^\s*//;
     return 1;
 }
+
 sub __rcload_stats {
     my ($desc, $count, $warnings) = @_;
 
@@ -1329,6 +1351,7 @@ sub __rcload_stats {
 
     return 1;
 }
+
 sub __rcload {
     my ($file, $desc) = @_;
     my ($fh, $retval);
@@ -1379,6 +1402,7 @@ sub __rcload {
 
     return 0;
 }
+
 sub rcload {
     my ($rc, $desc) = @_;
     my ($retval);
@@ -1393,6 +1417,7 @@ sub rcload {
 
     return 1;
 }
+
 sub read_rcs {
     my ($rc);
 
@@ -1502,6 +1527,7 @@ sub parse_bool {
 
     return 0;
 }
+
 sub parse_defaultvalues {
     my ($file, $lnum, $count, $key, $val) = @_;
 
@@ -1518,6 +1544,7 @@ sub parse_defaultvalues {
 
     return 0;
 }
+
 sub parse_integer {
     my ($file, $lnum, $count, $key, $val) = @_;
 
@@ -1534,6 +1561,7 @@ sub parse_integer {
 
     return 0;
 }
+
 sub parse_profile {
     my ($file, $lnum, $count, $key, $val) = @_;
     my ($name, $pat, $home);
@@ -1566,6 +1594,7 @@ sub parse_profile {
 
     return 0;
 }
+
 sub parse_string {
     my ($file, $lnum, $count, $key, $val) = @_;
 
@@ -1575,6 +1604,7 @@ sub parse_string {
 
     return 0;
 }
+
 sub parse_new_section {
     my ($file, $lnum, $count, $key, $val) = @_;
 
@@ -1592,6 +1622,7 @@ sub parse_new_section {
 
     return 0;
 }
+
 sub parse_set {
     my ($file, $lnum, $count, $key, $val) = @_;
 
@@ -1622,6 +1653,7 @@ sub checkstropts {
 
     return 1;
 }
+
 sub cmdopts {
     my (@args) = @_;
 
@@ -1632,6 +1664,7 @@ sub cmdopts {
     odebug("@args options given!\n");
     return 1;
 }
+
 sub cmdopts_or {
     my (@args) = @_;
 
@@ -1641,6 +1674,7 @@ sub cmdopts_or {
 
     return 0;
 }
+
 sub cmdoptstr {
     my ($opt) = @_;
 
@@ -1832,6 +1866,7 @@ sub ensure_dir {
 
     return 1;
 }
+
 sub file_eq {
     my ($f0, $f1) = @_;
     my (@stat0, @stat1);
@@ -1851,6 +1886,7 @@ sub file_eq {
 
     return 0;
 }
+
 sub xrename {
     # a rename() replacement, that implements renames across
     # filesystems via File::copy() + unlink().
@@ -1881,6 +1917,7 @@ err:
     croak("Could not rename($src, $dest);\n" .
           "Reason: $cause(): $!\n");
 }
+
 sub xcopy {
     my ($src, $dest) = @_;
 
@@ -1912,6 +1949,7 @@ sub get_opt {
         return $conf{$opt};
     }
 }
+
 sub set_opt {
     my ($opt, $val) = @_;
 
@@ -1935,6 +1973,7 @@ sub set_opt {
 
     return 1;
 }
+
 sub __set_opt {
     my ($opt, $val, $protect) = @_;
 
@@ -1972,6 +2011,7 @@ sub __set_opt {
 sub get_file {
     return $__arename_file;
 }
+
 sub set_file {
     my ($fname) = @_;
 
@@ -1986,10 +2026,12 @@ sub get_defaults {
 
     return $defaults{$key};
 }
+
 sub get_default_keys {
 
     return sort keys %defaults;
 }
+
 sub set_defaults {
     my ($key, $val) = @_;
 
@@ -2004,6 +2046,7 @@ sub user_get {
 
     return $sets{$opt}
 }
+
 sub user_set {
     my ($opt, $val) = @_;
 
@@ -2024,6 +2067,7 @@ sub is_locopt {
 
     return 0;
 }
+
 sub section_matches {
     my ($filename) = @_;
 
@@ -2045,15 +2089,18 @@ sub section_matches {
 
     return;
 }
+
 sub sect_get {
     return $sect;
 }
+
 sub sect_set {
     my ($section) = @_;
 
     $sect = $section;
     return 1;
 }
+
 sub sect_reset {
     $sect = undef;
     return 1;
@@ -2067,12 +2114,14 @@ sub enable_hooks {
 
     return 1;
 }
+
 sub disable_hooks {
     __set_opt("usehooks", 0);
     __set_opt("uselocalhooks", 0);
 
     return 1;
 }
+
 sub __read_hook_file {
     my ($file) = @_;
     my ($rc);
@@ -2114,6 +2163,7 @@ sub __read_hook_file {
     oprint("Hook file read ($file).\n") if (!get_opt('load_quiet'));
     return 1;
 }
+
 sub read_hook_files {
     if (get_opt("usehooks")) {
         __read_hook_file( home_find_file($FIND_HOOKS, $FIND_NONAME) );
@@ -2131,6 +2181,7 @@ sub read_hook_files {
 
     return 1;
 }
+
 sub register_hook {
     my ($namespace, $funref) = @_;
 
@@ -2142,6 +2193,7 @@ sub register_hook {
 
     return 1;
 }
+
 sub remove_hook {
     my ($namespace, $funref) = @_;
 
@@ -2157,6 +2209,7 @@ sub remove_hook {
     }
     return 1;
 }
+
 sub run_hook {
     my ($ns, @args) = @_;
 
@@ -2173,6 +2226,7 @@ sub run_hook {
 
     return 1
 }
+
 sub startup_hook {
     return run_hook(
                 'startup',
@@ -2193,6 +2247,7 @@ sub dump_string {
         return "$s";
     }
 }
+
 sub __dump_config {
     my (
         $formatfull, $formatnoval,
@@ -2222,6 +2277,7 @@ sub __dump_config {
 
     return 1;
 }
+
 sub __dump_config_print {
     my ($hashref, $string) = @_;
 
@@ -2231,6 +2287,7 @@ sub __dump_config_print {
 
     return 1;
 }
+
 sub dump_config {
     my ($vffull, $vfnoval) = ( "%-18s   %s\n", "%s\n");
     my ($tffull, $tfnoval) = ( "%-13s   %s\n", "%s\n");
@@ -2264,6 +2321,7 @@ sub dump_config {
 
     exit 0;
 }
+
 sub dump_profiles {
     foreach my $profile (sort keys %profiles) {
         print "$profile\n";
@@ -2271,10 +2329,12 @@ sub dump_profiles {
 
     return 1;
 }
+
 sub show_version {
     ## no critic
     print 'ARename.pm: @@arenameversioninfo@@' . "\n";
     ## use critic
     return 1;
-};
+}
+
 1;
