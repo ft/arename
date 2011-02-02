@@ -81,6 +81,7 @@ set_opt('shutup', 0);
     'mp3' => 'mp3',
     'mp4' => 'mp4',
     'ogg' => 'ogg',
+    'wvp' => 'wv',
 );
 
 %defaultmap = (
@@ -192,6 +193,20 @@ set_opt('shutup', 0);
             tracknumber     => [ qw( tags TRACKNUMBER ) ],
             tracktitle      => [ qw( tags TITLE ) ],
             year            => [ qw( tags DATE ) ],
+    },
+    wv => {
+            bitrate         => [ qw( info bitrate ) ],
+            channels        => [ qw( info channels ) ],
+            length_ms       => [ qw( info song_length_ms ) ],
+            samplerate      => [ qw( info samplerate ) ],
+
+            album           => [ qw( tags ALBUM ) ],
+            artist          => [ qw( tags ARTIST ) ],
+            compilation     => [ qw( tags ALBUMARTIST ) ],
+            genre           => [ qw( tags GENRE ) ],
+            tracknumber     => [ qw( tags TRACK ) ],
+            tracktitle      => [ qw( tags TITLE ) ],
+            year            => [ qw( tags YEAR ) ],
     },
 );
 
