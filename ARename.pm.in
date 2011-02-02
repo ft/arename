@@ -78,6 +78,7 @@ set_opt('shutup', 0);
     'aac' => 'aac',
     'aiff' => 'aiff',
     'ape' => 'ape',
+    'asf' => 'asf',
     'flc' => 'flac',
     'mp3' => 'mp3',
     'mp4' => 'mp4',
@@ -138,6 +139,26 @@ set_opt('shutup', 0);
             tracknumber     => [ qw( tags TRACK ) ],
             tracktitle      => [ qw( tags TITLE ) ],
             year            => [ qw( tags YEAR ) ],
+    },
+    asf => {
+            # `bitrate', `channels', and `samplerate' are very likely
+            # wrong (or non-existant, in which case the default is used).
+            # I don't care much about `asf' at all, so this will have to
+            # do. Also, I guess this will probably only work properly on
+            # audio-files (wma). I don't know. If you want this to work
+            # better, send patches.
+            bitrate         => [ qw( info bitrate ) ],
+            channels        => [ qw( info channels ) ],
+            length_ms       => [ qw( info play_duration_ms ) ],
+            samplerate      => [ qw( info samplerate ) ],
+
+            album           => [ qw( tags WM/AlbumTitle ) ],
+            artist          => [ qw( tags Author ) ],
+            compilation     => [ qw( tags WM/AlbumArtist ) ],
+            genre           => [ qw( tags WM/Genre ) ],
+            tracknumber     => [ qw( tags WM/TrackNumber ) ],
+            tracktitle      => [ qw( tags Title ) ],
+            year            => [ qw( tags WM/Year ) ],
     },
     flac => {
             # first, file type specific tags; their names always start
