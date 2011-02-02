@@ -14,14 +14,7 @@ Things I'd like arename to do:
     ...done.
 
 + Support more file types:
-    - mp4            [done]
-    - aac            [done]
-    - wav            [    ]
-    - aiff           [    ]
-    - wavpack        [    ]
-    - monkeyaudio    [    ]
-    - musepackdio    [    ]
-    - asf            [    ]
+    ...done.
 
 + Update hooks API:
     - The switch to Audio::Scan will definately break the hook API
