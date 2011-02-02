@@ -82,6 +82,7 @@ set_opt('shutup', 0);
     'mp4' => 'mp4',
     'mpc' => 'mpc',
     'ogg' => 'ogg',
+    'wav' => 'wav',
     'wvp' => 'wv',
 );
 
@@ -208,6 +209,22 @@ set_opt('shutup', 0);
             tracknumber     => [ qw( tags TRACKNUMBER ) ],
             tracktitle      => [ qw( tags TITLE ) ],
             year            => [ qw( tags DATE ) ],
+    },
+    wav => {
+            wav_id3_version => [ qw( info id3_version ) ],
+
+            bitrate         => [ qw( info bitrate ) ],
+            channels        => [ qw( info channels ) ],
+            length_ms       => [ qw( info song_length_ms ) ],
+            samplerate      => [ qw( info samplerate ) ],
+
+            album           => [ qw( tags TALB ) ],
+            artist          => [ qw( tags TPE1 ) ],
+            compilation     => [ qw( tags TPE2 ) ],
+            genre           => [ qw( tags TCON ) ],
+            tracknumber     => [ qw( tags TRCK ) ],
+            tracktitle      => [ qw( tags TIT2 ) ],
+            year            => [ qw( tags TDRC ) ],
     },
     wv => {
             bitrate         => [ qw( info bitrate ) ],
