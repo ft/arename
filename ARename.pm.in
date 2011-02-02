@@ -75,6 +75,7 @@ sub data_reset {
 set_opt('shutup', 0);
 
 %typemap = (
+    'ape' => 'ape',
     'aac' => 'aac',
     'flc' => 'flac',
     'mp3' => 'mp3',
@@ -90,6 +91,20 @@ set_opt('shutup', 0);
 );
 
 %infomap = (
+    ape => {
+            bitrate         => [ qw( info bitrate ) ],
+            channels        => [ qw( info channels ) ],
+            length_ms       => [ qw( info song_length_ms ) ],
+            samplerate      => [ qw( info samplerate ) ],
+
+            album           => [ qw( tags ALBUM ) ],
+            artist          => [ qw( tags ARTIST ) ],
+            compilation     => [ qw( tags ALBUMARTIST ) ],
+            genre           => [ qw( tags GENRE ) ],
+            tracknumber     => [ qw( tags TRACK ) ],
+            tracktitle      => [ qw( tags TITLE ) ],
+            year            => [ qw( tags YEAR ) ],
+    },
     aac => {
             bitrate         => [ qw( info bitrate ) ],
             channels        => [ qw( info stereo ) ],
