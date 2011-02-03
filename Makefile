@@ -61,6 +61,7 @@ clean:
 
 distclean: clean
 	rm -f *.tar.gz
+	rm -f TAGS tags
 
 install:
 	@./bin/install.sh x arename       "$(prefix)/bin"                        $(maxwidth)
@@ -155,4 +156,8 @@ prerelease: clean
 snapshot: clean
 	@./bin/dist.sh -s
 
-.PHONY: install install-doc distclean clean all doc test-check
+tags:
+	ctags --language-force=perl arename.in ARename.pm.in ataglist.in
+	ctags -e --language-force=perl arename.in ARename.pm.in ataglist.in
+
+.PHONY: install install-doc distclean clean all doc test-check tags
