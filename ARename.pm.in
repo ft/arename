@@ -1010,7 +1010,8 @@ sub __tokenize_template {
         }
     }
     if ($nest) {
-        return [ [ 'ERROR', "Fucked template! (Nesting still at $nest.)" ] ];
+        return [ [ 'ERROR',
+                   "Broken template! (Expression nesting still at $nest.)" ] ];
     }
     push @{ $out }, [ 'LITERAL', $buf ] if ($buf ne '');
     return $out;
