@@ -848,8 +848,8 @@ sub __tokenize_complex {
 #     defaulttokens:   AoA of the lexed `default' string.
 #     settokens:       AoA of the lexed `set' string.
 sub __tokenize_template {
-    my ($in, $pos) = @_;
-    my ($buf, $nest, $label, $out);
+    my ($in) = @_;
+    my ($buf, $nest, $label, $out, $pos);
     my ($cplxbuf, $cplxset, $cplxunset, $seenunsetmark, $cplxname);
 
     $buf = '';
