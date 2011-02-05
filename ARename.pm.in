@@ -1065,7 +1065,9 @@ sub __expand_tokens {
         my $type = $token->[0];
         if ($type eq 'ERROR') {
             $buf = [];
-            push @{$buf}, '__expand_tokens(): BUG: ERROR should not be set here.';
+            push @{$buf},
+                 '__expand_tokens(): BUG: ERROR should not be set here. ' .
+                 'Was: (' . $token->[1] . ')';
             $rtype = 'ERROR';
             last TOKEN;
 
