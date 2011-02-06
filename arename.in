@@ -1198,6 +1198,24 @@ file, but before B<arename>'s data hash has been filled.
 I<Arguments>: B<1:> the type of the file being processed (`ogg' for
 ogg vorbis files), B<2:> the data structure returned by `Audio::Scan'
 
+=item B<ambiguoustag>
+
+When the data hash is being filled it is possible, that for one B<arename>
+tag (like `artist') multiple values where returned by Audio::Scan. This hook
+is triggered as soon as such a tag with ambiguous values is processed.
+
+The hook may be used for maximum control over how ambiguous values are
+handled. To do this, the ambiguous value (passed as an array reference in
+the second argument) should be turned into the desired scalar value.
+
+If the array reference is left as it is, the usual `ambiguoususefirst'
+behaviour is followed. The the option's description for details.
+
+I<Arguments>: B<1:> the name of the tag with the ambiguous value, B<2:> its
+current (ambiguous) value, B<3:> the data hash in its current form (obviously
+not all values will have been filled in at this point), B<4:> the data
+structure returned by Audio::Scan (see its documentation for details)
+
 =item B<post_fill>
 
 Finally, the `post_fill' hook is called after the data hash has been
@@ -1208,6 +1226,7 @@ I<Arguments>: B<1:> return code of the filling process (`0' in case of an
 error, `1' otherwise), B<2:> the type of the file being processed (`ogg' for
 ogg vorbis files), B<3:> the data structure returned by `Audio::Scan',
 B<4:> the data hash.
+
 
 =back
 
