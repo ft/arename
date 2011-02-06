@@ -696,17 +696,6 @@ sub set_default_options {
     return 1;
 }
 
-sub set_default_methods {
-
-    %methods = (
-        '\.flac$' => \&ARename::process_flac,
-        '\.mp3$'  => \&ARename::process_mp3,
-        '\.ogg$'  => \&ARename::process_ogg,
-    );
-
-    return 1;
-}
-
 sub set_nameversion {
     my ($n, $v) = @_;
 

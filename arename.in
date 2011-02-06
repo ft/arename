@@ -1408,7 +1408,6 @@ if (ARename::cmdopts('L')) {
 }
 
 ARename::read_hook_files();
-ARename::set_default_methods();
 ARename::startup_hook();
 
 # status messages and cosmetics
