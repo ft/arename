@@ -1019,7 +1019,7 @@ sub __tag_expand {
         $pad = get_opt('tnpad');
         $retval = sprintf q{%0} . ($pad ne q{0} ? "$pad" : q{}) . q{d}, $retval;
     }
-    run_hook('expand_template_post_expand_tag', \$retval, $dat);
+    run_hook('expand_template_post_expand_tag', \$retval, \$tag, $dat);
 
     return $retval;
 }
