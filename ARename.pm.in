@@ -561,14 +561,13 @@ sub scan_file {
     my ($rc, $rd);
 
     return 0 if (!defined $file);
-    run_hook('pre_scan');
+    run_hook('pre_scan', \$type);
     local $ENV{AUDIO_SCAN_NO_ARTWORK} = 1;
     $rd = Audio::Scan->scan($file);
-    run_hook('post_scan');
+    run_hook('post_scan', \$type, $rd);
 
-    run_hook('pre_fill');
     $rc = fill_data($rd, $datref, $type);
-    run_hook('post_fill');
+    run_hook('post_fill', \$rc, \$type, $rd, $datref);
     return $rc;
 }
 
