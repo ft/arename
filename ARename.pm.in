@@ -620,7 +620,7 @@ sub process_file {
         owarn("Warnings while gathering data. Skipping file.\n\n");
         return 0;
     }
-    run_hook('pre_rename');
+    run_hook('pre_rename', \$type, \$ext);
     $postproc->(\%data, $ext);
     run_hook('post_rename');
 
