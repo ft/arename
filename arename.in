@@ -1172,12 +1172,41 @@ hash
 
 =back
 
-=head3 Hooks when gathering information
+=head3 Hooks while gathering information
 
 These hooks are triggered while the tag information is extracted from
-the audio files arename is processing.
+the audio files B<arename> is processing. This is done in two steps. First
+the Audio::Scan module is used to scan for the raw meta data information
+from the current file. Then B<arename>'s data hash is being filled with that
+data.
 
 =over 4
+
+=item B<pre_scan>
+
+This hook is called right before any scanning has been done.
+
+I<Arguments>: B<1:> the type of the file being processed (`ogg' for
+ogg vorbis files)
+
+=item B<post_scan>
+
+This is triggered as soon as Audio::Scan is done processing the current
+file, but before B<arename>'s data hash has been filled.
+
+I<Arguments>: B<1:> the type of the file being processed (`ogg' for
+ogg vorbis files), B<2:> the data structure returned by `Audio::Scan'
+
+=item B<post_fill>
+
+Finally, the `post_fill' hook is called after the data hash has been
+filled. This is a good spot, if post-processing the values of individual
+tag is desired.
+
+I<Arguments>: B<1:> return code of the filling process (`0' in case of an
+error, `1' otherwise), B<2:> the type of the file being processed (`ogg' for
+ogg vorbis files), B<3:> the data structure returned by `Audio::Scan',
+B<4:> the data hash.
 
 =back
 
