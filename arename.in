@@ -1073,6 +1073,14 @@ the file type (the extension, specifically) was unknown.
 
 I<Arguments>:
 
+=item B<filetype_known>
+
+Called when it has been established, that the file in question should
+theoretically be supported by arename.
+
+I<Arguments>: B<1:> the current file name extension B<2:> the file type
+that has been detected
+
 =back
 
 =head3 Hooks in the renaming procedure
