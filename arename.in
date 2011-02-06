@@ -1304,7 +1304,7 @@ distribution.
 
 =head1 SEE ALSO
 
-L<Ogg::Vorbis::Header>, L<Audio::FLAC::Header> and L<MP3::Tag>.
+L<Audio::Scan>.
 
 =head1 VERSION
 
