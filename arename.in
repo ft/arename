@@ -1130,9 +1130,9 @@ extension)
 =head3 Hooks when expanding the template
 
 These hooks are called when the template string is filled with the data
-from tags in the audio files. All file type specific actions will have
-been taken care of already. That makes these hooks probably most useful
-for post processing tags, the template and file names.
+from tags in the audio files. To do this, B<arename> first tokenises the
+template string into a data structure, which is later used to assemble
+the target file name.
 
 =over 4
 
@@ -1142,26 +1142,6 @@ Called before any expansions are done.
 
 I<Arguments>: B<1:> the template string, B<2:> the data hash
 
-=item B<expand_template_next_tag>
-
-This hook is triggered when the next identifier in the template string
-is processed. At this point it is already verified, that there is an
-according tag in the data hash to fill in the identifier's space.
-
-I<Arguments>: B<1:> the template string, B<2:> the tag's name
-B<3:> the value of the length modifier in the template (zero, if
-unspecified) B<4:> the data hash
-
-=item B<expand_template_postprocess_tag>
-
-This hooks is triggered after all internal processing of the replacement
-token is done (directory seperators are replaced; tracknumbers are padded
-up).
-
-I<Arguments>: B<1:> the template string, B<2:> the text token, that will
-replace the identifier in the template, B<3:> the tag's name B<4:> the
-value of the length modifier, B<5:> the data hash
-
 =item B<post_expand_template>
 
 Called after all expansions have been done, right before the the resulting
@@ -1169,6 +1149,27 @@ string is returned.
 
 I<Arguments>: B<1:> the template string (fully expanded), B<2:> the data
 hash
+
+=item B<expand_template_pre_expand_tag>
+
+Called each time the value of an existing tag is expanded. This may be
+more than once, as tags may be used as often in a template as the
+user requires. At each point, this hook will be called right before
+the data was retrieved and post-processed (like zero-padding the
+`tracknumber' tag).
+
+I<Arguments>: B<1:> the tag's name, B<2:> the data hash
+
+=item B<expand_template_post_expand_tag>
+
+Called each time the value of an existing tag is expanded. Like with the
+`expand_template_pre_expand_tag' hooks, this may be more than once.
+
+At each point, this hook will be called right after the data was retrieved
+and post-processed.
+
+I<Arguments>: B<1:> the value, which will be used for expansion,  B<2:> the
+tag's name, B<2:> the data hash
 
 =back
 
