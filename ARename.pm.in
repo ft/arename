@@ -522,7 +522,6 @@ sub fill_data {
     my ($errout);
 
     $errout = 0;
-    run_hook("pre_fill_$type");
     foreach my $info (sort keys %{ $infomap{$type} }) {
         if (__fill_data($type, $info, $infomap{$type}{$info}, $rd, $datref) < 0)
         {
@@ -535,7 +534,6 @@ sub fill_data {
     if (defined $infomap{$type}{'fill_function'}) {
         $infomap{$type}{'fill_function'}->($rd, $datref, $type);
     }
-    run_hook("post_fill_$type");
 
     return 1;
 }
