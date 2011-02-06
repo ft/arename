@@ -622,10 +622,8 @@ sub process_file {
     }
     run_hook('pre_rename', \$type, \$ext);
     $postproc->(\%data, $ext);
-    run_hook('post_rename');
 
     run_hook('file_done');
-
     return 1;
 }
 
