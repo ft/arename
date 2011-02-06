@@ -1175,101 +1175,9 @@ hash
 =head3 Hooks when gathering information
 
 These hooks are triggered while the tag information is extracted from
-the audio files arename is processing. Due to the differing nature
-of the the involved backends, these are slightly different from file type
-to file type.
-
-Specifically, the tag for .ogg and .flac files are read one after another
-(the tags in these files are pretty much the same, hence they are processed
-exactly the same), whereas tags in .mp3 files are read all at the same
-time.
+the audio files arename is processing.
 
 =over 4
-
-=item B<pre_process_flac>
-
-I<.flac only!>
-
-Called I<before> a flac file is processed.
-
-I<Arguments>:
-
-=item B<post_process_flac>
-
-I<.flac only!>
-
-Called I<after> a flac file is processed.
-
-I<Arguments>:
-
-=item B<pre_process_ogg>
-
-I<.ogg only!>
-
-Called I<before> an ogg file is processed.
-
-I<Arguments>:
-
-=item B<post_process_ogg>
-
-I<.ogg only!>
-
-Called I<after> an ogg file is processed.
-
-I<Arguments>:
-
-=item B<pre_handle_vorbistag>
-
-I<.ogg and .flac only!>
-
-Triggered I<before> any processing of a certain tag. It is not ensured
-that the tag is even among the supported tags at this point.
-
-I<Arguments>: B<1:> tag name, B<2:> tag value, B<3:> data hash
-
-=item B<post_handle_vorbistag>
-
-I<.ogg and .flac only!>
-
-Triggered I<after> a certain tag was processed.
-
-This hook is only reached if the currently processed tag is in fact among
-the tags supported by B<arename>.
-
-I<Arguments>: B<1:> tag name, B<2:> tag value, B<3:> the internal name for
-the tag (also used as the key in the data hash), B<4:> data hash
-
-=item B<pre_process_mp3>
-
-I<.mp3 only!>
-
-Called I<before> an mp3 file is processed.
-
-I<Arguments>:
-
-=item B<post_process_mp3>
-
-I<.mp3 only!>
-
-Called I<after> an mp3 file is processed.
-
-I<Arguments>:
-
-=item B<pre_handle_mp3tag>
-
-I<.mp3 only!>
-
-Called I<before> data from the mp3 object is copied to the data hash.
-
-I<Arguments>: B<1:> the mp3 object, B<2:> data hash
-
-=item B<post_handle_mp3tag>
-
-I<.mp3 only!>
-
-Called I<after> data from the mp3 object has been copied to the data hash.
-
-I<Arguments>: B<1:> the mp3 object, B<2:> data hash
 
 =back
 
@@ -1284,19 +1192,6 @@ to missing values in the audio file. This hook is I<only> run if a
 default value for a tag will be used!
 
 I<Arguments>: B<1:> data hash, B<2:> current key
-
-=item B<pre_method>
-
-This hook is called after a method for a file type is chosen but
-I<before> the method was executed.
-
-I<Arguments>: B<1:> method name
-
-=item B<post_method>
-
-Called after a method for a file type was executed.
-
-I<Arguments>: B<1:> method name
 
 =item B<startup>
 
