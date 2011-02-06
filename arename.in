@@ -1081,6 +1081,14 @@ theoretically be supported by arename.
 I<Arguments>: B<1:> the current file name extension B<2:> the file type
 that has been detected
 
+=item B<pre_rename>
+
+This is triggered directly before the actual file renaming process starts. All
+information about the has been gathered at this point.
+
+I<Arguments>: B<1:> the file type, B<2:> the extension that will be used to
+assemble the target filename, B<3:> the data hash
+
 =back
 
 =head3 Hooks in the renaming procedure
