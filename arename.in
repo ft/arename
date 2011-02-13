@@ -1033,12 +1033,12 @@ These hooks are called at the highest level of the script.
 =item B<canonicalize>
 
 This is called in the middle of the file name canonicalization process
-(but B<only> it is enabled via the I<canonicalize> setting).
+(but B<only> if the I<canonicalize> setting is set).
 
-Get the current file name via I<get_file()>. The canonicalized file name
-is handed to you via the hook's arguments. The value from this argument
-will be assigned to the processed filename after the execution of this
-hook.
+You can get the current file name via I<get_file()>. The canonicalized
+file name is handed to you via the hook's arguments. The value from
+this argument will be assigned to the processed filename after the
+execution of this hook.
 
 I<Arguments>: B<1:> canonicalized file name
 
@@ -1054,8 +1054,9 @@ I<Arguments>:
 Called in the main loop I<after> the file checks and canonicalizations
 are done.
 
-By file checks, checks for read-access and for symlinks are meant. B<arename>
-will refuse to process symlinks and files it cannot read.
+In this context, file checks means tests for read-access and for
+whether the processed file is a symlink. B<arename> will refuse to
+process symlinks and files it cannot read.
 
 I<Arguments>:
 
@@ -1078,16 +1079,17 @@ I<Arguments>:
 Called when it has been established, that the file in question should
 theoretically be supported by arename.
 
-I<Arguments>: B<1:> the current file name extension B<2:> the file type
-that has been detected
+I<Arguments>: B<1:> the current file name extension B<2:> the file
+type that has been detected
 
 =item B<pre_rename>
 
-This is triggered directly before the actual file renaming process starts. All
-information about the has been gathered at this point.
+This is triggered directly before the actual file renaming process
+starts. All information about the file has been gathered at this
+point.
 
-I<Arguments>: B<1:> the file type, B<2:> the extension that will be used to
-assemble the target filename, B<3:> the data hash
+I<Arguments>: B<1:> the file type, B<2:> the extension that will be
+used to assemble the target filename, B<3:> the data hash
 
 =back
 
@@ -1169,33 +1171,33 @@ hash
 =item B<expand_template_pre_expand_tag>
 
 Called each time the value of an existing tag is expanded. This may be
-more than once, as tags may be used as often in a template as the
-user requires. At each point, this hook will be called right before
-the data was retrieved and post-processed (like zero-padding the
+more than once, as tags may be used as often in a template as the user
+requires. At each point, this hook will be called right before the
+data was retrieved and post-processed (like zero-padding the
 `tracknumber' tag).
 
 I<Arguments>: B<1:> the tag's name, B<2:> the data hash
 
 =item B<expand_template_post_expand_tag>
 
-Called each time the value of an existing tag is expanded. Like with the
-`expand_template_pre_expand_tag' hooks, this may be more than once.
+Called each time the value of an existing tag is expanded. Like with
+the `expand_template_pre_expand_tag' hook, this may be more than once.
 
-At each point, this hook will be called right after the data was retrieved
-and post-processed.
+At each point, this hook will be called right after the data was
+retrieved and post-processed.
 
-I<Arguments>: B<1:> the value, which will be used for expansion,  B<2:> the
-tag's name, B<2:> the data hash
+I<Arguments>: B<1:> the value, which will be used for expansion, B<2:>
+the tag's name, B<2:> the data hash
 
 =back
 
 =head3 Hooks while gathering information
 
 These hooks are triggered while the tag information is extracted from
-the audio files B<arename> is processing. This is done in two steps. First
-the Audio::Scan module is used to scan for the raw meta data information
-from the current file. Then B<arename>'s data hash is being filled with that
-data.
+the audio files B<arename> is processing. This is done in two
+steps. First the Audio::Scan module is used to scan for the raw meta
+data information from the current file. Then B<arename>'s data hash is
+being filled with that data.
 
 =over 4
 
@@ -1208,40 +1210,43 @@ ogg vorbis files)
 
 =item B<post_scan>
 
-This is triggered as soon as Audio::Scan is done processing the current
-file, but before B<arename>'s data hash has been filled.
+This is triggered as soon as Audio::Scan is done processing the
+current file, but before B<arename>'s data hash has been filled.
 
 I<Arguments>: B<1:> the type of the file being processed (`ogg' for
 ogg vorbis files), B<2:> the data structure returned by `Audio::Scan'
 
 =item B<ambiguoustag>
 
-When the data hash is being filled it is possible, that for one B<arename>
-tag (like `artist') multiple values where returned by Audio::Scan. This hook
-is triggered as soon as such a tag with ambiguous values is processed.
+When the data hash is being filled it is possible, that for one
+B<arename> tag (like `artist') multiple values where returned by
+Audio::Scan. This hook is triggered as soon as such a tag with
+ambiguous values is processed.
 
 The hook may be used for maximum control over how ambiguous values are
-handled. To do this, the ambiguous value (passed as an array reference in
-the second argument) should be turned into the desired scalar value.
+handled. To do this, the ambiguous value (passed as an array reference
+in the second argument) should be turned into the desired scalar
+value.
 
 If the array reference is left as it is, the usual `ambiguoususefirst'
 behaviour is followed. The the option's description for details.
 
-I<Arguments>: B<1:> the name of the tag with the ambiguous value, B<2:> its
-current (ambiguous) value, B<3:> the data hash in its current form (obviously
-not all values will have been filled in at this point), B<4:> the data
-structure returned by Audio::Scan (see its documentation for details)
+I<Arguments>: B<1:> the name of the tag with the ambiguous value,
+B<2:> its current (ambiguous) value, B<3:> the data hash in its
+current form (obviously not all values will have been filled in at
+this point), B<4:> the data structure returned by Audio::Scan (see its
+documentation for details)
 
 =item B<post_fill>
 
 Finally, the `post_fill' hook is called after the data hash has been
-filled. This is a good spot, if post-processing the values of individual
-tag is desired.
+filled. This is a good spot, if post-processing the values of
+individual tag is desired.
 
-I<Arguments>: B<1:> return code of the filling process (`0' in case of an
-error, `1' otherwise), B<2:> the type of the file being processed (`ogg' for
-ogg vorbis files), B<3:> the data structure returned by `Audio::Scan',
-B<4:> the data hash.
+I<Arguments>: B<1:> return code of the filling process (`0' in case of
+an error, `1' otherwise), B<2:> the type of the file being processed
+(`ogg' for ogg vorbis files), B<3:> the data structure returned by
+`Audio::Scan', B<4:> the data hash.
 
 
 =back
