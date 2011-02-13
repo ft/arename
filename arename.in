@@ -695,6 +695,18 @@ if it exists. (default value: I<false>)
 If set to true, configuration profiles will be used. If false, they are not.
 (default value: I<true>)
 
+=item B<usetypeasextension>
+
+One file type may be used for different file name extensions. For
+example, files matching I<*.ogg> and I<*.oga> will both be handled as
+type I<ogg> in Audio::Scan (the information gathering backend,
+B<arename> is using since version 4.0).
+
+When this option is set to I<true>, a file matching I<*.oga> would be
+renamed using I<.ogg> as the extension, since its type is
+I<ogg>. Otherwise, the original extension is left untouched. (default:
+I<true>)
+
 =item B<verbose>
 
 Switches on verbosity by default. This makes B<arename>'s output really
