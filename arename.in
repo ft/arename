@@ -1268,10 +1268,9 @@ this point already.
 This hook may be useful for postprocessing the configuration as well as
 for debugging.
 
-I<Arguments>: B<1:> program name, B<2:> its version, B<3:> configuration
-hash, B<4:> hash of extensions, that point the the according method for
-the file type B<5:> array of supported tags, B<6:> the program's argument
-list
+I<Arguments>: B<1:> program name, B<2:> its version, B<3:>
+configuration hash, B<4:> array of supported tags, B<5:> the program's
+argument list
 
 =item B<normal_quit>
 

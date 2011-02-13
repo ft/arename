@@ -46,7 +46,7 @@ use Audio::Scan;
 
 # variables
 my (
-    %cmdline_protect, %conf, %defaults, %hooks, %methods, %parsers, %profiles,
+    %cmdline_protect, %conf, %defaults, %hooks, %parsers, %profiles,
     %opts, %sectconf, %sets, %typemap, %infomap, %defaultmap,
     $__arename_file, $postproc, $sect,
     @cmdline_profiles, @localizables, @settables, @supported_tags,
@@ -58,7 +58,6 @@ sub data_reset {
     undef %conf;
     undef %defaults;
     undef %hooks;
-    undef %methods;
     undef %parsers;
     undef %profiles;
     undef %opts;
@@ -2218,7 +2217,7 @@ sub startup_hook {
     return run_hook(
                 'startup',
                 \$NAME, \$VERSION,
-                \%conf, \%methods,
+                \%conf,
                 \@supported_tags, \@main::ARGV
            );
 }
