@@ -5,7 +5,7 @@ sub print_banner0 {
     # Yes, everything handed over to hooks (except for the namespace)
     # are references. This gives us simple two way communication, but
     # it's also a pretty big hammer. Think before screwing up. :)
-    my ($namespace, $nameref, $verref, $confref, $methref, $suptagsref, $argvref) = @_;
+    my ($namespace, $nameref, $verref, $confref, $suptagsref, $argvref) = @_;
 
     oprint "BANNER! $$nameref $$verref " . $argvref->[0] . "\n";
 
@@ -20,7 +20,7 @@ sub print_banner0 {
 register_hook('startup', \&print_banner0);
 
 sub print_banner1 {
-    my ($namespace, $nameref, $verref, $confref, $methref, $suptagsref, $argvref) = @_;
+    my ($namespace, $nameref, $verref, $confref, $suptagsref, $argvref) = @_;
 
     # Since $NAME used to be 'arename', the substitution
     # in print_banner0() will have changed $NAME to 'areblame.pl',
@@ -121,18 +121,19 @@ sub mp3_recode_iso_to_utf8 {
     #
     # This can be done more clever, probably by guessing the encoding of the
     # source strings; but that's for someone else to tackle.
-    my ($namespace, $mp3ref, $datref) = @_;
+    my ($namespace, $rcref, $typeref, $rdref, $datref) = @_;
     my $name = 'mp3_recode_iso_to_utf8';
     my $src;
 
-    foreach my $key (sort keys %{ $datref }) {
-        $src = $datref->{$key};
+    return if ($$typeref ne 'mp3');
+    foreach my $tag (keys %{ $datref }) {
+        $src = $datref->{$tag};
         if ($src =~ m/[^[:ascii:]]/) {
-            $datref->{$key} = Encode::encode("UTF-8", $src);
-            oprint_verbose("$name: * Recoded ($key)\n");
+            $datref->{$tag} = Encode::encode("UTF-8", $src);
+            oprint_verbose("$name: * Recoded ($tag)\n");
             oprint_verbose("$name: * From: \"$src\"\n");
-            oprint_verbose("$name: *   To: \"" . $datref->{$key} . "\"\n");
+            oprint_verbose("$name: *   To: \"" . $datref->{$tag} . "\"\n");
         }
     }
 }
-register_hook('post_handle_mp3tag', \&mp3_recode_iso_to_utf8);
+register_hook('post_fill', \&mp3_recode_iso_to_utf8);
