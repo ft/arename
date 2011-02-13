@@ -17,10 +17,7 @@ Things I'd like arename to do:
     ...done.
 
 + Update hooks API:
-    - The switch to Audio::Scan will definately break the hook API
-      as it is in arename3.x; it will however become more consistent,
-      so that's a good thing[tm]. However breaking user visible API
-      will require us to bump the major version number again...
+    ...done.
 
 + Update documentation:
     - This, of course, won't be avoidable and I cannot *wait* to get
