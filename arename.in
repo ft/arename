@@ -18,6 +18,10 @@ arename [OPTION(s)] FILE(s)...
 
 =over 8
 
+=item B<--ambiguous-use-first>
+
+Sets the I<ambiguoususefirst> option. See below for details.
+
 =item B<--compare-versions>
 
 Prints the version of the arename script and the version of the Perl module,
@@ -572,6 +576,19 @@ sections are: All I<default_*> options, I<force>, I<prefix>, I<sepreplace>,
 I<tnpad>, I<comp_template> and I<template>.
 
 =over 8
+
+=item B<ambiguoususefirst>
+
+Some tag types support setting the sametag multiple times. The
+scanning backends before arename 4.0 did not support such tags. When
+this option is set to I<false> (default), arename gives up when it
+encounters such tags.
+
+When set to I<true>, arename just uses the first value it encounters.
+
+For maximum control over how tags with ambiguous values are handled,
+you may use the `I<ambiguoustag>' hook. (default: I<false>)
+
 
 =item B<canonicalize>
 
