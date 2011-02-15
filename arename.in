@@ -186,17 +186,25 @@ configuration) is not exactly as you expected it.
 
 =head2 Supported file formats
 
-B<arename> currently supports three widely used audio formats, namely
-MPEG Layer3, ogg vorbis and flac (Free Lossless Audio Codec). The format,
-that B<arename> will assume for each input file is determined by the file's
-filename-extension (I<.mp3> vs. I<.ogg> vs. I<.flac>).
-The extension check is case-insensitive.
+Since version 4.0, B<arename> supports a lot more file formats than it
+used to (version 3.0 only supported I<.mp3>, I<.ogg> and I<.flac>
+files). Thanks to Audio::Scan, we now support a much wider range of
+file types, of which most may exist using different file name
+extensions (e.g. I<*.ogg> and I<*.oga> are both of the type I<ogg>).
 
-I<.mp3> files may contain different types of tags, namely id3v1 and id3v2.
-Id3v1 is a very limited format. Therefore B<arename> will use the id3v2 tag
-when it finds it. Which means you should make sure that the id3v2 tag has
-all the information you need, if you use files with both id3v1 and id3v2
-tags.
+You may use the `I<--list-file-types>' and `I<--list-ext-for-type>'
+options to find out which file type is mapped to which file name
+extensions.
+
+If you would like support for another file type in B<arename>, you
+will have to persuade the Audio::Scan developers to extend their
+module with said feature. Adding support for it in B<arename> after
+that should be trivial.
+
+To give you an idea, arename (in connection with Audio::Scan B<0.85>)
+let's you rename I<mp3>, I<mp4>, I<aac>, I<ogg>, I<flac>, I<asf>,
+I<musepack>, I<monkey audio>, I<wav> (this type also supports I<aiff>)
+and I<wavpack> files.
 
 =head2 Inputting a *lot* of files
 
