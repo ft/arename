@@ -68,6 +68,16 @@ Display a short help text.
 
 List the current configuration in the actual configuration format.
 
+=item B<--list-file-types>
+
+Lists all file types currently supported by B<arename>, one type
+per line.
+
+=item B<--list-exts-for-type> E<lt>typeE<gt>
+
+Lists all extensions recognised file name extsionsion for type
+B<E<lt>typeE<gt>>, one extension per line.
+
 =item B<--list-profiles> (short option: B<-S>)
 
 Print a list of profile names defined in the active configuration.
