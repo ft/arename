@@ -1613,6 +1613,29 @@ sub parse_set {
 # handling commandline options
 Readonly::Scalar my $CMDLINE_PROTECT => 1;
 
+sub __list_extensions {
+    my ($arg) = @_;
+
+    foreach my $t (keys %typemap) {
+        if ($arg eq $typemap{$t}) {
+            foreach my $ext (@{ Audio::Scan->extensions_for($t) }) {
+                print "$ext\n";
+            }
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+sub __list_file_types {
+    foreach my $t (sort keys %typemap) {
+        print "$typemap{$t}\n";
+    }
+
+    return 1;
+}
+
 sub checkstropts {
     my (@o) = @_;
 
@@ -1740,22 +1763,16 @@ sub read_cmdline_options {
     }
 
     if (cmdopts("list-file-types")) {
-        foreach my $t (sort keys %typemap) {
-            print "$typemap{$t}\n";
-        }
+        __list_file_types();
         exit 0;
     }
 
     if ($tmp = cmdoptstr("list-exts-for-type")) {
-        foreach my $t (keys %typemap) {
-            if ($tmp eq $typemap{$t}) {
-                foreach my $ext (@{ Audio::Scan->extensions_for($t) }) {
-                    print "$ext\n";
-                }
-                exit 0;
-            }
+        if (__list_extensions($tmp)) {
+            exit 0;
+        } else {
+            die "Unknown type `$tmp'. Giving up.\n";
         }
-        die "Unknown type `$tmp'. Giving up.\n";
     }
 
     $tmp = cmdoptstr("profile");
