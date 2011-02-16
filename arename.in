@@ -769,53 +769,134 @@ L</HOOKS> below).
 
 =head1 TEMPLATE FORMAT
 
-B<arename>'s templates are quite simple, yet powerful.
+B<arename>'s templates are fairly easy to understand, but powerful.
 
-At simplest, a template is just a fixed character string. However, that would
-not be exactly useful. So, the script is able to expand certain expressions
-with information gathered from the file's tagging information.
+At simplest, a template is just a fixed character string. However,
+that would not be exactly useful, because then every file you would
+ever want to rename would be getting the exact same name. That is why
+B<arename> is able to expand certain expressions with information
+gathered from the file's tagging information.
 
-The expressions can have two slightly different forms:
+An expression basically looks like one of the following forms:
 
 =over 8
 
 =item B<&>I<identifier>
 
-The simple form.
+This is the `B<trivial>' expression. It will expand to the information
+stored within the corresponding tag. If the tag in question is not
+available, the expansion of the template string will fail.
 
 =item B<&>I<identifier>B<[>I<length>B<]>
 
-The "complex" form. The I<length> argument in square brackets defines the
-maximum length, to which the expression should be expanded.
+The `B<sized>' expression. The I<length> modifier in square brackets
+defines the maximum length, to which the expression should be
+expanded.
 
-That means, if the Artist of a file reveals to be 'I<Frank Zappa>', then
-using 'B<&artist[1]>' will expand to 'I<F>'.
+That means, if the artist of a file reveals to be 'I<Frank Zappa>',
+then using 'B<&artist[1]>' will expand to 'I<F>'.
+
+=item B<&{>I<identifier>B<:>I<default-template>B<}>
+
+This is the first complex expession, called `B<complex-default>'. When
+the tag, which corresponds to `I<identifier>' is available, this
+expression will expand exactly like the trivial expression would.
+
+If it is B<not> available though, the expansion doesn't fail, but
+instead the `I<default-template>' string is expanded.
+
+=item B<&{>I<identifier>B<?>I<set-template>B<!>I<unset-template>B<}>
+
+This expansion is called `B<complex-set-unset>'. Again, what will be
+used during template expansion depends on whether the tag which
+corresponds to `I<identifier>' is set or not.
+
+If it is B<set>, the string I<set-template> is expanded; if it is
+B<unset>, the I<unset-template> string is used.
 
 =back
 
+Both simple expansions may be used with braces, like the complex
+expansions are:
+
+=over 8
+
+=item B<&{>I<identifier>B<}>
+
+This is equal to `B<&identifier>'.
+
+=item B<&{>I<identifier[length]>B<}>
+
+And this is equal to `B<&identifier[length]>'.
+
+=back
+
+Backslashes are special in template strings, becuase they are used to
+quote characters that bear special meaning (for example, to get a
+ampersand character, you need to use "B<\&>"). To get an actual
+backslash in the resulting string, you need to use a backslash, quoted
+by a backslash. A backslash on non-special characters is silently
+dropped.
+
+=head2 Nesting expressions
+
+In complex expressions, the strings called `I<default-template>',
+`I<set-template>' and `I<unset-template>' are subject to regular
+template expansion. Hence, expressions like the following are
+possible:
+
+  "&{album?&album/!}"
+
+If `B<album>' were set, it would expand to its value followed by a
+slash; otherwise it would expand to nothing. Using this, it is fairly
+easy to deal with album-less tracks:
+
+  "&artist/&{album?&album/&tracknumber. !-no-album-/}&tracktitle"
+
+That will effectively use the following template if `B<album>' is set:
+
+  "&artist/&album/&tracknumber. &tracktitle"
+
+But if it is not set, it will instead use this:
+
+  "&artist/-no-album-/&tracktitle"
+
+Caution has to be taken if certain characters are to be used within
+conditional template expressions. For example, to use a closing curly
+bracket in either of them, it needs to be quoted using a backslash
+character.
+
+Similarly, if an exclamation mark is to be used in a
+`I<set-template>', it needs to be quoted by a backslash to avoid the
+character being interpreted as the end of the `I<set-template>'
+string.
+
 =head2 Available expression identifiers
 
-The data, that is expanded is derived from tagging information in
-the audio files. For I<.ogg> and I<.flac> files, the tag checking
-B<arename> does is case insensitive and the first matching tag
-will be used.
+The data, that is expanded is derived from tagging information in the
+audio files. There are two kinds of information available. One is the
+purely informational tag (like a track's artist) and the other further
+describes the format of the audio file (like the file's bitrate).
+
+This is a list of all all informational identifiers available for
+B<all> file-types:
 
 =over 8
 
 =item B<album>
 
-Guess.
+The album the currently processed track is part of.
 
 =item B<artist>
 
-Guess again.
+The artist for the current track.
 
 =item B<compilation>
 
-For I<.ogg> and I<.flac> this is filled with information found in the
-'albumartist' tag. For I<.mp3> this is filled with information from the
-id3v2 TPE2 frame. If the mp3 file only provides a id3v1 tag, this is not
-supported.
+Compilation tags are not very stable across different file
+types. Usually, this is set to a string like "I<Various Artists>" for
+tracks that are part of some sort of compilation album (like motion
+picture sound-tracks).
 
 =item B<genre>
 
@@ -831,11 +912,74 @@ in L</SETTINGS>).
 
 =item B<tracktitle>
 
-Well...
+The title of the currently processed track.
 
 =item B<year>
 
-Year (id3v1), TYER (id3v2) or DATE tag (.ogg/.flac).
+Chronological information about the track (usually the year a song was
+written or the year the album a track is part of was released).
+
+=back
+
+Here is a list of file-format information tag available for B<all>
+file-types:
+
+=over 8
+
+=item B<bitrate>
+
+The bitrate the file was recorded/encoded with.
+
+=item B<channels>
+
+The number of channels available in the file (for example, this is `2'
+for stereo files).
+
+=item B<length_ms>
+
+The length of the track in milli-seconds.
+
+=item B<samplerate>
+
+The samplerate the file was recorded/encoded with.
+
+=back
+
+For B<all> file-types, the following tags are generated from the ones
+listed above (for convenience):
+
+=over 8
+
+=item B<kbitrate>
+
+Kilobits per second (bitrate / 1000).
+
+=item B<ksamplerate>
+
+Kilosamples per second (samplerate / 1000).
+
+=item B<length_sec>
+
+The length of the track in seconds.
+
+=back
+
+Some tags are only available for certain file-types. They are always
+called `I<type_>B<*>'. Here is a list of those tags:
+
+=over 8
+
+=item B<flac_wordsize>
+
+The word-size used in a flac file. `24' if samples are 24 bits wide.
+
+=item B<mp3_id3_version>
+
+The version of the id3 tag used in mp3 files (e.g. "B<ID3v2.3.0>").
+
+=item B<wav_id3_version>
+
+The same as `I<mp3_id3_version>', but for wave files.
 
 =back
 
