@@ -1,18 +1,43 @@
 #compdef arename
 
+# Z-Shell completion function for arename.
+# <http://ft.bewatermyfriend.org/comp/arename.html>
+#
+# Note: The first time this function is called may take longer than the
+#       others. The reason for this is that the function asks `arename'
+#       about it's supported file types and extensions. These are kept in
+#       memory in later calls, so later invocations are instantaneous.
+#
 # Written by Frank Terbeck <ft@bewatermyfriend.org>.
 #
-# Distributed with arename <http://ft.bewatermyfriend.org/comp/arename.html>,
-# under the same terms as arename itself (2-clause BSD); See the LICENCE file
-# which is included in the arename distribution.
+# Distributed with arename, under the same terms as arename itself
+# (2-clause BSD); See the LICENCE file which is included in the
+# arename distribution.
 
-local arguments
-local -a supported_extensions
+local type line
+typeset -ga _arename_types
+typeset -ga _arename_extensions
 
-supported_extensions=( 'mp3' 'ogg' 'flac' )
+_arename_types=( )
+_arename_extensions=( )
+
+arename --list-file-types | while read line; do
+    _arename_types+=( "$line" )
+done
+
+for type in "${_arename_types[@]}"; do
+    arename --list-exts-for-type "$type" | while read line; do
+        _arename_extensions+=( "$line" )
+    done
+done
 
 function _arename_files() {
-    _path_files -g "(#i)*.(${(j:|:)supported_extensions})" -g "*(-/)"
+    _path_files -g "(#i)*.(${(j:|:)_arename_extensions})(.)" -g "*(-/)"
+}
+
+function _arename_types() {
+    local expl
+    _wanted list expl 'file type' compadd -- ${_arename_types}
 }
 
 function _arename_profiles() {
@@ -25,38 +50,46 @@ function _arename_profiles() {
         -- ${(f)"$(arename --list-profiles)"}
 }
 
-arguments=(
-    '--ambiguous-use-first[if a tag has multiple values, use the 1st]:'
-    '--compare-versions[compare versions of script and module]:'
-    '(--copy -c)'{--copy,-c}'[copy files, rather than rename]'
-    '(--debug -D)'{--debug,-D}'[enable debugging output]'
-    '(--disable-hooks -H)'{--disable-hooks,-H}'[disable all hooks]'
-    '(--disable-profiles -N)'{--disable-profiles,-N}'[disable all profiles]'
-    '(--dryrun -d)'{--dryrun,-d}'[go into dry-run mode]'
-    '--enable-hooks[enable hooks, if they are disabled in the configuration]'
-    '(--force -f)'{--force,-f}'[overwrite file(s) if needed]'
-    '(--help -h)'{--help,-h}'[display help information]:'
-    '(--list-cfg -L)'{--list-cfg,-L}'[list current configuration]:'
-    '(--list-profiles -S)'{--list-profiles,-S}'[list all profiles in active configuration]:'
-    '(--verbose -v --quiet -q)'{--quiet,-q}'[enable quiet output]'
-    '(--read-local -l)'{--read-local,-l}'[read local config file]'
-    '(--stdin -s)'{--stdin,-s}'[read filenames from stdin]'
-    '(--verbose -v --uber-quiet -Q)'{--uber-quiet,-Q}'[do not display skips in quiet mode]'
-    '(--quiet -q --uber-quiet -Q --verbose -v)'{--verbose,-v}'[enable verbose output]'
-    '(--version -V)'{--version,-v}'[display version infomation]:'
+function _arename() {
+    local -a arguments
 
-    '--rc[read a file instead of ~/.arenamerc]:config file:_files'
-    '--post-rc[read a file in addition to ~/.arenamerc]:config file:_files'
+    arguments=(
+        '--ambiguous-use-first[if a tag has multiple values, use the 1st]:'
+        '--compare-versions[compare versions of script and module]:'
+        '(--copy -c)'{--copy,-c}'[copy files, rather than rename]'
+        '(--debug -D)'{--debug,-D}'[enable debugging output]'
+        '(--disable-hooks -H)'{--disable-hooks,-H}'[disable all hooks]'
+        '(--disable-profiles -N)'{--disable-profiles,-N}'[disable all profiles]'
+        '(--dryrun -d)'{--dryrun,-d}'[go into dry-run mode]'
+        '--enable-hooks[enable hooks, if they are disabled in the configuration]'
+        '(--force -f)'{--force,-f}'[overwrite file(s) if needed]'
+        '(--help -h)'{--help,-h}'[display help information]:'
+        '(--list-cfg -L)'{--list-cfg,-L}'[list current configuration]:'
+        '--list-file-types[list file types]:'
+        '--list-exts-for-type[list extensions for a file type]:file type:_arename_types'
+        '(--list-profiles -S)'{--list-profiles,-S}'[list all profiles in active configuration]:'
+        '(--verbose -v --quiet -q)'{--quiet,-q}'[enable quiet output]'
+        '(--read-local -l)'{--read-local,-l}'[read local config file]'
+        '(--stdin -s)'{--stdin,-s}'[read filenames from stdin]'
+        '(--verbose -v --uber-quiet -Q)'{--uber-quiet,-Q}'[do not display skips in quiet mode]'
+        '(--quiet -q --uber-quiet -Q --verbose -v)'{--verbose,-v}'[enable verbose output]'
+        '(--version -V)'{--version,-v}'[display version infomation]:'
 
-    '(--prefix -p)'{--prefix,-p}'[define a directory prefix for destination file(s)]:directory prefix:_path_files -g '\''*(-/)'\'
-    '(--profile -P)'{--profile,-P}'[force the use of certain profile(s)]:profile(s):_arename_profiles'
+        '--rc[read a file instead of ~/.arenamerc]:config file:_files'
+        '--post-rc[read a file in addition to ~/.arenamerc]:config file:_files'
 
-    '(--compilation-template -T)'{--compilation-template,-T}'[define a compilation template]:compilation template:'
-    '(--template -t)'{--template,-t}'[define a generic template]:template:'
+        '(--prefix -p)'{--prefix,-p}'[define a directory prefix for destination file(s)]:directory prefix:_path_files -g '\''*(-/)'\'
+        '(--profile -P)'{--profile,-P}'[force the use of certain profile(s)]:profile(s):_arename_profiles'
 
-    '*'{--userset,-u}'[set a user variable]:user variable (format var=value):'
+        '(--compilation-template -T)'{--compilation-template,-T}'[define a compilation template]:compilation template:'
+        '(--template -t)'{--template,-t}'[define a generic template]:template:'
 
-    '*:audio files:_arename_files'
-)
+        '*'{--userset,-u}'[set a user variable]:user variable (format var=value):'
 
-_arguments -s $arguments
+        '*:audio files:_arename_files'
+    )
+
+    _arguments -s "${arguments[@]}"
+}
+
+_arename "$@"
