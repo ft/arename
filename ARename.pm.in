@@ -1613,19 +1613,34 @@ sub parse_set {
 # handling commandline options
 Readonly::Scalar my $CMDLINE_PROTECT => 1;
 
+sub __list_ext_for_type {
+    # This assumes its argument is valid.
+    my ($type) = @_;
+
+    foreach my $ext (@{ Audio::Scan->extensions_for($type) }) {
+        print "$ext\n";
+    }
+}
+
 sub __list_extensions {
     my ($arg) = @_;
+    my (@types, $rc);
 
-    foreach my $t (keys %typemap) {
-        if ($arg eq $typemap{$t}) {
-            foreach my $ext (@{ Audio::Scan->extensions_for($t) }) {
-                print "$ext\n";
+    @types = split /,/, $arg;
+    $rc = 1;
+
+ T: foreach my $type (@types) {
+        foreach my $t (keys %typemap) {
+            if ($type eq $typemap{$t}) {
+                __list_ext_for_type($t);
+                next T;
             }
-            return 1;
         }
+        $rc = 0;
+        warn "Unknown type `$type'.\n";
     }
 
-    return 0;
+    return $rc;
 }
 
 sub __list_file_types {
@@ -1771,7 +1786,7 @@ sub read_cmdline_options {
         if (__list_extensions($tmp)) {
             exit 0;
         } else {
-            die "Unknown type `$tmp'. Giving up.\n";
+            exit 1;
         }
     }
 

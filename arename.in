@@ -73,10 +73,11 @@ List the current configuration in the actual configuration format.
 Lists all file types currently supported by B<arename>, one type
 per line.
 
-=item B<--list-exts-for-type> E<lt>typeE<gt>
+=item B<--list-exts-for-type> E<lt>type[,type[,...]]E<gt>
 
 Lists all extensions recognised file name extsionsion for type
-B<E<lt>typeE<gt>>, one extension per line.
+B<E<lt>typeE<gt>>, one extension per line. If a list of types is given
+as a comma-separated list, extensions for all listed types are listed.
 
 =item B<--list-profiles> (short option: B<-S>)
 
