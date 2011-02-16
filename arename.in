@@ -1500,7 +1500,7 @@ distribution.
 
 =head1 SEE ALSO
 
-L<find(1)>, L<xargs(1)>, L<Audio::Scan>.
+L<find>(1), L<xargs>(1), L<Audio::Scan>.
 
 =head1 VERSION
 
