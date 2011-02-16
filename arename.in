@@ -244,7 +244,7 @@ the external program (B<arename> in this case) with as many arguments as
 possible, without exceeding the limit. This requires a POSIXly correct
 find. GNU find for instance, did not support the I<+> way for a long time.
 If you are stuck with an old version, you can exchange the I<+> with a
-I<;> (note, that a semicolon B<must> be quoted in any case), or use GNU's
+I<;> (note, that a semicolon B<must> be quoted in any case), or use the
 xargs tool instead.
 
 A last solution for zsh users would be zargs (which requires
