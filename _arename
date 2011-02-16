@@ -33,19 +33,23 @@ function _arename_files() {
     _path_files -g "(#i)*.(${(j:|:)_arename_extensions})(.)" -g "*(-/)"
 }
 
+function _arename_comma() {
+    local expl tag
+    local -a already
+
+    tag="$1"
+    shift
+    compset -P '*,'
+    already=(${(s<,>)IPREFIX})
+    _wanted list expl "$tag" compadd -S, -F already -q ${expl} -- "$@"
+}
+
 function _arename_types() {
-    local expl
-    _wanted list expl 'file type' compadd -- ${_arename_types}
+    _arename_comma 'file type' ${_arename_types}
 }
 
 function _arename_profiles() {
-    local expl
-    local -a already
-
-    compset -P '*,'
-    already=(${(s<,>)IPREFIX})
-    _wanted list expl 'profile(s)' compadd -S, -F already -q ${expl} \
-        -- ${(f)"$(arename --list-profiles)"}
+    _arename_comma 'profile' ${(f)"$(arename --list-profiles)"}
 }
 
 function _arename() {
