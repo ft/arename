@@ -14,7 +14,7 @@
 # (2-clause BSD); See the LICENCE file which is included in the
 # arename distribution.
 
-local type line
+local line
 typeset -ga _arename_types
 typeset -ga _arename_extensions
 
@@ -25,10 +25,8 @@ arename --list-file-types | while read line; do
     _arename_types+=( "$line" )
 done
 
-for type in "${_arename_types[@]}"; do
-    arename --list-exts-for-type "$type" | while read line; do
-        _arename_extensions+=( "$line" )
-    done
+arename --list-exts-for-type "${(j@,@)_arename_types}" | while read line; do
+    _arename_extensions+=( "$line" )
 done
 
 function _arename_files() {
