@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 19;
+use Test::More tests => 21;
 use Test::Exception;
 
 use ARename;
@@ -125,3 +125,11 @@ is( equal($expected, $expanded), 1, "Quoting characters in extended tag expansio
 $expanded = ARename::expand_template('&tracknumber', \%woot);
 $expected = "07";
 is( equal($expected, $expanded), 1, "Default track-no padding 7->07");
+
+$expanded = ARename::expand_template('\b', \%woot);
+$expected = "b";
+is( equal($expected, $expanded), 1, "Escaped non-metacharacter should work and NOT hang");
+
+$expanded = ARename::expand_template('somewhere i\n \betw\e\en!', \%woot);
+$expected = "somewhere in between!";
+is( equal($expected, $expanded), 1, "Escaped non-metacharacter should work");

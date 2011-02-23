@@ -970,6 +970,11 @@ sub __tokenize_template {
             $buf = '';
             $label = "CPLXSETUNSET";
 
+        # Anything quoted that's left now should go in without the quote,
+        # because it doesn't bear any special meaning.
+        } elsif ($in =~ m/\G\\(.)/gc) {
+            $buf .= $1;
+
         # When we are here, we're not looking at anything special. So
         # just copy anything that doesn't look special into the current
         # token buffer.
