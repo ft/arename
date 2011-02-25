@@ -146,7 +146,7 @@ compilation tag).
 =item B<--userset> E<lt>I<variable>=I<value>E<gt> (short option: B<-u>)
 
 Set a user defined variable to a given value (see
-L<User defined variables> below).
+L</"User defined variables"> below).
 
 =item I<FILE(s)...>
 
@@ -1503,7 +1503,7 @@ distribution.
 
 =head1 SEE ALSO
 
-L<find>(1), L<xargs>(1), L<Audio::Scan>.
+L</find(1)>, L</xargs(1)>, L</Audio::Scan>.
 
 =head1 VERSION
 
@@ -1599,7 +1599,7 @@ foreach my $file (@ARGV) {
 }
 
 if (ARename::get_opt("readstdin")) {
-    while (<STDIN>) {           ## no critic
+    while (<STDIN>) {           ## no critic (ProhibitExplicitStdin)
                                 # *STDIN should be the right thing to do here.
         chomp;
         ARename::set_file($_);
