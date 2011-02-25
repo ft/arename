@@ -47,7 +47,7 @@ use Audio::Scan;
 # variables
 my (
     %cmdline_protect, %conf, %defaults, %hooks, %parsers, %profiles,
-    %opts, %sectconf, %sets, %typemap, %infomap, %defaultmap,
+    %opts, %sectconf, %sets, %typemap, %infomap, %defaultmap, %lsets,
     $__arename_file, $postproc, $sect,
     @cmdline_profiles, @localizables, @settables, @supported_tags,
 );
@@ -2072,14 +2072,27 @@ sub set_defaults {
 
 sub user_get {
     my ($opt) = @_;
+    my ($s);
 
+    $s = section_matches(get_file());
+    if (defined $s) {
+        odebug("returning user setting $lsets{$s}{$opt} (section: $s)\n");
+        return $lsets{$s}{$opt};
+    }
     return $sets{$opt}
 }
 
 sub user_set {
     my ($opt, $val) = @_;
+    my ($s);
 
-    $sets{$opt} = $val;
+    $s = sect_get();
+    if (defined $s) {
+        odebug("Localised user setting ($opt) section($s).\n");
+        $lsets{$s}{$opt} = $val;
+    } else {
+        $sets{$opt} = $val;
+    }
     return 1;
 }
 
@@ -2099,14 +2112,18 @@ sub is_locopt {
 
 sub section_matches {
     my ($filename) = @_;
+    my (@k);
 
     if (!defined $filename) {
         return;
     }
 
+    push @k, keys %sectconf;
+    push @k, keys %lsets;
+
     # The block in the sort call makes sure we always get the longest
     # section names first; that way /foo/bar/ supersedes /foo/.
-    foreach my $section (sort { length $b <=> length $a } keys %sectconf) {
+    foreach my $section (sort { length $b <=> length $a } @k) {
         my $substring = substr $filename, 0, length $section;
         odebug("<$section> ($filename) eq [generated from $filename] ($substring)\n");
 
