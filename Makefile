@@ -5,7 +5,7 @@ prefix="/usr/local"
 libpath="lib/site_perl"
 fakeroot="/usr/bin/fakeroot"
 critic=""
-maxwidth="13"
+maxwidth="14"
 
 # the place where *I* keep the sources of arename's "website".
 # The whole updatewebsite-fu is probably not useful for anybody else.
@@ -70,6 +70,7 @@ install:
 
 install-doc:
 	@./bin/install.sh n README        "$(prefix)/share/doc/arename"          $(maxwidth)
+	@./bin/install.sh n REPORTING_BUGS "$(prefix)/share/doc/arename"         $(maxwidth)
 	@./bin/install.sh n LICENCE       "$(prefix)/share/doc/arename"          $(maxwidth)
 	@./bin/install.sh n CHANGES       "$(prefix)/share/doc/arename"          $(maxwidth)
 	@./bin/install.sh n arename.html  "$(prefix)/share/doc/arename"          $(maxwidth)

@@ -1,0 +1,27 @@
+How to write useful bug reports for arename?
+
+
+As with bugreports for other programs, too, you should definately include as
+much information the system on which the bug is triggered. That includes the
+type of OS, the version of it, the version of Perl5, the version of arename and
+the version of the information gathering backend Audio::Scan.
+
+That's the bare minimum. Also include anything else you may find useful or
+noteworthy. Such things may include the type of file systems which are
+involved, or the character encoding used on the system.
+
+Sometimes, especially when you think that a template is expanded incorrectly
+(or not at all because a tag is missing, although you're sure it's not) it's
+very important what Audio::Scan returned to arename. To do that, arename ships
+a tiny script that dumps Audio::Scan's findings to the terminal. That script is
+called `asdump' and should come with your arename installation. It is called
+like this:
+
+    % perl /path/to/asdump /path/to/the/audio_file.ogg
+
+Please make sure sure to included that output with your bugreport in case of
+such problems.
+
+Most importantly, try to be precise and complete when describing your problem.
+The less I have to guess when reading your report, the better - for the both of
+us. :-)
