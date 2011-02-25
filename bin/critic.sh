@@ -13,7 +13,8 @@ printf 'Checking source code using Perl::Critic...\n\n'
 retval=0
 for file in "$@" ; do
     printf 'PERLCRITIC %s\n' "${file}"
-    "${crit}" --profile perlcriticrc "${file}" || retval=$(( $retval + 1 ))
+    "${crit}" --verbose "[%P]\n%m at line %l, column %c.\n  %p (Severity: %s)\n%d\n" \
+            --profile perlcriticrc "${file}" || retval=$(( $retval + 1 ))
 done
 
 if [ "${retval}" -gt 0 ] ; then
