@@ -36,10 +36,15 @@ ataglist - print audio file metadata
 
 ataglist FILE
 
+=head1 OPTIONS AND ARGUMENTS
+
+I<ataglist> only takes one argument. An audio file to work on. All
+other arguments are ignored silently.
+
 =head1 DESCRIPTION
 
-I<ataglist> takes only one argument, a filename. *.ogg, *.mp3 or *.flac.
-It transparently outputs tagname-tagvalue pairs in the following format:
+I<ataglist> transparently outputs tagname-tagvalue pairs in the
+following format:
 
  tag-name
  tag-value
@@ -51,11 +56,15 @@ Calling this program by hand is probably not that useful.
 
 =head1 SEE ALSO
 
-L<arename(1)>.
+L</arename(1)>.
+
+=head1 AUTHOR
+
+Frank Terbeck E<lt>ft@bewatermyfriend.orgE<gt>,
 
 =head1 LICENCE
 
-Same as listed in L<arename(1)>.
+Same as listed in L</arename(1)>.
 
 =cut
 
@@ -63,6 +72,7 @@ Same as listed in L<arename(1)>.
 use warnings;
 use strict;
 use ARename;
+use English '-no_match_vars';
 
 my ( $NAME, $VERSION ) = qw( ataglist v0.8 );
 
@@ -81,7 +91,7 @@ sub list {
 if ($#ARGV < 0) {
     print "$NAME $VERSION\n";
     print "From arename version:\n";
-    ## no critic
+    ## no critic (RequireInterpolationOfMetachars)
     print '            @@arenameversioninfo@@' . "\n";
     ## use critic
     ARename::show_version();
@@ -92,7 +102,7 @@ if ($#ARGV < 0) {
 my $file = $ARGV[0];
 
 if (! -r $file) {
-    die "Can't read \"$file\": $!\n";
+    die "Can't read \"$file\": $ERRNO\n";
 }
 
 ARename::set_nameversion($NAME, $VERSION);
