@@ -73,6 +73,7 @@ install-doc:
 	@./bin/install.sh n REPORTING_BUGS "$(prefix)/share/doc/arename"         $(maxwidth)
 	@./bin/install.sh n LICENCE       "$(prefix)/share/doc/arename"          $(maxwidth)
 	@./bin/install.sh n CHANGES       "$(prefix)/share/doc/arename"          $(maxwidth)
+	@./bin/install.sh n asdump        "$(prefix)/share/doc/arename"          $(maxwidth)
 	@./bin/install.sh n arename.html  "$(prefix)/share/doc/arename"          $(maxwidth)
 	@./bin/install.sh n arename.1     "$(prefix)/share/man/man1"             $(maxwidth)
 	@./bin/install.sh n ataglist.html "$(prefix)/share/doc/arename"          $(maxwidth)
