@@ -765,7 +765,10 @@ I<--userset> option:
   % arename -u variable0=value
 
 User defined variables are useful to make hooks configurable (see
-L</HOOKS> below).
+L</HOOKS> below). Starting with version 4 of B<arename>, user defined
+variables may also be defined within sections, which (just like normal
+option) makes them applicable only if said section is used for a given
+file.
 
 =head1 TEMPLATE FORMAT
 
