@@ -386,11 +386,11 @@ sub tag_supported {
     my ($tag) = @_;
 
     return 0 if ($tag eq 'fill_function');
-    foreach my $sup (grep { !/^flac_/ }, keys %{ $infomap{'flac'} }) {
+    foreach my $sup (grep { !/^flac_/ } keys %{ $infomap{'flac'} }) {
         return 1 if ($tag eq $sup);
     }
     foreach my $type (keys %infomap) {
-        foreach my $sup (grep { /^$type(_)/ }, keys %{ $infomap{$type} }) {
+        foreach my $sup (grep { /^$type(_)/ } keys %{ $infomap{$type} }) {
             return 2 if ($tag eq $sup);
         }
     }
