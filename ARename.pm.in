@@ -817,6 +817,7 @@ sub __tokenize_complex {
 #     set:             the string, which needs to be lexed, if `name' is set.
 #     defaulttokens:   AoA of the lexed `default' string.
 #     settokens:       AoA of the lexed `set' string.
+## no critic (ProhibitExcessComplexity)
 sub __tokenize_template {
     my ($in) = @_;
     my ($buf, $nest, $label, $out, $pos);
@@ -991,6 +992,7 @@ sub __tokenize_template {
     push @{ $out }, [ 'LITERAL', $buf ] if ($buf ne '');
     return $out;
 }
+## use critic
 
 sub __tag_expand {
     my ($tag, $dat) = @_;
