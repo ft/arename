@@ -1631,6 +1631,7 @@ sub __list_ext_for_type {
     foreach my $ext (@{ Audio::Scan->extensions_for($type) }) {
         print "$ext\n";
     }
+    return 1;
 }
 
 sub __list_extensions {
