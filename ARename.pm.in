@@ -1214,7 +1214,7 @@ sub __home_find_file {
             if (-e $fn) {
                 return $fn;
             } else {
-                goto error;
+                goto ERROR;
             }
         }
     }
@@ -1254,7 +1254,7 @@ sub __home_find_file {
         }
     }
 
-error:
+ERROR:
     return q{};
 }
 
@@ -1938,17 +1938,17 @@ sub xrename {
 
     if ($stat0[0] == $stat1[0]) {
         $cause = 'rename';
-        rename $src, $dest or goto err;
+        rename $src, $dest or goto ERR;
     } else {
         $cause = 'copy';
-        copy($src, $dest) or goto err;
+        copy($src, $dest) or goto ERR;
         $cause = 'unlink';
         unlink $src or goto dir;
     }
 
     return 0;
 
-err:
+ERR:
     croak("Could not rename($src, $dest);\n" .
           "Reason: $cause(): $ERRNO\n");
 }
