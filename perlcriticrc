@@ -48,6 +48,9 @@ verbose = 5
 severity = 3
 
 ##
+# Yes, variable names can be ambiguous, but context matters. Don't ignore
+# it. If you don't this shouldn't matter at all.
+[-Perl::Critic::Policy::NamingConventions::ProhibitAmbiguousNames]
 # don't allow camelcase in subroutine names.
 [Perl::Critic::Policy::NamingConventions::ProhibitMixedCaseSubs]
 severity = 3
@@ -242,9 +245,6 @@ severity   = 5
 
 [-Perl::Critic::Policy::Modules::RequireVersionVar]
 severity   = 4
-
-[Perl::Critic::Policy::NamingConventions::ProhibitAmbiguousNames]
-severity   = 3
 
 [Perl::Critic::Policy::References::ProhibitDoubleSigils]
 severity   = 4
