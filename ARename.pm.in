@@ -575,7 +575,7 @@ sub process_file {
         return 0;
     }
     if (! -r $file) {
-        owarn(qq{Can't read "$file": $!\n});
+        owarn(qq{Can't read "$file": $ERRNO\n});
         return 0;
     }
 
@@ -1336,7 +1336,7 @@ sub __rcload {
     if (!open($fh, q{<}, $file)) {    ## no critic (RequireBriefOpen)
         ## use critic
         carp("Failed to read $desc ($file).\n");
-        owarn("Reason: $!\n");
+        owarn("Reason: $ERRNO\n");
         return 1;
     }
 
@@ -1371,7 +1371,7 @@ sub __rcload {
             $count++;
         }
     }
-    close $fh or owarn(qq{Failed to close "$file": $!\n});
+    close $fh or owarn(qq{Failed to close "$file": $ERRNO\n});
 
     sect_reset();
     __rcload_stats($desc, $count, $warnings);
@@ -1888,7 +1888,7 @@ sub ensure_dir {
             }
             if (!get_opt("dryrun")) {
                 mkdir $sofar or croak("Could not mkdir($sofar).\n" .
-                                      "Reason: $!\n");
+                                      "Reason: $ERRNO\n");
             }
         }
     }
@@ -1905,8 +1905,8 @@ sub file_eq {
         return 0;
     }
 
-    @stat0 = stat $f0 or croak("Could not stat($f0): $!\n");
-    @stat1 = stat $f1 or croak("Could not stat($f1): $!\n");
+    @stat0 = stat $f0 or croak("Could not stat($f0): $ERRNO\n");
+    @stat1 = stat $f1 or croak("Could not stat($f1): $ERRNO\n");
 
     if ($stat0[0] == $stat1[0] && $stat0[1] == $stat1[1]) {
         # device and inode are the same. same file.
@@ -1927,8 +1927,8 @@ sub xrename {
 
     $d0 = dirname($src);
     $d1 = dirname($dest);
-    @stat0 = stat $d0 or croak("Could not stat($d0): $!\n");
-    @stat1 = stat $d1 or croak("Could not stat($d1): $!\n");
+    @stat0 = stat $d0 or croak("Could not stat($d0): $ERRNO\n");
+    @stat1 = stat $d1 or croak("Could not stat($d1): $ERRNO\n");
 
     if ($stat0[0] == $stat1[0]) {
         $cause = 'rename';
@@ -1944,13 +1944,13 @@ sub xrename {
 
 err:
     croak("Could not rename($src, $dest);\n" .
-          "Reason: $cause(): $!\n");
+          "Reason: $cause(): $ERRNO\n");
 }
 
 sub xcopy {
     my ($src, $dest) = @_;
 
-    return copy($src, $dest) or croak("Could not copy($src, $dest): $!\n");
+    return copy($src, $dest) or croak("Could not copy($src, $dest): $ERRNO\n");
 }
 
 # {get,set}_opt() API
@@ -2184,14 +2184,14 @@ sub __read_hook_file {
     $rc = do $file;
 
     if (!defined $rc && $EVAL_ERROR) {
-        owarn("Could not parse hooks file ($file):\n   - $@\n");
+        owarn("Could not parse hooks file ($file):\n   - $EVAL_ERROR\n");
         if (get_opt("hookerrfatal")) {
             exit 1;
         } else {
             return 0;
         }
     } elsif (!defined $rc) {
-        owarn("Could not read hooks file ($file):\n   - $!\n");
+        owarn("Could not read hooks file ($file):\n   - $ERRNO\n");
         if (get_opt("hookerrfatal")) {
             exit 1;
         } else {
