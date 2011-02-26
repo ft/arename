@@ -1001,7 +1001,7 @@ sub __tag_expand {
 
     run_hook('expand_template_pre_expand_tag', \$tag, $dat);
     $retval = $dat->{$tag};
-    return undef if (!defined $retval);
+    return if (!defined $retval);
     __template_separator_replace($tag, \$retval);
     if ($tag eq 'tracknumber') {
         my ($pad);
