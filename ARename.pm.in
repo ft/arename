@@ -822,10 +822,11 @@ sub __tokenize_template {
     my ($in) = @_;
     my ($buf, $nest, $label, $out, $pos);
     my ($cplxbuf, $cplxset, $cplxunset, $seenunsetmark, $cplxname);
+    my $EMPTY = q{};
 
-    $buf = '';
-    $cplxbuf = '';
-    $label = '';
+    $buf = $EMPTY;
+    $cplxbuf = $EMPTY;
+    $label = $EMPTY;
     $out = [];
     $nest = 0;
     $seenunsetmark = 0;
@@ -835,14 +836,14 @@ sub __tokenize_template {
         # First we'll need to see if a backslash (our quotation mark) is
         # quoted itself by another backslash.
         if ($in =~ m/\G\\\\/gc) {
-            $buf .= ($nest) ? '\\\\' : '\\';
-            $cplxbuf .= ($nest) ? '\\\\' : '\\';
+            $buf .= ($nest) ? q{\\\\} : q{\\};
+            $cplxbuf .= ($nest) ? q{\\\\} : q{\\};
 
         # Since quoted backslashes are gone now, let's look at quoted
         # ampersands; that way, ampersands may be used in templates.
         } elsif ($in =~ m/\G\\\&/gc) {
-            $buf .= ($nest) ? '\\&' : '&';
-            $cplxbuf .= ($nest) ? '\\&' : '&';
+            $buf .= ($nest) ? q{\\&} : q{&};
+            $cplxbuf .= ($nest) ? q{\\&} : q{&};
 
         # If we've decided, that we're looking at a `CPLXSETUNSET' expansion,
         # we need to find the point where the "set" and the "unset" parts
@@ -852,16 +853,16 @@ sub __tokenize_template {
         } elsif ($nest == 1 && $seenunsetmark
                  && $label eq 'CPLXSETUNSET' && $in =~ m/\G\\!/gc)
         {
-            $buf .= '!';
-            $cplxbuf .= '\\!';
+            $buf .= q{!};
+            $cplxbuf .= q{\\!};
 
         # Okay, here it is, an unquoted exclamation mark. Found the beginning
         # of the unset expression.
         } elsif ($nest == 1 && $label eq 'CPLXSETUNSET' && $in =~ m/\G!/gc) {
             $seenunsetmark = 1;
             $cplxset = $buf;
-            $buf = '';
-            $cplxbuf .= '!';
+            $buf = $EMPTY;
+            $cplxbuf .= q{!};
 
         # Now for stuff we can read at once:
 
@@ -869,23 +870,23 @@ sub __tokenize_template {
         } elsif (!$nest && ($in =~ m/\G\&{([A-Za-z0-9_]+\[\d+\])}/gc ||
                             $in =~ m/\G\&([A-Za-z0-9_]+\[\d+\])/gc))
         {
-            my ($match, $more) = ($1, '');
-            push @{ $out }, [ 'LITERAL', $buf ] if ($buf ne '');
+            my ($match, $more) = ($1, $EMPTY);
+            push @{ $out }, [ 'LITERAL', $buf ] if ($buf ne $EMPTY);
             $more = __tokenize_sized($match);
             if (!defined $more) {
                 return [ [ 'ERROR',
                            "Broken sized expression (at '$match')." ] ];
             }
             push @{ $out }, [ 'SIZED', $match, $more ];
-            $buf = '';
+            $buf = $EMPTY;
 
         # The trivial expression (the complex-looking one and the real deal).
         } elsif (!$nest && ($in =~ m/\G\&{([A-Za-z0-9_]+)}/gc ||
                             $in =~ m/\G\&([A-Za-z0-9_]+)/gc))
         {
-            push @{ $out }, [ 'LITERAL', $buf ] if ($buf ne '');
+            push @{ $out }, [ 'LITERAL', $buf ] if ($buf ne $EMPTY);
             push @{ $out }, [ 'TRIVIAL', $1 ];
-            $buf = '';
+            $buf = $EMPTY;
 
         # "&{" starts a "complex" tag expansion. Everything from
         # here on out needs to be copied literally until the matching
@@ -893,20 +894,20 @@ sub __tokenize_template {
         # at `$nest', too.
         } elsif (!$nest && $in =~ m/\G\&{/gc) {
             $nest++;
-            push @{ $out }, [ 'LITERAL', $buf ] if ($buf ne '');
-            $buf = '';
+            push @{ $out }, [ 'LITERAL', $buf ] if ($buf ne $EMPTY);
+            $buf = $EMPTY;
 
         # When we're looking at a nested expression already, we need
         # to read the "&{" literally.
         } elsif ($nest && $in =~ m/\G\&{/gc) {
             $nest++;
-            $buf .= '&{';
-            $cplxbuf .= '&{';
+            $buf .= q<&{>;
+            $cplxbuf .= q<&{>;
 
         # A quoted curly brace (no matter where) needs to be read as
         # "}" and leave the nesting level in `$nest' untouched.
         } elsif ($in =~ m/\G\\}/gc) {
-            $buf .= '}';
+            $buf .= q<}>;
 
         # When we're looking at a nested expression, and we encounter
         # an unquoted "}", that means the nesting level needs to be
@@ -938,21 +939,21 @@ sub __tokenize_template {
                 push @{ $out }, [ $label, $cplxbuf, $more ];
 
                 # Reset everything.
-                $buf = '';
-                $label = '';
+                $buf = $EMPTY;
+                $label = $EMPTY;
                 undef $cplxname;
                 undef $cplxset;
                 undef $cplxunset;
             } else {
-                $buf .= '}';
-                $cplxbuf .= '}';
+                $buf .= q<}>;
+                $cplxbuf .= q<}>;
             }
 
         # If `$label' is set already (meaning, we decided what type of
         # expression we're looking at - like `CPLXDEFAULT' or `LITERAL')
         # and `$nest' is set (which means we're looking at "CPLX*"), we
         # need to copy everything that wasn't handled above untouched.
-        } elsif ($nest && $label ne '' && $in =~ m/\G(.)/gc) {
+        } elsif ($nest && $label ne $EMPTY && $in =~ m/\G(.)/gc) {
             $buf .= $1;
             $cplxbuf .= $1;
 
@@ -960,17 +961,17 @@ sub __tokenize_template {
         # colon. So that's `CPLXDEFAULT'.
         } elsif ($nest && $in =~ m/\G([A-Za-z0-9_]+):/gc) {
             $buf .= $1;
-            $cplxbuf .= $1 . ':';
+            $cplxbuf .= $1 . q<:>;
             $cplxname = $buf;
-            $buf = '';
+            $buf = $EMPTY;
             $label = "CPLXDEFAULT";
 
         # Like before, but since there's a `?' this is `CPLXSETUNSET'.
         } elsif ($nest && $in =~ m/\G([A-Za-z0-9_]+)\?/gc) {
             $buf .= $1;
-            $cplxbuf .= $1 . '?';
+            $cplxbuf .= $1 . q<?>;
             $cplxname = $buf;
-            $buf = '';
+            $buf = $EMPTY;
             $label = "CPLXSETUNSET";
 
         # Anything quoted that's left now should go in without the quote,
@@ -989,7 +990,7 @@ sub __tokenize_template {
         return [ [ 'ERROR',
                    "Broken template! (Expression nesting still at $nest.)" ] ];
     }
-    push @{ $out }, [ 'LITERAL', $buf ] if ($buf ne '');
+    push @{ $out }, [ 'LITERAL', $buf ] if ($buf ne $EMPTY);
     return $out;
 }
 ## use critic
@@ -1031,8 +1032,9 @@ sub __template_separator_replace {
 sub __expand_tokens {
     my ($tok, $dat) = @_;
     my ($buf, $rtype, $tmp, $required);
+    my $EMPTY = q{};
 
-    $buf = '';
+    $buf = $EMPTY;
     $required = sub {
         my ($tag) = @_;
         return "`$tag' not defined, but required by template. Giving up.";
