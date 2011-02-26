@@ -488,7 +488,7 @@ sub __fill_data {
         my ($max);
         if ($value =~ m@/@) {
             $value =~ s@/(.*)$@@;
-            $max = $1;
+            $max = $1; ## no critic (ProhibitCaptureWithoutTest)
             $datref->{tracknummax} = $max;
         }
     }
@@ -1333,7 +1333,7 @@ sub __rcload {
     my ($fh, $retval);
     my ($count, $warnings, $lnum) = (0, 0, 0);
 
-    if (!open($fh, q{<}, $file)) {      ## no critic
+    if (!open($fh, q{<}, $file)) {    ## no critic (RequireBriefOpen)
         ## use critic
         carp("Failed to read $desc ($file).\n");
         owarn("Reason: $!\n");
@@ -2377,7 +2377,7 @@ sub dump_profiles {
 }
 
 sub show_version {
-    ## no critic
+    ## no critic (RequireInterpolationOfMetachars)
     print 'ARename.pm: @@arenameversioninfo@@' . "\n";
     ## use critic
     return 1;
