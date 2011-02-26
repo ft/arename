@@ -2063,8 +2063,8 @@ sub get_defaults {
 }
 
 sub get_default_keys {
-
-    return sort keys %defaults;
+    my @keys = sort keys %defaults;
+    return @keys;
 }
 
 sub set_defaults {
