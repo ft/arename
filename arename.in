@@ -1503,7 +1503,7 @@ distribution.
 
 =head1 SEE ALSO
 
-L</find(1)>, L</xargs(1)>, L</Audio::Scan>.
+B<find(1)>, B<xargs(1)>, B<Audio::Scan>.
 
 =head1 VERSION
 
