@@ -677,7 +677,9 @@ sub set_nameversion {
     my ($n, $v) = @_;
 
     $NAME    = $n;
+    ## no critic (RequireConstantVersion)
     $VERSION = $v;
+    ## use critic
     return 1;
 }
 
