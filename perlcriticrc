@@ -43,16 +43,14 @@ verbose = 5
 ##
 
 ##
-# don't allow camelcase in variable names.
-[Perl::Critic::Policy::NamingConventions::ProhibitMixedCaseVars]
+# don't allow camelcase.
+[Perl::Critic::Policy::NamingConventions::Capitalization]
 severity = 3
 
 ##
 # Yes, variable names can be ambiguous, but context matters. Don't ignore
 # it. If you don't this shouldn't matter at all.
 [-Perl::Critic::Policy::NamingConventions::ProhibitAmbiguousNames]
-# don't allow camelcase in subroutine names.
-[Perl::Critic::Policy::NamingConventions::ProhibitMixedCaseSubs]
 severity = 3
 
 ##
