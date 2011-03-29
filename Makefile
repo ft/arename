@@ -70,6 +70,7 @@ install:
 
 install-doc:
 	@./bin/install.sh n README        "$(prefix)/share/doc/arename"          $(maxwidth)
+	@./bin/install.sh n UPGRADING     "$(prefix)/share/doc/arename"          $(maxwidth)
 	@./bin/install.sh n REPORTING_BUGS "$(prefix)/share/doc/arename"         $(maxwidth)
 	@./bin/install.sh n LICENCE       "$(prefix)/share/doc/arename"          $(maxwidth)
 	@./bin/install.sh n CHANGES       "$(prefix)/share/doc/arename"          $(maxwidth)
