@@ -1,3 +1,37 @@
+3.0 -> 4.0
+    + Changed meta-information gathering to one module, that deals with
+      all supported file types: Audio::Scan.
+    + Added complex template expressions.
+    + Support for new file types:
+        a) aac
+        b) ape
+        c) asf
+        d) mp4
+        e) mpc
+        f) wave
+        g) wavpack
+    + New options:
+        a) ambiguoususefirst
+        b) usetypeasextension
+    + New hooks:
+        a) ambiguoustag
+        b) expand_template_pre_expand_tag
+        c) expand_template_post_expand_tag
+        d) filetype_known
+        e) post_fill
+        f) post_scan
+        g) pre_scan
+        h) pre_rename
+    + Removed hooks:
+        a) expand_template_next_tag
+        b) expand_template_postprocess_tag
+        c) post_method
+        d) post_rename
+        e) pre_method
+        f) *ALL* file-type specific hooks, like `post_process_ogg'.
+    + User settings (e.g. set varname = value) are supported in
+      configuration file sections now.
+
 2.0 -> 3.0
     + Changed option handling completely. Now every option has a
       --long-option (and not all are available via short options)
@@ -22,6 +56,7 @@
         d) $HOME/.arenamerc, $HOME/.arename.hooks etc.
     + Turn off startup messages if $ARENAME_LOAD_QUIET is set to 1
       in the environment at arename's startup.
+
 1.6 -> 2.0
     = Quite a few changes in this release, these are the important
       ones, that are visible to the user:
@@ -57,12 +92,14 @@
       arename version it originated from.
     + Adding -M option to arename, to enable the user to check if the
       version of the script and the ARename.pm module comply.
+
 1.5 -> 1.6
     = No big user-visible changes in this release...
     + Introducing a test suite, that should catch stupid bugs, which
       I overlooked in the past.
     + Cleanups in the Makefile.
     + Greatly improved the infrastructure of the project.
+
 1.4 -> 1.5
     + Adding section support in the configuration file (see manual
       for details).
@@ -91,13 +128,17 @@
     + Changed API for apply_defaults hook: the %defaults hash is not handed
       over as a reference anymore; Use get_default_keys(), get_defaults()
       and set_defaults() to access it in hooks now.
+
 1.3 -> 1.4
     + Fix installation procedure
+
 1.2 -> 1.3
     + Fix reaction to broken 'set' calls
+
 1.1 -> 1.2
     + fix_template_albumless() hook supplied by Maximilian Gaß
     + user defined variables via 'set' command
+
 1.0 -> 1.1
     + introduce hooks
     + read filenames from stdin (if requested)
