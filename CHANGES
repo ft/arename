@@ -31,6 +31,10 @@
         f) *ALL* file-type specific hooks, like `post_process_ogg'.
     + User settings (e.g. set varname = value) are supported in
       configuration file sections now.
+    + New command line options:
+        a) --ambiguous-use-first
+        b) --list-file-types
+        c) --list-exts-for-type <type>
 
 2.0 -> 3.0
     + Changed option handling completely. Now every option has a
