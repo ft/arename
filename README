@@ -40,6 +40,13 @@ INSTALLATION
     # make install install-doc
 
 
+MAJOR VERSION UPGRADES
+
+  When upgrading to a new major release like 4.x from 3.x, consult
+  the UPGRADING file for information about breakages with respect to
+  backwards compatibility. Checking this file is *NOT* optional.
+
+
 USING arename FROM ITS GIT REPOSITORY
 
   If you prefer to use arename from its git repo, you are welcome
