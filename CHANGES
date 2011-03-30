@@ -29,6 +29,8 @@
         d) post_rename
         e) pre_method
         f) *ALL* file-type specific hooks, like `post_process_ogg'.
+    + Hooks with changed API:
+        a) startup
     + User settings (e.g. set varname = value) are supported in
       configuration file sections now.
     + New command line options:
