@@ -796,6 +796,16 @@ sub __tokenize_complex {
     return $data;
 }
 
+sub __tokenize_check {
+    my ($dat) = @_;
+
+    # Tokenising stops as soon as a definite error is detected. Therefore,
+    # we just need to take a look at $dat->[0]->[0] and see whether that's
+    # an error message.
+    return 0 if (defined $dat->[0]->[0] && $dat->[0]->[0] eq 'ERROR');
+    return 1;
+}
+
 # Okay, here's how the data structure, created by the tokenizing process
 # looks like:
 #
@@ -826,6 +836,7 @@ sub __tokenize_template {
 
     $buf = $EMPTY;
     $cplxbuf = $EMPTY;
+    $cplxname = $EMPTY;
     $label = $EMPTY;
     $out = [];
     $nest = 0;
@@ -875,7 +886,7 @@ sub __tokenize_template {
             $more = __tokenize_sized($match);
             if (!defined $more) {
                 return [ [ 'ERROR',
-                           "Broken sized expression (at '$match')." ] ];
+                           [ "Broken sized expression (at '$match')." ] ] ];
             }
             push @{ $out }, [ 'SIZED', $match, $more ];
             $buf = $EMPTY;
@@ -924,14 +935,38 @@ sub __tokenize_template {
                 # and `$cplxunset'. Let's verify everything looks sane...
                 if (!__tokverify($label, $cplxname, $cplxset, $cplxunset)) {
                     return [ [ 'ERROR',
-                               "Broken $label expression (at '$buf')." ] ];
+                               [ "Broken " .
+                                 ($label ne q{} ? $label : 'generic') .
+                                 " expression (at '$buf')." ] ] ];
                 }
 
                 # Recurse...
                 $more = __tokenize_complex(
                     $label, $cplxname, $cplxset, $cplxunset);
-                if (!defined $more) {
-                    return [ [ 'ERROR', "Broken complex expansion!" ] ];
+                if (get_opt('debug')) {
+                    use Data::Dumper;
+                    $Data::Dumper::Indent = 3;
+                    print Dumper($more);
+                }
+                my ($chk) = (0);
+                if (!__tokenize_check($more->{settokens})) {
+                    $out = [ [ 'ERROR', [ ] ] ];
+                    push @{ $out->[0]->[1] },
+                         @{ $more->{settokens}->[0]->[1] };
+                    $chk++;
+                }
+                if (!__tokenize_check($more->{defaulttokens})) {
+                    if ($chk == 0) {
+                        $out = [ [ 'ERROR', [ ] ] ];
+                    }
+                    push @{ $out->[0]->[1] },
+                         @{ $more->{defaulttokens}->[0]->[1] };
+                    $chk++;
+                }
+                if ($chk > 0) {
+                    push @{ $out->[0]->[1] }, "Broken $label expansion " .
+                                            "(at '$buf').";
+                    return $out;
                 }
 
                 # Reassemble the original expression for completeness.
@@ -987,8 +1022,18 @@ sub __tokenize_template {
         }
     }
     if ($nest) {
+        if (get_opt('debug')) {
+            use Data::Dumper;
+            $Data::Dumper::Indent = 3;
+            print Dumper($out);
+        }
+        if ($cplxname ne $EMPTY) {
+            return [ [ 'ERROR',
+                       [ "Broken complex expression (at '$cplxname).",
+                         "Broken template! (at '$buf')" ] ] ];
+        }
         return [ [ 'ERROR',
-                   "Broken template! (Expression nesting still at $nest.)" ] ];
+                   [ "Broken template! (at '$buf')" ] ] ];
     }
     push @{ $out }, [ 'LITERAL', $buf ] if ($buf ne $EMPTY);
     return $out;
@@ -1128,8 +1173,10 @@ sub expand_template {
         $Data::Dumper::Indent = 3;
         print Dumper($data);
     }
-    if ($data->[0][0] eq 'ERROR') {
-        owarn($data->[0][1] . "\n");
+    if ($data->[0]->[0] eq 'ERROR') {
+        foreach my $err (@{ $data->[0]->[1] }) {
+            owarn("$err\n");
+        }
         exit 1;
     }
     $retval = __expand_tokens($data, $datref);
