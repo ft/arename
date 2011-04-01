@@ -1123,6 +1123,11 @@ sub expand_template {
     run_hook('pre_expand_template', \$template, $datref);
 
     $data = __tokenize_template($template);
+    if (get_opt('debug')) {
+        use Data::Dumper;
+        $Data::Dumper::Indent = 3;
+        print Dumper($data);
+    }
     if ($data->[0][0] eq 'ERROR') {
         owarn($data->[0][1] . "\n");
         exit 1;
