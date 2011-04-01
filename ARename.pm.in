@@ -1123,6 +1123,10 @@ sub expand_template {
     run_hook('pre_expand_template', \$template, $datref);
 
     $data = __tokenize_template($template);
+    if ($data->[0][0] eq 'ERROR') {
+        owarn($data->[0][1] . "\n");
+        exit 1;
+    }
     $retval = __expand_tokens($data, $datref);
     if ($retval->[0] eq 'ERROR') {
         my $file = get_file();
