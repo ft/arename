@@ -1178,7 +1178,7 @@ sub expand_template {
         $Data::Dumper::Indent = 3;
         print Dumper($data);
     }
-    if ($data->[0]->[0] eq 'ERROR') {
+    if (!__tokenize_check($data)) {
         foreach my $err (@{ $data->[0]->[1] }) {
             owarn("$err\n");
         }
