@@ -834,6 +834,11 @@ sub __tokenize_template {
     my ($cplxbuf, $cplxset, $cplxunset, $seenunsetmark, $cplxname);
     my $EMPTY = q{};
 
+    # Let's deal with empty strings at once.
+    if ($in eq q{}) {
+        return [ [ 'LITERAL', q{} ] ];
+    }
+
     $buf = $EMPTY;
     $cplxbuf = $EMPTY;
     $cplxname = $EMPTY;
