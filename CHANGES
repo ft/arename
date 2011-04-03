@@ -37,6 +37,7 @@
         a) --ambiguous-use-first
         b) --list-file-types
         c) --list-exts-for-type <type>
+    + Identifier aliases let you say "&ar" instead of "&artist".
 
 2.0 -> 3.0
     + Changed option handling completely. Now every option has a

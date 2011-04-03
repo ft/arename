@@ -46,7 +46,7 @@ use Audio::Scan;
 
 # variables
 my (
-    %cmdline_protect, %conf, %defaults, %hooks, %parsers, %profiles,
+    %aliasmap, %cmdline_protect, %conf, %defaults, %hooks, %parsers, %profiles,
     %opts, %sectconf, %sets, %typemap, %infomap, %defaultmap, %lsets,
     $__arename_file, $postproc, $sect,
     @cmdline_profiles, @localizables, @settables, @supported_tags,
@@ -91,6 +91,23 @@ set_opt('shutup', 0);
     channels   => 1,
     length_ms  => 0,
     samplerate => 0,
+);
+
+%aliasmap = (
+    al   => 'album',
+    ar   => 'artist',
+    br   => 'bitrate',
+    ch   => 'channels',
+    cmp  => 'compilation',
+    gn   => 'genre',
+    kbr  => 'kbitrate',
+    ksr  => 'ksamplerate',
+    ln   => 'length_ms',
+    ls   => 'length_sec',
+    sr   => 'samplerate',
+    tn   => 'tracknumber',
+    tt   => 'tracktitle',
+    yr   => 'year',
 );
 
 %infomap = (
@@ -269,6 +286,7 @@ set_opt('shutup', 0);
     force
     prefix
     sepreplace
+    template_aliases
     tnpad
     comp_template
     template
@@ -282,7 +300,7 @@ set_opt('shutup', 0);
     prefix
     quiet quiet_skip
     sepreplace
-    template tnpad
+    template template_aliases tnpad
     usehooks uselocalhooks uselocalrc useprofiles
     verbose warningsautodryrun
 );
@@ -659,6 +677,7 @@ sub set_default_options {
     set_opt("quiet_skip",           0);
     set_opt("readstdin",            0);
     set_opt("sepreplace",           q{_});
+    set_opt("template_aliases",     0);
     set_opt("tnpad",                2);
     set_opt("usehooks",             1);
     set_opt("uselocalhooks",        0);
@@ -1050,6 +1069,9 @@ sub __tag_expand {
     my ($retval);
 
     run_hook('expand_template_pre_expand_tag', \$tag, $dat);
+    if (get_opt('template_aliases') && defined $aliasmap{$tag}) {
+        $tag = $aliasmap{$tag};
+    }
     $retval = $dat->{$tag};
     return if (!defined $retval);
     __template_separator_replace($tag, \$retval);
@@ -1517,6 +1539,7 @@ sub read_rcs {
     '^sepreplace$'          => \&parse_string,
     '^set$'                 => \&parse_set,
     '^template$'            => \&parse_string,
+    '^template_aliases$'    => \&parse_bool,
     '^tnpad$'               => \&parse_integer,
     '^usehooks$'            => \&parse_bool,
     '^uselocalhooks$'       => \&parse_bool,

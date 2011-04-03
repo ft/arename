@@ -689,6 +689,12 @@ This setting can be overwritten by the B<--compilation-template> command
 line option. (default value:
 I<&artist[1]/&artist/&album/&tracknumber - &tracktitle>)
 
+=item B<template_aliases>
+
+If this option is set, B<arename> allows the use of abbreviated taq
+names in I<template> and I<compilation_template>. See L</Available
+expression identifiers> below for details. (default value: I<off>)
+
 =item B<tnpad>
 
 This defines the width, to which the track number field is padded with zeros
@@ -881,6 +887,12 @@ audio files. There are two kinds of information available. One is the
 purely informational tag (like a track's artist) and the other further
 describes the format of the audio file (like the file's bitrate).
 
+If you are defining a lot of templates on the command line, you may
+find that these identifiers take quite a while to type. If the
+I<template_aliases> option is set, you may use shorter alias names
+instead of the the real identifier. Available aliases are listed with
+their corresponding idetifier below.
+
 This is a list of all all informational identifiers available for
 B<all> file-types:
 
@@ -888,22 +900,22 @@ B<all> file-types:
 
 =item B<album>
 
-The album the currently processed track is part of.
+The album the currently processed track is part of. (alias: I<al>)
 
 =item B<artist>
 
-The artist for the current track.
+The artist for the current track. (alias: I<ar>)
 
 =item B<compilation>
 
 Compilation tags are not very stable across different file
 types. Usually, this is set to a string like "I<Various Artists>" for
 tracks that are part of some sort of compilation album (like motion
-picture sound-tracks).
+picture sound-tracks). (alias: I<cmp>)
 
 =item B<genre>
 
-The genre or content type of the audio file.
+The genre or content type of the audio file. (alias: I<gn>)
 
 =item B<tracknumber>
 
@@ -911,16 +923,17 @@ The number of the position of the track on the disc. Obviously. However, this
 can be in the form of '12' or '12/23'. In the second form, only the part left
 of the slash is used. The tracknumber is a little special, as you can define
 to what width it should be padded with zeros on the left (see I<tnpad> setting
-in L</SETTINGS>).
+in L</SETTINGS>). (alias: I<tn>)
 
 =item B<tracktitle>
 
-The title of the currently processed track.
+The title of the currently processed track. (alias: I<tt>)
 
 =item B<year>
 
 Chronological information about the track (usually the year a song was
-written or the year the album a track is part of was released).
+written or the year the album a track is part of was
+released). (alias: I<yr>)
 
 =back
 
@@ -931,20 +944,20 @@ file-types:
 
 =item B<bitrate>
 
-The bitrate the file was recorded/encoded with.
+The bitrate the file was recorded/encoded with. (alias: I<br>)
 
 =item B<channels>
 
 The number of channels available in the file (for example, this is `2'
-for stereo files).
+for stereo files). (alias: I<ch>)
 
 =item B<length_ms>
 
-The length of the track in milli-seconds.
+The length of the track in milli-seconds. (alias: I<ln>)
 
 =item B<samplerate>
 
-The samplerate the file was recorded/encoded with.
+The samplerate the file was recorded/encoded with. (alias: I<sr>)
 
 =back
 
@@ -955,20 +968,21 @@ listed above (for convenience):
 
 =item B<kbitrate>
 
-Kilobits per second (bitrate / 1000).
+Kilobits per second (bitrate / 1000). (alias: I<kbr>)
 
 =item B<ksamplerate>
 
-Kilosamples per second (samplerate / 1000).
+Kilosamples per second (samplerate / 1000). (alias: I<ksr>)
 
 =item B<length_sec>
 
-The length of the track in seconds.
+The length of the track in seconds. (alias: I<ls>)
 
 =back
 
 Some tags are only available for certain file-types. They are always
-called `I<type_>B<*>'. Here is a list of those tags:
+called `I<type_>B<*>'. File-type specific identifiers do not have
+alias names. Here is a list of those tags:
 
 =over 8
 
