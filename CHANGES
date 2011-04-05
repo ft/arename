@@ -12,7 +12,9 @@
         g) wavpack
     + New options:
         a) ambiguoususefirst
-        b) usetypeasextension
+        b) checktemplatesinitially
+        c) template_aliases
+        d) usetypeasextension
     + New hooks:
         a) ambiguoustag
         b) expand_template_pre_expand_tag
@@ -38,6 +40,8 @@
         b) --list-file-types
         c) --list-exts-for-type <type>
     + Identifier aliases let you say "&ar" instead of "&artist".
+    + Templates are checked for sanity after arename is done loading
+      configuration files.
 
 2.0 -> 3.0
     + Changed option handling completely. Now every option has a

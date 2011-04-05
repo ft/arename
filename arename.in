@@ -628,6 +628,14 @@ If unset, profiles without config file will not cause warnings. You will
 see messages about missing configuration files, if a profile without config
 file is active. (default: I<true>)
 
+=item B<checktemplatesinitially>
+
+If set, B<arename> will inspect all I<template> and I<comp_template>
+settings for possible problems. Unsetting this option probably only
+makes sense, if you are working with templates within hooks and know
+what you are doing. Normal users will most likely want to stick with
+the default. (default: I<on>)
+
 =item B<comp_template>
 
 Defines a template to use with files that provide a compilation tag
@@ -1606,6 +1614,30 @@ if (!ARename::get_opt('load_quiet')) {
                                         if (ARename::get_opt("readstdin"));
     dvr_newline();
 }
+
+if (ARename::get_opt('check_templates_initially')) {
+    my $err = 0;
+    foreach my $t (ARename::get_opt_from_everywhere('template')) {
+        ARename::oprint_verbose("Checking `template': \"$t\"\n");
+        if (!ARename::template_deep_inspect($t)) {
+            $err++;
+            ARename::owarn("Error(s) inspecting template: \"$t\"\n");
+        }
+    }
+    foreach my $t (ARename::get_opt_from_everywhere('comp_template')) {
+        ARename::oprint_verbose("Checking `comp_template': \"$t\"\n");
+        if (!ARename::template_deep_inspect($t)) {
+            $err++;
+            ARename::owarn("Error(s) inspecting comp_template: \"$t\"\n");
+        }
+    }
+    if ($err) {
+        ARename::owarn("\n");
+        ARename::owarn("Inspecting a template failed. Giving up.\n");
+        exit 1;
+    }
+    ARename::oprint_verbose("\n");
+};
 
 foreach my $file (@ARGV) {
     ARename::set_file($file);

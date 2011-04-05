@@ -294,7 +294,7 @@ set_opt('shutup', 0);
 
 @settables = qw(
     ambiguoususefirst
-    canonicalize checkprofilerc comp_template
+    canonicalize checkprofilerc checktemplatesinitially comp_template
     debug
     hookerrfatal
     prefix
@@ -398,6 +398,13 @@ sub apply_defaults {
     }
 
     return 1;
+}
+
+sub tag_aliased {
+    my ($tag) = @_;
+
+    return 1 if (defined $aliasmap{$tag});
+    return 0;
 }
 
 sub tag_supported {
@@ -667,6 +674,7 @@ sub set_default_options {
     set_opt("canonicalize",         0);
     set_opt("copymode",             0);
     set_opt("checkprofilerc",       1);
+    set_opt("checktemplatesinitially", 1);
     set_opt("debug",                0);
     set_opt("dryrun",               0);
     set_opt("force",                0);
@@ -1188,6 +1196,18 @@ sub __expand_tokens {
     return [ $rtype, $buf ]
 }
 
+sub __tokenize_error {
+    my ($data) = @_;
+
+    if (!__tokenize_check($data)) {
+        foreach my $err (@{ $data->[0]->[1] }) {
+            owarn("$err\n");
+        }
+        return 1;
+    }
+    return 0;
+}
+
 sub expand_template {
     my ($template, $datref) = @_;
     my ($data, $retval, $expanded);
@@ -1200,12 +1220,7 @@ sub expand_template {
         $Data::Dumper::Indent = 3;
         print Dumper($data);
     }
-    if (!__tokenize_check($data)) {
-        foreach my $err (@{ $data->[0]->[1] }) {
-            owarn("$err\n");
-        }
-        exit 1;
-    }
+    exit 1 if (__tokenize_error($data));
     $retval = __expand_tokens($data, $datref);
     if ($retval->[0] eq 'ERROR') {
         my $file = get_file();
@@ -1220,6 +1235,99 @@ sub expand_template {
     run_hook('post_expand_template', \$expanded, $datref);
 
     return $expanded;
+}
+
+sub __template_tag_cant_work {
+    my ($tag) = @_;
+
+    if (tag_aliased($tag) && !get_opt('template_aliases')) {
+        oprint("`$tag' is an alias for `$aliasmap{$tag}', but " .
+               "`template_aliases' is disabled.\n");
+        return 1;
+    }
+    if (!tag_supported($tag)) {
+        oprint("Unknown tag `$tag'.\n");
+        return 1;
+    }
+    return 0;
+}
+
+sub __template_deep_inspect {
+    my ($data) = @_;
+    my ($ret);
+
+    $ret = 1;
+    TOKEN: foreach my $token (@{ $data }) {
+        my $type = $token->[0];
+        my ($tag);
+
+        if (defined $token->[2]->{name}) {
+            $tag = $token->[2]->{name};
+        } else {
+            $tag = $token->[1];
+        }
+        if ($type eq 'ERROR') {
+            owarn('__template_deep_inspect(): BUG: ERROR should not be set. ' .
+                  'here. Was: (' . $token->[1] . ')');
+            exit 1;
+        } elsif ($type eq 'LITERAL') {
+            # Cannot fail. Yes, I've said it. :)
+            next TOKEN;
+        } elsif ($type eq 'TRIVIAL' || $type eq 'SIZED') {
+            if (__template_tag_cant_work($tag)) {
+                oprint("This expansion will fail every time.\n");
+                $ret = 0;
+                next TOKEN;
+            }
+        } elsif ($type eq 'CPLXDEFAULT') {
+            if (__template_tag_cant_work($tag)) {
+                oprint("This expansion will always use the `default' value.\n");
+                $ret = 0;
+            }
+            if (!__template_deep_inspect($token->[2]->{defaulttokens})) {
+                $ret = 0;
+            }
+        } elsif ($type eq 'CPLXSETUNSET') {
+            if (__template_tag_cant_work($tag)) {
+                oprint("This expansion will always use the `unset' value.\n");
+                $ret = 0;
+            }
+            if (!__template_deep_inspect($token->[2]->{settokens})) {
+                $ret = 0;
+            }
+            if (!__template_deep_inspect($token->[2]->{defaulttokens})) {
+                $ret = 0;
+            }
+        } else {
+            owarn('Unknown token-type: ', $type);
+            $ret = 0;;
+        }
+    }
+
+    return $ret;
+}
+
+sub template_deep_inspect {
+    # This tokenises a template string and then looks at the whole
+    # token tree, and tries to figure out any potential problems in
+    # it.
+    #
+    # If tokenisation already failed, a negative value is returned. In
+    # case of any warnings with the token tree, zero is returned. If
+    # nothing came up, a positive value is returned.
+    #
+    # This subroutine is called for the `I<template>' and
+    # `I<compilation_template>' strings in all sections when B<arename>
+    # starts. If the user chooses to change a template string in a
+    # hook it is recommended to use this function to avoid any errors
+    # due to broken templates.
+    my ($template) = @_;
+    my ($data, $retval);
+
+    $data = __tokenize_template($template);
+    return -1 if (__tokenize_error($data));
+    return 0 if (!__template_deep_inspect($data));
+    return 1;
 }
 
 # output subroutines
@@ -1528,6 +1636,7 @@ sub read_rcs {
     '^canonicalize$'        => \&parse_bool,
     '^copymode$'            => \&parse_bool,
     '^checkprofilerc$'      => \&parse_bool,
+    '^checktemplatesinitially$' => \&parse_bool,
     '^comp_template$'       => \&parse_string,
     '^default_.*$'          => \&parse_defaultvalues,
     '^debug$'               => \&parse_bool,
@@ -2045,6 +2154,21 @@ sub xcopy {
 }
 
 # {get,set}_opt() API
+
+sub get_opt_from_everywhere {
+    my ($opt) = @_;
+    my (@ret);
+
+    push @ret, $conf{$opt};
+    if (is_locopt($opt)) {
+        foreach my $s (sort keys %sectconf) {
+            if (defined $sectconf{$s}{$opt}) {
+                push @ret, $sectconf{$s}{$opt};
+            }
+        }
+    }
+    return @ret;
+}
 
 sub get_opt {
     my ($opt) = @_;
