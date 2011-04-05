@@ -1615,7 +1615,7 @@ if (!ARename::get_opt('load_quiet')) {
     dvr_newline();
 }
 
-if (ARename::get_opt('check_templates_initially')) {
+if (ARename::get_opt('checktemplatesinitially')) {
     my $err = 0;
     foreach my $t (ARename::get_opt_from_everywhere('template')) {
         ARename::oprint_verbose("Checking `template': \"$t\"\n");
