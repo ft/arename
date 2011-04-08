@@ -1308,19 +1308,6 @@ sub __template_deep_inspect {
 }
 
 sub template_deep_inspect {
-    # This tokenises a template string and then looks at the whole
-    # token tree, and tries to figure out any potential problems in
-    # it.
-    #
-    # If tokenisation already failed, a negative value is returned. In
-    # case of any warnings with the token tree, zero is returned. If
-    # nothing came up, a positive value is returned.
-    #
-    # This subroutine is called for the `I<template>' and
-    # `I<compilation_template>' strings in all sections when B<arename>
-    # starts. If the user chooses to change a template string in a
-    # hook it is recommended to use this function to avoid any errors
-    # due to broken templates.
     my ($template) = @_;
     my ($data, $retval);
 
