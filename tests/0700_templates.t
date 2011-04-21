@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 21;
+use Test::More tests => 23;
 use Test::Exception;
 
 use ARename;
@@ -12,6 +12,7 @@ ARename::set_default_options();
 #ARename::set_opt('debug', 1);
 ARename::set_opt('shutup', 1);
 ARename::set_opt('quiet',  1);
+ARename::set_opt('template_aliases', 0);
 ARename::set_file('need-no-file');
 
 my ($expanded, $expected, %waylon, %woot, %sob);
@@ -133,3 +134,14 @@ is( equal($expected, $expanded), 1, "Escaped non-metacharacter should work and N
 $expanded = ARename::expand_template('somewhere i\n \betw\e\en!', \%woot);
 $expected = "somewhere in between!";
 is( equal($expected, $expanded), 1, "Escaped non-metacharacter should work");
+
+# With `template_aliases' off "&al" should return 0.
+$expanded = ARename::template_deep_inspect('&al');
+$expected = 0;
+is( equal($expected, $expanded), 1, "Warn of aliases with template_aliases off");
+
+ARename::set_opt('template_aliases', 1);
+# With `template_aliases' on however, "&al" should return 1.
+$expanded = ARename::template_deep_inspect('&al');
+$expected = 1;
+is( equal($expected, $expanded), 1, "No alias warning with template_aliases off");
