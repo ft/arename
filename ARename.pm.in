@@ -42,6 +42,8 @@ use File::Copy;
 use Cwd;
 use Cwd 'abs_path';
 
+# This one is not. But it's available via CPAN and - if you're lucky - via your
+# OSs packaging system.
 use Audio::Scan;
 
 # variables
