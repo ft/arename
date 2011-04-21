@@ -1239,11 +1239,16 @@ sub expand_template {
 
 sub __template_tag_cant_work {
     my ($tag) = @_;
+    my ($ta, $opt);
 
-    if (tag_aliased($tag) && !get_opt('template_aliases')) {
+    $ta = tag_aliased($tag);
+    $opt = get_opt('template_aliases');
+    if ($ta && !$opt) {
         oprint("`$tag' is an alias for `$aliasmap{$tag}', but " .
                "`template_aliases' is disabled.\n");
         return 1;
+    } elsif ($ta && $opt) {
+        return 0;
     }
     if (!tag_supported($tag)) {
         oprint("Unknown tag `$tag'.\n");
