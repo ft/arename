@@ -46,6 +46,38 @@ use Cwd 'abs_path';
 # OSs packaging system.
 use Audio::Scan;
 
+# So, how does all of this work?  Well, the main entry point is
+# `process_file()', which is called from the executable script for every file,
+# we're about to work on. `process_file()' doesn't take an argument the name
+# of the current file is provided by calling `set_file()'.
+#
+# Then `process_file()' does the following:
+#
+#   - Check if the file is readable and not a symlink.
+#   - Possibly canonicalise the file name.
+#   - Check if the file appears to be supported.
+#   - Gather tag information (you may want to check the `%infomap' comment
+#     for information on how this works).
+#   - Call the post processing function (which is `arename()' by default).
+#
+# When `arename()' takes over, here's its basic functionality:
+#
+#   - Apply default values to the data hash.
+#   - Choose the right template for the current file.
+#   - Expand the chosen template based on the data in the data hash.
+#   - Make sure the old and new name are not the same (in which case there
+#     would be nothing further to do).
+#   - Make sure there is no file that goes by the generated new name.
+#   - Make sure the destination directory exists.
+#   - Finally (depending on the active mode) rename or copy the old to the
+#     new file name.
+#
+# And that's all there is to it really. All that is salted with a number of
+# options and hooks to ensure flexibility and extensibility.
+#
+# The rest of the code is output functions, configuration file handling,
+# command line options parsing, hook file handling and utility functions.
+
 # variables
 my (
     %aliasmap, %cmdline_protect, %conf, %defaults, %hooks, %parsers, %profiles,
@@ -112,6 +144,11 @@ set_opt('shutup', 0);
     yr   => 'year',
 );
 
+# This hash maps infomation from Audio::Scan to our internal data hash. Take
+# a look at the `flac' and `mp3' entries for specific information. The overall
+# idea is to have a set of tags that are supported for every file type and a
+# few which are file type specific. `fill_data()' is responsible for putting
+# all this together.
 %infomap = (
     aac => {
             bitrate         => [ qw( info bitrate ) ],
