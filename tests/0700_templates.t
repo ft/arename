@@ -144,4 +144,4 @@ ARename::set_opt('template_aliases', 1);
 # With `template_aliases' on however, "&al" should return 1.
 $expanded = ARename::template_deep_inspect('&al');
 $expected = 1;
-is( equal($expected, $expanded), 1, "No alias warning with template_aliases off");
+is( equal($expected, $expanded), 1, "No alias warning with template_aliases on");
