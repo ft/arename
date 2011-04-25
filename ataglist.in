@@ -74,7 +74,7 @@ use strict;
 use ARename;
 use English '-no_match_vars';
 
-my ( $NAME, $VERSION ) = qw( ataglist v0.8 );
+my ( $NAME, $VERSION ) = qw( ataglist v0.9 );
 
 sub list {
     my ($datref, $ext) = @_;
