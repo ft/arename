@@ -107,6 +107,14 @@ sub data_reset {
 
 set_opt('shutup', 0);
 
+# Audio::Scan uses a certain set of names for file types. It seems to
+# be aiming for three letter names. `arename' however uses "flac" for
+# flac files, not "flc". Therefore we need to map Audio::Scan names to
+# arename names. And that is what is being done here.
+#
+# The wavepack name is mapped from "wvp" to "wv". The latter is the
+# more common file extension, which makes sense when using the
+# `usetypeasextension' option - and that is the default behaviour.
 %typemap = (
     'aac' => 'aac',
     'ape' => 'ape',
@@ -120,6 +128,9 @@ set_opt('shutup', 0);
     'wvp' => 'wv',
 );
 
+# This maps certain tags to default values. Any tag, that is not
+# listed here will not get a default value (unless the user defines
+# such a value in his/her configuration file).
 %defaultmap = (
     bitrate    => 0,
     channels   => 1,
@@ -127,6 +138,9 @@ set_opt('shutup', 0);
     samplerate => 0,
 );
 
+# Many tags are available via shorter names if the `template_aliases'
+# option is enabled (which it is *not* by default). This hash maps
+# alias names to their longer counterparts.
 %aliasmap = (
     al   => 'album',
     ar   => 'artist',
@@ -331,6 +345,9 @@ set_opt('shutup', 0);
     template
 );
 
+# This is a helper list, that is used only in `dump_config()'. If a
+# variable is missing from this list, `dump_config()' will not list
+# it.
 @settables = qw(
     ambiguoususefirst
     canonicalize checkprofilerc checktemplatesinitially comp_template
