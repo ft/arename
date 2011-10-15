@@ -1,0 +1,127 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use English '-no_match_vars';
+
+# Now for something fun:
+# Take "Arename.pm.in", find all occurances of `op()' calls, assemble a script
+# that calls them with the same number of arguments as the real code (fake
+# arguments) and then run the thing to see if anything breaks.
+#
+# This assumes, that `op()' calls don't contain newlines in code. There may be
+# more than one `op()' call per line, though. Its just that one call may *not*
+# span over more than a line.
+#
+# This is not something you'd want to show your professor, because it makes
+# huge assumptions about the code. But it does the trick and did catch one or
+# the other mistake while rewriting the output system.
+
+my ($i, $code, $output, @fake_args, @calls);
+
+@fake_args = qw{one two three four five};
+$output = "optest.pl";
+$i = 0;
+
+open $code, q{<}, "ARename.pm.in" or die "Couldn't open Arename.pm.in: $!\n";
+
+sub trivial_line {
+    my ($n, $line) = @_;
+    my ($key, $original, @data);
+
+    $original = $line;
+    $line =~ s,op\(,,;
+    $line =~ s,\);,,;
+    @data = split /, */, $line;
+    $key = shift @data;
+    $key =~ s,^['"],,;
+    $key =~ s,['"]$,,;
+    #print $line, "\n";
+    #print "  key($key), " . ($#data + 1) . " arguments.\n";
+    for (my $i = 0; $i < $#data + 1; $i++) {
+        $data[$i] = $fake_args[$i];
+    }
+    push @calls, {
+        line => $n,
+        original => $original,
+        key => $key,
+        dat => \@data };
+}
+
+sub complex_line {
+    # Breaks down a line that contains two or more `op()' invocations into
+    # something `trivial_line()' groaks.
+    my ($n, $line) = @_;
+    my (@lines);
+
+    $line = strip_garbage($line);
+    @lines = split /\).*op\(/, $line;
+    map { $_ .= q{);} if ($_ !~ m/;$/);
+          $_ = "op(" . $_ if ($_ !~ m/^op\(/); } @lines;
+    foreach my $line (@lines) {
+        trivial_line($n, $line);
+    }
+}
+
+sub strip_garbage {
+    my ($line) = @_;
+
+    while ($line !~ m/^op\(/) {
+        $line =~ s,.,, if ($line =~ m/^o/);
+        $line =~ s,^[^o]+,,;
+    }
+    return $line;
+}
+
+LINE: while (my $line = <$code>) {
+    chomp $line;
+    $i++;
+    next LINE if ($line !~ m/op\([^(]+\)/);
+    $line =~ s/^ *//;
+    $line =~ s/ *$//;
+    next LINE if ($line =~ m/^#/);
+    if ($line !~ m/^op\(.+op\(/) {
+        $line = strip_garbage($line);
+        trivial_line($i, $line);
+    } else {
+        complex_line($i, $line);
+    }
+}
+
+close $code;
+
+#use Data::Dumper;
+#$Data::Dumper::Indent = 3;
+#print Dumper(@calls);
+
+open $code, q{>}, $output or die "Couldn't open $output: $!\n";
+
+sub codeprint {
+    my ($str) = @_;
+    print {$code} "print q{$str};\n";
+}
+
+print {$code} "use ARename;\n";
+print {$code} "ARename::set_opt('verbosity', 20_000);\n";
+print {$code} q{$rc = 0;} . qq{\n};
+print {$code} q{$bugs = 0;} . qq{\n};
+codeprint("# All this is with verbosity set to 20_000.\n");
+foreach my $call (@calls) {
+    my ($asm);
+    codeprint("\n# ARename.pm.in," . $call->{line} . ": ");
+    codeprint($call->{original} . "\n");
+    $asm = "ARename::op('$call->{key}'";
+    foreach my $arg (@{ $call->{dat} }) {
+        $asm .= ", '$arg'";
+    }
+    $asm .= ");\n";
+    codeprint("# Made this of it: $asm");
+    print {$code} q{$rc = } . $asm;
+    print {$code} q[if ($rc == 0) { $bugs++; }] . qq{\n};
+    codeprint("#####################################\n");
+}
+print {$code} q[if ($bugs > 0) { die "$bugs BUG(s)!\n"; }] . qq{\n};
+print {$code} qq{exit 0;\n};
+
+close $code;
+
+exec(($EXECUTABLE_NAME, '-I.', $output));

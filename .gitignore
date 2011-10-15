@@ -12,6 +12,7 @@ arename.1
 arename.html
 ataglist.1
 ataglist.html
+optest.pl
 tests/data/*
 tags
 TAGS
