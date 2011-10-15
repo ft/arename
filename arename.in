@@ -1607,51 +1607,38 @@ ARename::startup_hook();
 
 # status messages and cosmetics
 
-sub dvr_newline {
-    if (   ARename::get_opt("dryrun")
-        || ARename::get_opt("readstdin")
-        || ARename::get_opt("verbose")) {
-        print "\n";
-    }
-    return 1;
-}
-
-# clear the line prefix, if we're running quietly.
-ARename::set_opt("oprefix", q{}) if (ARename::get_opt("quiet"));
-
-if (!ARename::get_opt('load_quiet')) {
-    print "\n";
-    print "+++ We are on a dry run!\n"  if (ARename::get_opt("dryrun"));
-    print "+++ copymode enabled!\n"     if (ARename::get_opt("copymode"));
-    print "+++ Running verbosely.\n"    if (ARename::get_opt("verbose"));
-    print "+++ Reading stdin for filenames (after \@ARGV).\n"
-                                        if (ARename::get_opt("readstdin"));
-    dvr_newline();
-}
-
 if (ARename::get_opt('checktemplatesinitially')) {
     my $err = 0;
+    ARename::op('newline');
     foreach my $t (ARename::get_opt_from_everywhere('template')) {
-        ARename::oprint_verbose("Checking `template': \"$t\"\n");
+        ARename::op('check-template', $t);
         if (!ARename::template_deep_inspect($t)) {
             $err++;
-            ARename::owarn("Error(s) inspecting template: \"$t\"\n");
+            ARename::op('error-template', $t);
         }
     }
     foreach my $t (ARename::get_opt_from_everywhere('comp_template')) {
-        ARename::oprint_verbose("Checking `comp_template': \"$t\"\n");
+        ARename::op('check-comp-template', $t);
         if (!ARename::template_deep_inspect($t)) {
             $err++;
-            ARename::owarn("Error(s) inspecting comp_template: \"$t\"\n");
+            ARename::op('error-comp-template', $t);
         }
     }
     if ($err) {
-        ARename::owarn("\n");
-        ARename::owarn("Inspecting a template failed. Giving up.\n");
+        ARename::op('newline');
+        ARename::op('error-any-template');
         exit 1;
     }
-    ARename::oprint_verbose("\n");
 };
+
+if (!ARename::get_opt('load_quiet')) {
+    ARename::op('newline');
+    ARename::op('dryrun') if (ARename::get_opt("dryrun"));
+    ARename::op('copymode') if (ARename::get_opt("copymode"));
+    ARename::op('verbose') if (ARename::get_opt("verbose"));
+    ARename::op('read-stdin') if (ARename::get_opt("read-stdin"));
+    ARename::op('newline');
+}
 
 foreach my $file (@ARGV) {
     ARename::set_file($file);

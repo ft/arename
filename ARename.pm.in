@@ -371,13 +371,7 @@ sub __arename_file_eq {
     my ($newname, $oldname) = @_;
 
     if (file_eq($newname, $oldname)) {
-        if (get_opt("quiet")) {
-            if (!get_opt("quiet_skip")) {
-                print "Skipping: '$oldname'\n";
-            }
-        } else {
-            oprint("'$oldname'\n      would stay the way it is, skipping.\n");
-        }
+        op('skip-same', $oldname) or op('skip', $oldname);
         return 1;
     }
 
@@ -407,8 +401,7 @@ sub arename {
     return if (__arename_file_eq($newname, $file));
 
     if (-e $newname && !get_opt("force")) {
-        oprint("'$newname' exists." . (get_opt("quiet") ? q{ } : "\n      ")
-            . "use '-f' to force overwriting.\n");
+        op('target-exists-twoline', $newname) or op('target-exists', $newname);
         return 0;
     }
 
@@ -417,7 +410,10 @@ sub arename {
     run_hook('post_ensure_dir', $datref, \$ext, \$newname);
 
     if (get_opt("quiet")) {
-        print "'$newname'\n" if (!get_opt('shutup'));
+        op('quoted-file', sub {
+               my ($ret) = @_;
+               $ret =~ s,','\\'',;
+               return $ret; }->($newname));
     } else {
         my ($mode);
         if (get_opt("copymode")) {
@@ -425,7 +421,7 @@ sub arename {
         } else {
             $mode = 'mv';
         }
-        oprint("$mode '$file' \\\n         '$newname'\n");
+        op('rename', $mode, $file, $newname);
     }
 
     if (!get_opt("dryrun")) {
@@ -450,7 +446,7 @@ sub apply_defaults {
             run_hook('apply_defaults', $datref, \$key);
 
             $value = get_defaults($key);
-            oprint_verbose(qq{Setting ($key) to "$value".\n});
+            op('default-set-value', $key, $value);
             $datref->{$key} = $value;
         }
     }
@@ -485,14 +481,19 @@ sub arename_verbosity {
     my ($datref) = @_;
 
     return 0 if (!get_opt('verbose'));
+    my $out = sub {
+        my ($thing) = @_;
+        my $name = ucfirst $thing;
+        op('tag-list', $name, getdat($datref, $thing));
+    };
 
-    oprint("Artist     : " . getdat($datref, "artist")      . "\n");
-    oprint("Compilation: " . getdat($datref, "compilation") . "\n");
-    oprint("Album      : " . getdat($datref, "album")       . "\n");
-    oprint("Tracktitle : " . getdat($datref, "tracktitle")  . "\n");
-    oprint("Tracknumber: " . getdat($datref, "tracknumber") . "\n");
-    oprint("Genre      : " . getdat($datref, "genre")       . "\n");
-    oprint("Year       : " . getdat($datref, "year")        . "\n");
+    $out->('artist');
+    $out->('compilation');
+    $out->('album');
+    $out->('tracktitle');
+    $out->('tracknumber');
+    $out->('genre');
+    $out->('year');
 
     return 1;
 }
@@ -560,9 +561,9 @@ sub __fill_data {
         if (get_opt('ambiguoususefirst')) {
             $value = $value->[0];
         } else {
-            owarn(get_file() . " has more than one `$info' tag:\n");
+            op('more-than-one-tag', get_file(), $info);
             foreach my $val (@{ $value }) {
-                owarn("    $val\n");
+                op('more-than-one-tag-value', $val);
             }
             return -1;
         }
@@ -635,9 +636,7 @@ sub scan_file {
 }
 
 sub process_warn {
-    my $file = get_file();
-
-    owarn(qq{No method for handling "$file".\n});
+    op('no-method', get_file());
     return 1;
 }
 
@@ -654,11 +653,11 @@ sub process_file {
         print "Processing: $file\n";
     }
     if (-l $file) {
-        owarn("Refusing to handle symbolic links ($file).\n");
+        op('skip-symlink', $file);
         return 0;
     }
     if (! -r $file) {
-        owarn(qq{Can't read "$file": $ERRNO\n});
+        op('file-read-error', $file, $ERRNO);
         return 0;
     }
 
@@ -682,7 +681,7 @@ sub process_file {
     }
 
     if (!scan_file(\%data, $type)) {
-        owarn("Warnings while gathering data. Skipping file.\n\n");
+        op('warnings-while-scanning-file');
         return 0;
     }
     run_hook('pre_rename', \$type, \$ext, \%data);
@@ -702,13 +701,13 @@ sub get_profile_list {
     $wd .= q{/};
 
     foreach my $profile (sort keys %profiles) {
-        odebug(qq{get_profile_list(): Checking "$profile" patterns...\n});
+        op('debug',qq{get_profile_list(): Checking "$profile" patterns...\n});
 
         foreach my $pat (@{ $profiles{$profile} }) {
-            odebug("get_profile_list(): ($wd) =~ ($pat)...\n");
+            op('debug', "get_profile_list(): ($wd) =~ ($pat)...\n");
 
             if ($wd =~ m/^$pat/) {
-                odebug("get_profile_list(): MATCHED.\n");
+                op('debug', "get_profile_list(): MATCHED.\n");
                 push @list, $profile;
                 last;
             }
@@ -717,7 +716,7 @@ sub get_profile_list {
     }
 
     @list = sort grep { ! $seen{ $_ }++ } (@list, @cmdline_profiles);
-    odebug("get_profile_list(): (" . join(q{,}, @list) . ")\n");
+    op('debug', "get_profile_list(): (" . join(q{,}, @list) . ")\n");
     return @list;
 }
 
@@ -752,8 +751,10 @@ sub set_default_options {
     set_opt("useprofiles",          1);
     set_opt("verbose",              0);
     set_opt("warningsautodryrun",   1);
-    set_opt("comp_template",        q{va/&album/&tracknumber - &artist - &tracktitle});
-    set_opt("template",             q{&artist[1]/&artist/&album/&tracknumber - &tracktitle});
+    set_opt("comp_template",
+            q{va/&album/&tracknumber - &artist - &tracktitle});
+    set_opt("template",
+            q{&artist[1]/&artist/&album/&tracknumber - &tracktitle});
 
     return 1;
 }
@@ -1157,8 +1158,7 @@ sub __template_separator_replace {
 
     if ($ { $strref } =~ m{/}) {
         $sr = get_opt("sepreplace");
-        oprint_verbose("Found directory separator in `$tag'.\n");
-        oprint_verbose(qq{Replacing with "$sr".\n});
+        op('template-found-separator', $tag, $sr);
         ${ $strref } =~ s{/}{$sr}g;
     }
 
@@ -1175,7 +1175,7 @@ sub __expand_tokens {
     $buf = $EMPTY;
     $required = sub {
         my ($tag) = @_;
-        return "`$tag' not defined, but required by template. Giving up.";
+        return "`$tag' not defined, but required by template.";
     };
     $rtype = 'DONE';
     TOKEN: foreach my $token (@{ $tok }) {
@@ -1259,7 +1259,7 @@ sub __tokenize_error {
 
     if (!__tokenize_check($data)) {
         foreach my $err (@{ $data->[0]->[1] }) {
-            owarn("$err\n");
+            op('tokenize-error', $err);
         }
         return 1;
     }
@@ -1282,9 +1282,9 @@ sub expand_template {
     $retval = __expand_tokens($data, $datref);
     if ($retval->[0] eq 'ERROR') {
         my $file = get_file();
-        owarn("$file\n");
+        op('expand-template-file', $file);
         foreach my $err (@{ $retval->[1] }) {
-            owarn("$err\n");
+            op('expand-template-error', $err);
         }
         return;
     }
@@ -1302,14 +1302,13 @@ sub __template_tag_cant_work {
     $ta = tag_aliased($tag);
     $opt = get_opt('template_aliases');
     if ($ta && !$opt) {
-        oprint("`$tag' is an alias for `$aliasmap{$tag}', but " .
-               "`template_aliases' is disabled.\n");
+        op('tag-alias-without-option', $tag, $aliasmap{$tag});
         return 1;
     } elsif ($ta && $opt) {
         return 0;
     }
     if (!tag_supported($tag)) {
-        oprint("Unknown tag `$tag'.\n");
+        op('unknown-tag', $tag);
         return 1;
     }
     return 0;
@@ -1330,21 +1329,22 @@ sub __template_deep_inspect {
             $tag = $token->[1];
         }
         if ($type eq 'ERROR') {
-            owarn('__template_deep_inspect(): BUG: ERROR should not be set. ' .
-                  'here. Was: (' . $token->[1] . ')');
+            op('bug', '__template_deep_inspect(): ' .
+                      'BUG: ERROR should not be set. ' .
+                      'here. Was: (' . $token->[1] . ')');
             exit 1;
         } elsif ($type eq 'LITERAL') {
             # Cannot fail. Yes, I've said it. :)
             next TOKEN;
         } elsif ($type eq 'TRIVIAL' || $type eq 'SIZED') {
             if (__template_tag_cant_work($tag)) {
-                oprint("This expansion will fail every time.\n");
+                op('deep-inspect-fail');
                 $ret = 0;
                 next TOKEN;
             }
         } elsif ($type eq 'CPLXDEFAULT') {
             if (__template_tag_cant_work($tag)) {
-                oprint("This expansion will always use the `default' value.\n");
+                op('deep-inspect-always', 'default');
                 $ret = 0;
             }
             if (!__template_deep_inspect($token->[2]->{defaulttokens})) {
@@ -1352,7 +1352,7 @@ sub __template_deep_inspect {
             }
         } elsif ($type eq 'CPLXSETUNSET') {
             if (__template_tag_cant_work($tag)) {
-                oprint("This expansion will always use the `unset' value.\n");
+                op('deep-inspect-always', 'unset');
                 $ret = 0;
             }
             if (!__template_deep_inspect($token->[2]->{settokens})) {
@@ -1362,7 +1362,7 @@ sub __template_deep_inspect {
                 $ret = 0;
             }
         } else {
-            owarn('Unknown token-type: ', $type);
+            op('deep-inspect-unknown-token', $type);
             $ret = 0;;
         }
     }
@@ -2131,7 +2131,7 @@ sub __home_find_file {
     if (defined $ENV{'XDG_CONFIG_HOME'}) {
         $xdg= $ENV{'XDG_CONFIG_HOME'} . '/arename';
         if (-d $xdg) {
-            odebug(qq{__home_find_file() using "$xdg"\n});
+            op('debug', qq{__home_find_file() using "$xdg"\n});
             $fn = "$xdg/$name";
 
             if (-e $fn) {
@@ -2148,28 +2148,28 @@ sub __home_find_file {
     # if not, but ~/.arename/, we read everything from there.
     # if both are not there, we're looking for stuff like ~/.arenamerc.
     if (-d $etcdir) {
-        odebug(qq{__home_find_file() using "$etcdir"\n});
+        op('debug', qq{__home_find_file() using "$etcdir"\n});
         $fn = "$etcdir/$name";
 
         if (-e $fn) {
             return $fn;
         }
     } elsif (-d $xdg) {
-        odebug(qq{__home_find_file() using "$xdg"\n});
+        op('debug', qq{__home_find_file() using "$xdg"\n});
         $fn = "$xdg/$name";
 
         if (-e $fn) {
             return $fn;
         }
     } elsif (-d $dotdir) {
-        odebug(qq{__home_find_file() using "$dotdir"\n});
+        op('debug', qq{__home_find_file() using "$dotdir"\n});
         $fn = "$dotdir/$name";
 
         if (-e $fn) {
             return $fn;
         }
     } else {
-        odebug(qq{__home_find_file() using "$home"\n});
+        op('debug', qq{__home_find_file() using "$home"\n});
         $fn = "$home/$dotname";
 
         if (-e $fn) {
@@ -2205,10 +2205,10 @@ sub home_find_file {
             sprintf('.arename.%s.hooks', $spec)
         );
     } else {
-        croak("home_find_file(): unknown code ($code). Please report!\n");
+        op('bug', "home_find_file(): unknown code ($code). Please report!\n");
     }
 
-    odebug(qq{home_find_file($code, "$spec") returning ($name)\n});
+    op('debug', qq{home_find_file($code, "$spec") returning ($name)\n});
     return $name;
 }
 
@@ -2242,14 +2242,12 @@ sub __rcload_stats {
     my ($desc, $count, $warnings) = @_;
 
     if (!get_opt('load_quiet')) {
-        oprint("Read $desc.\n");
-        oprint("$count valid items.\n");
+        op('rcload-stats', $desc, $count);
     }
     if ($warnings > 0) {
-        oprint("$warnings warnings.\n");
+        op('rcload-warnings', $warnings);
         if (get_opt('warningsautodryrun') && !get_opt('dryrun')) {
-            owarn("Encountered warnings in $desc; enabling 'dryrun'.\n");
-            owarn("  (See 'warningsautodryrun' option.)\n");
+            op('auto-dry-run', $desc);
             set_opt('dryrun', 1);
         }
     }
@@ -2264,13 +2262,12 @@ sub __rcload {
 
     if (!open($fh, q{<}, $file)) {    ## no critic (RequireBriefOpen)
         ## use critic
-        carp("Failed to read $desc ($file).\n");
-        owarn("Reason: $ERRNO\n");
+        op('rcload-open-fail', $desc, $file, $ERRNO);
         return 1;
     }
 
-    print qq{Reading "$file"...\n} if (!get_opt('shutup')
-                                    && !get_opt('load_quiet'));
+    op('rcload-reading', $file)
+        if (!get_opt('shutup') && !get_opt('load_quiet'));
 
     while (my $line = <$fh>) {
         chomp $line;
@@ -2288,19 +2285,19 @@ sub __rcload {
 
         $retval = parse($file, $lnum, $count, $key, $val);
         if ($retval < 0) {
-            owarn("$file,$lnum: invalid line '$line'.\n");
+            op('rc-invalid-line', $file, $lnum, $line);
             return -1;
         } elsif ($retval > 1) {
-            owarn("unknown-line:$file,$lnum: $line\n");
+            op('rc-unknown-line', $file, $lnum, $line);
             $warnings++;
         } elsif ($retval > 0) {
-            owarn("warning:$file,$lnum: $line\n");
+            op('rc-line-warning', $file, $lnum, $line);
             $warnings++;
         } else {
             $count++;
         }
     }
-    close $fh or owarn(qq{Failed to close "$file": $ERRNO\n});
+    close $fh or op('rcload-close-fail', $file, $ERRNO);
 
     sect_reset();
     __rcload_stats($desc, $count, $warnings);
@@ -2315,9 +2312,10 @@ sub rcload {
     $retval = __rcload($rc, $desc);
 
     if ($retval < 0) {
-        croak(qq{Error(s) in "$rc". Aborting.\n});
+        op('rcload-error-abort', $rc);
+        exit(1);
     } elsif ($retval > 0) {
-        owarn("Error opening configuration file.\n");
+        op('rcload-error-warn', $rc);
     }
 
     return 1;
@@ -2333,7 +2331,7 @@ sub read_rcs {
     }
 
     if ($rc eq q{}) {
-        owarn("main configuration file not found. Using defaults.\n");
+        op('no-configuration');
     } else {
         rcload($rc, "main configuration");
     }
@@ -2349,7 +2347,7 @@ sub read_rcs {
             if ($rc ne q{}) {
                 rcload($rc, qq{configuration for profile "$profile"});
             } else {
-                owarn(qq{Profile "$profile" active, but no configuration found.\n});
+                op('rc-profile-missing', $profile);
             }
         }
     }
@@ -2424,14 +2422,12 @@ sub parse_bool {
     } elsif ($val =~ m/^false$/i || $val eq q{0}) {
         $val = 0;
     } else {
-        owarn("$file,$lnum: unknown boolean value for '$key': '$val'\n");
+        op('parse-bool-broken', $file, $lnum, $key, $val);
         return -1
     }
 
-    oprint_verbose(qq{boolean option "$key" = '} . ($val ? 'true' : 'false' ) . qq{'\n});
-
+    op('parse-boolean-print', $key, ($val ? 'true' : 'false'));
     set_opt($key, $val);
-
     return 0;
 }
 
@@ -2441,14 +2437,12 @@ sub parse_defaultvalues {
     $key =~ s/^default_//;
 
     if (!tag_supported($key)) {
-        owarn("$file,$lnum: Default for unsupported tag found: '$key'\n");
+        op('parse-default-unknown-tag', $file, $lnum, $key);
         return -1;
     }
 
-    oprint_verbose(qq{default for "$key" = '$val'\n});
-
+    op('parse-default-tag-print', $key, $val);
     set_defaults($key, $val);
-
     return 0;
 }
 
@@ -2456,16 +2450,13 @@ sub parse_integer {
     my ($file, $lnum, $count, $key, $val) = @_;
 
     if ($val ne q{} && $val !~ m/^\d+$/) {
-        owarn("$file,$lnum: Broken integer value for '$key': '$val'\n");
+        op('parse-int-broken', $file, $lnum, $key, $val);
         return -1;
     }
 
     $val = 0 if ($val eq q{});
-
-    oprint_verbose(qq{integer option "$key" = $val\n});
-
+    op('parse-int-print', $key, $val);
     set_opt($key, $val);
-
     return 0;
 }
 
@@ -2475,17 +2466,19 @@ sub parse_profile {
 
     ($name, $pat) = $val =~ m/(\S+)\s+(.*)/;
     if (!defined $name || !defined $pat || $name eq q{} || $pat eq q{}) {
-        owarn(qq{Could not parse profile value "$val"\n});
+        op('profile-parse-fail', $val);
         return 1;
     }
 
     if ($name =~ m/[^\w\d-]/) {
-        owarn("Disallowed charaters in profile name ($name)!\n");
+        op('profile-disallowed-chars', $name);
         return 1;
     }
 
-    if (get_opt('checkprofilerc') && home_find_file($FIND_PROFRC, $name) eq q{}) {
-        owarn(qq{Could not find config file for profile "$name".\n});
+    if (get_opt('checkprofilerc')
+       && home_find_file($FIND_PROFRC, $name) eq q{})
+    {
+        op('profile-missing-config', $name);
         return 1;
     }
 
@@ -2496,19 +2489,16 @@ sub parse_profile {
     $pat =~ s/^\\//;        # throw away a leading backslash
     $pat =~ s/^~\//$home/;  # ~/ -> $HOME
 
-    oprint_verbose(qq{Adding pattern "$pat" to profile "$name".\n});
+    op('profile-add-pattern', $pat, $name);
     push @{ $profiles{$name} }, $pat;
-
     return 0;
 }
 
 sub parse_string {
     my ($file, $lnum, $count, $key, $val) = @_;
 
-    oprint_verbose(qq{string option "$key" = '$val'\n});
-
+    op('parse-string-print', $key, $val);
     set_opt($key, $val);
-
     return 0;
 }
 
@@ -2518,15 +2508,13 @@ sub parse_new_section {
     my ($s) = $key =~ m/^\s*\[(.*)\]\s*$/;
 
     if (!defined $s) {
-        owarn("Broken section start: ($key)\n");
+        op('section-broken-start', $key);
         return -1;
     }
 
     $s =~ s/^~\//$ENV{HOME}\//;
     sect_set($s);
-
-    oprint_verbose(qq{Switching section: "$s"\n});
-
+    op('rc-switch-section', $s);
     return 0;
 }
 
@@ -2535,14 +2523,12 @@ sub parse_set {
 
     my ($name, $value) = $val =~ m/\s*(\w+)\s*=\s*\\?(.*)/;
     if (!defined $name || !defined $value) {
-        owarn("Broken user setting: ($val)\n");
+        op('user-setting-broken', $val);
         return 1;
     }
 
-    oprint_verbose(qq{user setting "$name" = '$value'\n});
-
+    op('parse-userset-print', $name, $value);
     user_set($name, $value);
-
     return 0;
 }
 
@@ -2593,7 +2579,7 @@ sub checkstropts {
 
     foreach my $opt (@o) {
         if (exists $opts{$opt} && !defined $opts{$opt}) {
-            owarn(" -$opt *requires* a string argument!\n");
+            op('cmdline-missing-arg', $opt);
         }
     }
 
@@ -2607,7 +2593,7 @@ sub cmdopts {
         return 0 if (!defined $opts{$opt});
     }
 
-    odebug("@args options given!\n");
+    op('debug', "@args options given!\n");
     return 1;
 }
 
@@ -2631,9 +2617,9 @@ sub __handle_options {
     my ($opt, $key, $val) = @_;
 
     if (!defined $val) {
-        odebug("$opt: \"$key\"\n");
+        op('debug', "$opt: \"$key\"\n");
     } else {
-        odebug("$opt: \"$key\" ($val)\n");
+        op('debug', "$opt: \"$key\" ($val)\n");
     }
 
     if ($opt eq 'userset') {
@@ -2815,12 +2801,16 @@ sub ensure_dir {
                  );
 
         if (!-d $sofar) {
-            if ((get_opt("dryrun") || get_opt("verbose")) && !get_opt("quiet")) {
-                oprint(qq{mkdir "$sofar"\n});
+            if ((get_opt("dryrun") || get_opt("verbose"))
+               && !get_opt("quiet"))
+            {
+                op('mkdir', $sofar);
             }
             if (!get_opt("dryrun")) {
-                mkdir $sofar or croak("Could not mkdir($sofar).\n" .
-                                      "Reason: $ERRNO\n");
+                mkdir $sofar or do {
+                    op('mkdir-fail', $sofar, $ERRNO);
+                    exit 1;
+                }
             }
         }
     }
@@ -2906,7 +2896,7 @@ sub get_opt {
     my ($opt) = @_;
     my ($section) = (undef);
 
-    odebug("GET OPTION ($opt)\n");
+    op('debug', "GET OPTION ($opt)\n");
     if (defined $cmdline_protect{$opt} && $cmdline_protect{$opt} eq 'yes') {
         return $conf{$opt};
     }
@@ -2916,11 +2906,11 @@ sub get_opt {
     }
 
     if (defined $section && $sectconf{$section}{$opt}) {
-        odebug("returning $conf{$opt} (section: $section)\n");
+        op('debug', "returning $conf{$opt} (section: $section)\n");
         return $sectconf{$section}{$opt};
     } else {
         if (defined $conf{$opt}) {
-            odebug("returning $conf{$opt}\n");
+            op('debug', "returning $conf{$opt}\n");
         }
         return $conf{$opt};
     }
@@ -2956,26 +2946,26 @@ sub __set_opt {
     my $s = sect_get();
 
     if (defined $s && !is_locopt($opt)) {
-        owarn(qq{"$opt" is *not* a localizable setting (will not set to $val).\n});
+        op('rc-opt-not-localizable', $opt, $val);
         return 0;
     }
 
     if ((!defined $protect || $protect == 0)
-        && defined $cmdline_protect{$opt} && $cmdline_protect{$opt} eq 'yes') {
-
-        owarn(qq{"$opt" was set on the command line. Not overwriting.\n});
+        && defined $cmdline_protect{$opt} && $cmdline_protect{$opt} eq 'yes')
+    {
+        op('rc-overridden-by-cmdline', $opt);
         return 0;
     }
 
     if (!defined $s) {
-        odebug("set_opt() ($opt) = ($val)\n");
+        op('debug', "set_opt() ($opt) = ($val)\n");
         $conf{$opt} = $val;
     } else {
-        odebug("set_opt() ($opt) = ($val) [$s]\n");
+        op('debug', "set_opt() ($opt) = ($val) [$s]\n");
         $sectconf{$s}{$opt} = $val;
     }
     if (defined $protect && $protect > 0) {
-        odebug("Protecting $opt from being overidden later.\n");
+        op('debug', "Protecting $opt from being overidden later.\n");
         $cmdline_protect{$opt} = 'yes';
     }
 
@@ -3023,7 +3013,7 @@ sub user_get {
 
     $s = section_matches(get_file());
     if (defined $s) {
-        odebug("returning user setting $lsets{$s}{$opt} (section: $s)\n");
+        op('debug', "returning user setting $lsets{$s}{$opt} (section: $s)\n");
         return $lsets{$s}{$opt};
     }
     return $sets{$opt}
@@ -3035,7 +3025,7 @@ sub user_set {
 
     $s = sect_get();
     if (defined $s) {
-        odebug("Localised user setting ($opt) section($s).\n");
+        op('debug', "Localised user setting ($opt) section($s).\n");
         $lsets{$s}{$opt} = $val;
     } else {
         $sets{$opt} = $val;
@@ -3072,10 +3062,12 @@ sub section_matches {
     # section names first; that way /foo/bar/ supersedes /foo/.
     foreach my $section (sort { length $b <=> length $a } @k) {
         my $substring = substr $filename, 0, length $section;
-        odebug("<$section> ($filename) eq [generated from $filename] ($substring)\n");
+        op('debug',
+           "<$section> ($filename) eq "
+           . "[generated from $filename] ($substring)\n");
 
         if ($substring eq $section) {
-            odebug("$section MATCHED! returning it.\n");
+            op('debug', "$section MATCHED! returning it.\n");
             return $section;
         }
     }
@@ -3124,36 +3116,31 @@ sub __read_hook_file {
     }
 
     if (! -e $file) {
-        owarn_verbose("Hook file not found ($file).\n");
+        op('hooks-no-such-file', $file);
         return 1;
     }
 
     $rc = do $file;
 
     if (!defined $rc && $EVAL_ERROR) {
-        owarn("Could not parse hooks file ($file):\n   - $EVAL_ERROR\n");
+        op('hooks-file-parse-error', $file, $EVAL_ERROR);
         if (get_opt("hookerrfatal")) {
             exit 1;
         } else {
             return 0;
         }
     } elsif (!defined $rc) {
-        owarn("Could not read hooks file ($file):\n   - $ERRNO\n");
+        op('hooks-file-read-error', $file, $EVAL_ERROR);
         if (get_opt("hookerrfatal")) {
             exit 1;
         } else {
             return 0;
         }
     } elsif ($rc != 1 && !get_opt('load_quiet')) {
-        owarn(qq{Reading hooks file "$file" did not return 1.\n});
-        owarn("  While this is not a fatal problem, it is good practice, to let\n");
-        owarn("  perl script files return 1. Just put a '1;' into the last line\n");
-        owarn("  of this file to get rid of this warning. Subroutines like\n");
-        owarn("  register_hook() and remove_hook() return 1 by default, so sticking\n");
-        owarn("  them into the last line of the file will do the trick, too.\n");
+        op('hooks-non-true', $file);
     }
 
-    oprint("Hook file read ($file).\n") if (!get_opt('load_quiet'));
+    op('hooks-file-read', $file) if (!get_opt('load_quiet'));
     return 1;
 }
 
@@ -3179,7 +3166,7 @@ sub register_hook {
     my ($namespace, $funref) = @_;
 
     if (!defined &{ $funref }) {
-        owarn("Trying to register undefined subroutine in namespace: $namespace; Ignoring.\n");
+        op('hooks-register-undefined', $namespace);
         return 1;
     }
     push @{ $hooks{$namespace} }, $funref;
