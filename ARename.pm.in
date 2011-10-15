@@ -41,6 +41,7 @@ use File::Basename;
 use File::Copy;
 use Cwd;
 use Cwd 'abs_path';
+use Term::ANSIColor qw(:constants);
 
 # This one is not. But it's available via CPAN and - if you're lucky - via your
 # OSs packaging system.
@@ -102,6 +103,7 @@ sub data_reset {
     undef @settables;
     undef @supported_tags;
 
+    $conf{verbosity} = 5;
     return 1;
 }
 
@@ -1380,31 +1382,721 @@ sub template_deep_inspect {
 
 # output subroutines
 
-sub odebug {
-    my ($string) = @_;
+sub make_format {
+    my (@args) = @_;
+    my ($ret);
 
-    # we cannot use the normal API here, because we're using odebug()
-    # in the API's subroutines. That would recurse endlessly.
-    return 0 if (!$conf{'debug'} || $conf{'shutup'});
-    print "DEBUG: $string";
+    $ret = q{};
+    foreach my $part (@args) {
+        my $str = shift @{ $part };
+        my $attr = join q{}, @{ $part };
+        $ret .= $attr . $str;
+    }
 
+    return $ret;
+}
+
+my (%formats, $op_last_format);
+BEGIN {
+    # We need to set `verbosity' very very early so everything can output stuff
+    # very early, too, without Perl warnings.
+    $conf{verbosity} = 5; # TODO, actually: 5
+    $op_last_format = 'newline';
+
+    # `%formats' also needs to be assigned from within "BEGIN", because we are
+    # using actual code to set the `format' keys. And thed needs to be executed
+    # by force.
+    %formats = (
+        "bug" => {
+            verbosity => -1,
+            argn => 2,
+            format => make_format(
+                [ q{ -!- }, BOLD, WHITE ],
+                [ q{BUG: }, BOLD, RED ],
+                [ q{%s }, CLEAR ],
+                [ q{%s}, MAGENTA ],
+                [ qq{\n}, RESET ]),
+        },
+        "mkdir" => {
+            verbosity => 10,
+            argn => 1,
+            format => make_format(
+                [ q{mkdir "}, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ qq{"\n}, CLEAR ]),
+        },
+        "mkdir-fail" => {
+            verbosity => 0,
+            argn => 2,
+            format => make_format(
+                [ qq{Could not mkdir(%s).\n}, RED ],
+                [ qq{Reason: %s\n}, CLEAR ]),
+        },
+        "debug" => {
+            verbosity => 10_000,
+            argn => 1,
+            format => make_format(
+                [ q{DEBUG:}, BOLD, RED],
+                [ q{ }, RESET ],
+                [ q{%s}, RED ],
+                [ qq{\n}, RESET ]),
+        },
+        "rename" => {
+            verbosity => 10,
+            argn => 3,
+            format => make_format(
+                [ q{%s}, YELLOW ],
+                [ q{ '}, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ q{' }, CLEAR ],
+                [ qq{\\\n         }, CLEAR ],
+                [ q{ '}, CLEAR ],
+                [ q{%s}, GREEN ],
+                [ qq{'\n}, CLEAR ]),
+        },
+        "skip" => {
+            verbosity => 10,
+            argn => 1,
+            format => make_format(
+                [ q{Skipping:}, YELLOW ],
+                [ q{ '}, RESET ],
+                [ q{%s}, BOLD, BLUE ],
+                [ qq{'\n}, RESET ]),
+        },
+        "skip-same" => {
+            verbosity => 10,
+            argn => 1,
+            format => make_format(
+                [ q{'} ],
+                [ q{%s}, BOLD, BLUE ],
+                [ qq{'\n      }, RESET ],
+                [ qq{would stay the way it is, skipping.\n} ]
+            ),
+        },
+        "tag-alias-without-option" => {
+            verbosity => 0,
+            argn => 2,
+            format => make_format(
+                [ q{`}, CLEAR ],
+                [ q{%s}, GREEN ],
+                [ q{' is an alias for `}, CLEAR ],
+                [ q{%s}, GREEN ],
+                [ q{' but `}, CLEAR ],
+                [ q{template_aliases}, CYAN ],
+                [ qq{' is disabled.\n}, CLEAR ]),
+        },
+        "tag-list" => {
+            verbosity => 10,
+            argn => 2,
+            format => make_format(
+                [ qq{%12s: %s\n}, CLEAR ]
+            ),
+        },
+        "deprecated-function" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ q{Using deprecated function: }, RED ],
+                [ q{%s}, CYAN ],
+                [ qq{\n}, CLEAR ],
+                [ qq{This function will be removed in an upcoming release.\n} ]),
+        },
+        # options
+        "auto-dry-run" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ q{Encountered warnings in }, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ qq{, enabling `dryrun'.\n}, CLEAR ],
+                [ qq{  (See `warningsautodryrun' option for details.)\n} ]),
+        },
+        "copymode" => {
+            verbosity => 5,
+            argn => 0,
+            format => make_format(
+                [ q{+++}, BOLD, GREEN ],
+                [ qq{ copymode enabled\n}, CLEAR ]),
+        },
+        "read-stdin" => {
+            verbosity => 5,
+            argn => 0,
+            format => make_format(
+                [ q{+++}, BOLD, GREEN ],
+                [ qq{ reading stdin for filenames (after @ARGV)\n}, CLEAR ]),
+        },
+        "skip-symlink" => {
+            verbosity => 5,
+            argn => 1,
+            format => make_format(
+                [ q{Refusing to handle symbolic links: "}, CLEAR ],
+                [ q{%s}, RED ],
+                [ qq{"\n}, CLEAR ]),
+        },
+        "verbose" => {
+            verbosity => 0,
+            argn => 0,
+            format => make_format(
+                [ q{+++}, BOLD, GREEN ],
+                [ qq{ verbose mode enabled\n}, CLEAR ]
+            ),
+        },
+        # cmdline handling
+        "cmdline-missing-arg" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ q{-}, CLEAR ],
+                [ q{%s}, GREEN ],
+                [ qq{ requires a string argument.\n}, CLEAR ]
+            ),
+        },
+        # input file processing
+        "quoted-file" => {
+            verbosity => 5,
+            argn => 1,
+            format => make_format(
+                [ qq{'%s'\n}, CLEAR ]),
+        },
+        "file-read-error" => {
+            verbosity => 0,
+            argn => 2,
+            format => make_format(
+                [ q{Can't read "%s": }, CLEAR ],
+                [ q{%s}, RED ],
+                [ qq{\n}, CLEAR ]
+            ),
+        },
+        "target-exists" => {
+            verbosity => 5,
+            argn => 1,
+            format => make_format(
+                [ q{%s}, CYAN ],
+                [ qq{ exists. Use -f to force overriding.\n}, CLEAR ]),
+        },
+        "target-exists-twoline" => {
+            verbosity => 5,
+            argn => 1,
+            format => make_format(
+                [ q{%s}, CYAN ],
+                [ qq{ exists.\n    Use -f to force overriding.\n}, CLEAR ]),
+        },
+        "template-found-separator" => {
+            verbosity => 10,
+            argn => 2,
+            format => make_format(
+                [ q{Found directory separator in `}, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ qq{'.\nReplacing with "}, CLEAR ],
+                [ q{%s}, BOLD, BLUE ],
+                [ qq{".\n}, CLEAR ]),
+        },
+        "no-method" => {
+            verbosity => 5,
+            argn => 1,
+            format => make_format(
+                [ q{No method for handling `}, CLEAR ],
+                [ q{%s}, RED ],
+                [ qq{'\n}, CLEAR ]),
+        },
+        # template expansion
+        "check-template" => {
+            verbosity => 10,
+            argn => 1,
+            format => make_format(
+                [ q{Checking template "}, CLEAR ],
+                [ q{%s}, GREEN ],
+                [ qq{"\n}, CLEAR ]),
+        },
+        "check-comp-template" => {
+            verbosity => 10,
+            argn => 1,
+            format => make_format(
+                [ q{Checking compilation template "}, CLEAR ],
+                [ q{%s}, GREEN ],
+                [ qq{"\n}, CLEAR ]),
+        },
+        "deep-inspect-always" => {
+            verbosity => 5,
+            argn => 1,
+            format => make_format(
+                [ q{This expansion will always use the `}, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ qq{' value.\n}, CLEAR ]
+            ),
+        },
+        "deep-inspect-fail" => {
+            verbosity => 5,
+            argn => 0,
+            format => make_format(
+                [ qq{This expansion will fail everytime.\n}, CLEAR ]
+            ),
+        },
+        "deep-inspect-unknown-token" => {
+            verbosity => 5,
+            argn => 1,
+            format => make_format(
+                [ q{Unknown token-type: `}, CLEAR ],
+                [ q{%s}, RED ],
+                [ qq{' value.\n}, CLEAR ]
+            ),
+        },
+        "error-any-template" => {
+            verbosity => 0,
+            argn => 0,
+            format => make_format(
+                [ qq{Inspecting a template failed. Giving up.\n}, CLEAR ]
+            ),
+        },
+        "error-comp-template" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ q{Error(s) inspecting template: }, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ qq{\n}, CLEAR ]
+            ),
+        },
+        "error-template" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ q{Error(s) inspecting comp_template: }, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ qq{\n}, CLEAR ]
+            ),
+        },
+        "expand-template-file" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ qq{Error expanding template:\n}, YELLOW, BOLD, ON_BLACK ],
+                [ q{File}, CLEAR, RED ],
+                [ q{: %s (}, CLEAR ],
+                [ qq{Skipping}, YELLOW, ON_BLACK ],
+                [ qq{)\n}, CLEAR ]),
+        },
+        "expand-template-error" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ q{Expansion-error:}, YELLOW, ON_BLACK ],
+                [ qq{ %s}, MAGENTA ],
+                [ qq{\n}, CLEAR ]),
+        },
+        "more-than-one-tag" => {
+            verbosity => 5,
+            argn => 2,
+            format => make_format(
+                [ q{%s has more than one `}, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ qq{' tag:\n}, CLEAR]),
+        },
+        "more-than-one-tag-value" => {
+            verbosity => 5,
+            argn => 1,
+            format => make_format(
+                [ qq{'    %s\n}, CLEAR]),
+        },
+        "tokenize-error" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ qq{%s\n}, CLEAR ]),
+        },
+        "unknown-tag" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ q{Unknown tag: `}, CLEAR ],
+                [ q{%s}, RED ],
+                [ qq{'\n}, CLEAR ]),
+        },
+        "warnings-while-scanning-file" => {
+            verbosity => 0,
+            argn => 0,
+            format => make_format(
+                [ qq{Warnings while gathering data. Skipping file.\n}, YELLOW ],
+                [ qq{\n}, CLEAR ]),
+        },
+        # rcfile loading
+        "default-set-value" => {
+            verbosity => 10,
+            argn => 2,
+            format => make_format(
+                [ q{Setting "}, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ q{" to "}, CLEAR ],
+                [ q{%s}, BOLD, GREEN ],
+                [ qq{"\n}, CLEAR ]
+            ),
+        },
+        "dryrun" => {
+            verbosity => 0,
+            argn => 0,
+            format => make_format(
+                [ q{+++}, BOLD, GREEN ],
+                [ qq{ dryrun mode enabled\n}, CLEAR ]
+            ),
+        },
+        "no-configuration" => {
+            verbosity => 10,
+            argn => 0,
+            format => make_format(
+                [ qq{Main configuration not found. Using defaults.\n}, CLEAR ]),
+        },
+        "rcload-error-abort" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ q{Error(s) in %s. }, CLEAR ],
+                [ q{Aborting.}, RED ],
+                [ qq{\n}, CLEAR ]),
+        },
+        "rcload-error-warn" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ qq{Error opening configuration file "%s".\n}, CLEAR ]),
+        },
+        "rcload-close-fail" => {
+            verbosity => 0,
+            argn => 2,
+            format => make_format(
+                [ q{Failed to close %s}, RED ],
+                [ qq{.\n}, CLEAR ],
+                [ qq{Reason: %s\n}, CLEAR ]),
+        },
+        "rcload-open-fail" => {
+            verbosity => 0,
+            argn => 3,
+            format => make_format(
+                [ q{Failed to read %s }, RED ],
+                [ q{(}, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ qq{).\n}, CLEAR ],
+                [ qq{Reason: %s\n}, CLEAR ]),
+        },
+        "rcload-reading" => {
+            verbosity => 5,
+            argn => 1,
+            format => make_format(
+                [ q{Reading `%s'...}, CLEAR ],
+                [ qq{\n}, CLEAR ]),
+        },
+        "rcload-stats" => {
+            verbosity => 5,
+            argn => 2,
+            format => make_format(
+                [ q{Read }, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ qq{.\n}, CLEAR ],
+                [ q{%s}, GREEN ],
+                [ qq{ valid items.\n}, CLEAR]),
+        },
+        "rcload-warnings" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ q{%s}, YELLOW ],
+                [ qq{ warnings.\n}, CLEAR]),
+        },
+        "rc-invalid-line" => {
+            verbosity => 0,
+            argn => 3,
+            format => make_format(
+                [ qq{%s,%s: invalid line: %s\n}, CLEAR ]),
+        },
+        "rc-unknown-line" => {
+            verbosity => 0,
+            argn => 3,
+            format => make_format(
+                [ qq{unknown-line:%s,%s: %s\n}, CLEAR ]),
+        },
+        "rc-line-warning" => {
+            verbosity => 0,
+            argn => 3,
+            format => make_format(
+                [ qq{warning:%s,%s: %s\n}, CLEAR ]),
+        },
+        "rc-opt-not-localizable" => {
+            verbosity => 0,
+            argn => 2,
+            format => make_format(
+                [ q{`}, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ q{' cannot be used in sections }, CLEAR ],
+                [ q{(it will not be set to "}, CLEAR ],
+                [ q{%s}, BOLD, BLUE ],
+                [ qq{").\n}, CLEAR ]),
+        },
+        "rc-overridden-by-cmdline" => {
+            verbosity => 5,
+            argn => 1,
+            format => make_format(
+                [ q{`}, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ qq{' was set on the command line. Not overriding.\n}, CLEAR]),
+        },
+        "rc-profile-missing" => {
+            verbosity => 5,
+            argn => 1,
+            format => make_format(
+                [ q{Profile "}, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ qq{" active, but no configuration found.\n}, CLEAR ]),
+        },
+        "rc-switch-section" => {
+            verbosity => 10,
+            argn => 1,
+            format => make_format(
+                [ q{Switching section: `}, CLEAR ],
+                [ q{%s}, MAGENTA ],
+                [ qq{'\n}, CLEAR ]),
+        },
+        "parse-boolean-print" => {
+            verbosity => 10,
+            argn => 2,
+            format => make_format(
+                [ q{Boolean option "}, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ q{" = `}, CLEAR ],
+                [ q{%s}, BOLD, GREEN ],
+                [ qq{'\n}, CLEAR ]),
+        },
+        "parse-default-unknown-tag" => {
+            verbosity => 0,
+            argn => 3,
+            format => make_format(
+                [ q{%s,%s: Default for unsupported tag found: `}, CLEAR ],
+                [ q{%s}, RED ],
+                [ qq{'\n}, CLEAR ]),
+        },
+        "parse-default-tag-print" => {
+            verbosity => 10,
+            argn => 2,
+            format => make_format(
+                [ q{Default for "}, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ q{" = "}, CLEAR ],
+                [ q{%s}, BOLD, GREEN ],
+                [ qq{"\n}, CLEAR ]),
+        },
+        "parse-bool-broken" => {
+            verbosity => 0,
+            argn => 4,
+            format => make_format(
+                [ q{%s,%s: }, CLEAR ],
+                [ q{Broken boolean for `%s': "}, CLEAR ],
+                [ q{%s}, RED ],
+                [ qq{"\n}, CLEAR ]),
+        },
+        "parse-int-broken" => {
+            verbosity => 0,
+            argn => 4,
+            format => make_format(
+                [ q{%s,%s: }, CLEAR ],
+                [ q{Broken integer for `%s': "}, CLEAR ],
+                [ q{%s}, RED ],
+                [ qq{"\n}, CLEAR ]),
+        },
+        "parse-int-print" => {
+            verbosity => 10,
+            argn => 2,
+            format => make_format(
+                [ q{Integer option "}, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ q{" = "}, CLEAR ],
+                [ q{%s}, BOLD, GREEN ],
+                [ qq{"\n}, CLEAR ]),
+        },
+        "parse-string-print" => {
+            verbosity => 10,
+            argn => 2,
+            format => make_format(
+                [ q{String option "}, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ q{" = "}, CLEAR ],
+                [ q{%s}, BOLD, GREEN ],
+                [ qq{"\n}, CLEAR ]),
+        },
+        "parse-userset-print" => {
+            verbosity => 10,
+            argn => 2,
+            format => make_format(
+                [ q{User-defined setting}, BOLD, BLUE ],
+                [ q{: "}, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ q{" = "}, CLEAR ],
+                [ q{%s}, BOLD, GREEN ],
+                [ qq{"\n}, CLEAR ]),
+        },
+        "profile-add-pattern" => {
+            verbosity => 10,
+            argn => 2,
+            format => make_format(
+                [ q{Adding pattern "}, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ q{" to profile `}, CLEAR ],
+                [ q{%s}, BOLD, GREEN ],
+                [ qq{'.\n}, CLEAR ]),
+        },
+        "profile-disallowed-chars" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ q{Disallowed characters in profile name: "}, CLEAR ],
+                [ q{%s}, RED ],
+                [ qq{"\n}, CLEAR ]),
+        },
+        "profile-parse-fail" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ q{Could not find config file for profile `}, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ qq{'.\n}, CLEAR ]),
+        },
+        "profile-missing-config" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ q{Could not parse profile value "}, CLEAR ],
+                [ q{%s}, RED ],
+                [ qq{".\n}, CLEAR ]),
+        },
+        "section-broken-start" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ q{Broken section start: "}, CLEAR ],
+                [ q{%s}, RED ],
+                [ qq{"\n}, CLEAR ]),
+        },
+        "user-setting-broken" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ q{Broken user setting: "}, CLEAR ],
+                [ q{%s}, RED ],
+                [ qq{"\n}, CLEAR ]),
+        },
+        # hook files
+        "hooks-file-parse-error" => {
+            verbosity => 0,
+            argn => 2,
+            format => make_format(
+                [ q{Could not parse hooks file }, RED ],
+                [ qq{`}, CLEAR ],
+                [ q{%s}, BOLD, RED ],
+                [ qq{':\n}, CLEAR ],
+                [ qq{  - %s\n}, CLEAR ]),
+        },
+        "hooks-file-read-error" => {
+            verbosity => 0,
+            argn => 2,
+            format => make_format(
+                [ q{Could not read hooks file }, RED ],
+                [ qq{`}, CLEAR ],
+                [ q{%s}, BOLD, RED ],
+                [ qq{':\n}, CLEAR ],
+                [ qq{  - %s\n}, CLEAR ]),
+        },
+        "hooks-non-true" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ q{Reading hooks file "%s" did }, CLEAR ],
+                [ q{NOT}, RED ],
+                [ qq{ return 1.\n}, RED ],
+[ qq{  While this is not a fatal problem, it is good practice, to let\n},
+  CLEAR ],
+[ qq{  perl script files return 1. Just put a '1;' into the last line\n},
+  CLEAR ],
+[ qq{  of this file to get rid of this warning. Subroutines like\n},
+  CLEAR ],
+[ qq{  register_hook() and remove_hook() return 1 by default, so sticking\n},
+  CLEAR ],
+[ qq{  them into the last line of the file will do the trick, too.\n},
+  CLEAR ]),
+        },
+        "hooks-no-such-file" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ q{Hook file }, CLEAR ],
+                [ q{not found}, RED ],
+                [ qq{: %s\n}, CLEAR ]),
+        },
+        "hooks-file-read" => {
+            verbosity => 10,
+            argn => 1,
+            format => make_format(
+                [ q{Hook file read ("}, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ qq{).\n}, CLEAR ]),
+        },
+        "hooks-register-undefined" => {
+            verbosity => 0,
+            argn => 1,
+            format => make_format(
+                [ q{Trying to register }, CLEAR ],
+                [ q{undefined subroutine}, RED ],
+                [ q{ in namespace `}, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ q{'.}, CLEAR ],
+                [ q{ Ignoring}, YELLOW ],
+                [ qq{\n}, CLEAR ]),
+        },
+        "newline" => {
+            verbosity => 0,
+            argn => 0,
+            format => make_format( [ qq{\n}, CLEAR ] ),
+        },
+    );
+}
+
+sub got_format {
+    my ($fname) = @_;
+    return 0 if (!defined $formats{$fname});
+    return 1;
+}
+
+sub op {
+    # op('debug', "Oh crap, something just hit the fan.");
+    my ($type, @args) = @_;
+    my ($argn, $fmt);
+
+    if (!defined $formats{$type}) {
+        # `bug' type better be available. :)
+        op('bug', 'Undefined format', $type);
+        return 0;
+    }
+
+    $argn = $formats{$type}->{argn};
+    $fmt = $formats{$type}->{format};
+    if ($argn != ($#args + 1)) {
+        op('bug', 'Wrong number of arguments',
+           "expected " . $argn . ", got " . ($#args + 1));
+        return 0;
+    }
+    return 0 if ($op_last_format eq 'newline' && $type eq 'newline');
+    if (!defined $formats{$type}->{verbosity}) {
+        op('bug', "Missing verbosity tag in format entry", "$type");
+        return 0;
+    }
+    return 0 if ($conf{verbosity} < $formats{$type}->{verbosity});
+    $op_last_format = $type;
+    printf $fmt, @args;
     return 1;
 }
 
 sub oprint {
     my ($string) = @_;
 
+    op('deprecated-function', 'oprint');
     return 0 if (get_opt('shutup'));
     print get_opt("oprefix") . $string;
-
-    return 1;
-}
-
-sub oprint_verbose {
-    my ($string) = @_;
-
-    return 0 if (!get_opt('verbose'));
-    oprint($string);
 
     return 1;
 }
@@ -1412,17 +2104,9 @@ sub oprint_verbose {
 sub owarn {
     my ($string) = @_;
 
+    op('deprecated-function', 'owarn');
     return 0 if (get_opt('shutup'));
     warn(get_opt("oprefix") . $string);
-
-    return 1;
-}
-
-sub owarn_verbose {
-    my ($string) = @_;
-
-    return 0 if (!get_opt('verbose'));
-    owarn($string);
 
     return 1;
 }
