@@ -304,6 +304,12 @@ Any other value but I<1> - and that includes ARENAME_LOAD_QUIET being
 absent from the environment - will cause B<arename> to start up in
 its normal manner.
 
+=item B<ARENAME_SUPPRESS_COLOURS>
+
+When set to I<1> (and only 1 - B<arename> will ignore any other setting),
+arename will turn off its output colourations. As of version 4.0, B<arename>
+uses Term::ANSIColor to produce output, that features terminal colours.
+
 =back
 
 =head1 FILES

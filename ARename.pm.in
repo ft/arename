@@ -1389,6 +1389,21 @@ sub make_format {
 
 my (%formats, $op_last_format);
 BEGIN {
+    # $ANSI_COLORS_DISABLED needs to be set before any Term::ANSIColor
+    # procedures have been used. So, let's do it here, as early as possible.
+    if (defined $ENV{'ARENAME_SUPPRESS_COLOURS'}
+        && $ENV{'ARENAME_SUPPRESS_COLOURS'} eq '1')
+    {
+        ## Need to disable perlcritic here, because we really don't
+        ## want to have to `local' `%ENV' here.
+        ## no critic (RequireLocalizedPunctuationVars)
+        $ENV{'ANSI_COLORS_DISABLED'} = q{yes};
+        ## use critic
+        $conf{suppress_colours} = 1;
+    } else {
+        $conf{suppress_colours} = 0;
+    }
+
     # We need to set `verbosity' very very early so everything can output stuff
     # very early, too, without Perl warnings.
     $conf{verbosity} = 10;

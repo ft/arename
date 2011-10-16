@@ -51,6 +51,9 @@
     + Changed Perl API:
         a) `oprint()' deprecated. Will be removed in a later release!
         b) `owarn()' deprecated. Will be removed in a later release!
+    + New environment variables:
+        a) `$ARENAME_SUPPRESS_COLOURS': Entirely disable coloured
+           output from arename (version 4.0 uses colours by default).
     + Identifier aliases let you say "&ar" instead of "&artist".
     + Templates are checked for sanity after arename is done loading
       configuration files.
