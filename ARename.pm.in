@@ -1445,7 +1445,7 @@ BEGIN {
                 [ qq{'\n}, CLEAR ]),
         },
         "skip" => {
-            verbosity => 20,
+            verbosity => 10,
             argn => 1,
             format => make_format(
                 [ q{Skipping:}, YELLOW ],
@@ -1502,14 +1502,14 @@ BEGIN {
                 [ qq{  (See `warningsautodryrun' option for details.)\n} ]),
         },
         "copymode" => {
-            verbosity => 10,
+            verbosity => 5,
             argn => 0,
             format => make_format(
                 [ q{+++}, BOLD, GREEN ],
                 [ qq{ copymode enabled\n}, CLEAR ]),
         },
         "read-stdin" => {
-            verbosity => 10,
+            verbosity => 5,
             argn => 0,
             format => make_format(
                 [ q{+++}, BOLD, GREEN ],
@@ -1533,7 +1533,7 @@ BEGIN {
         },
         # cmdline handling
         "cmdline-missing-arg" => {
-            verbosity => 5,
+            verbosity => 0,
             argn => 1,
             format => make_format(
                 [ q{-}, CLEAR ],
@@ -1782,14 +1782,14 @@ BEGIN {
                 [ qq{Reason: %s\n}, CLEAR ]),
         },
         "rcload-reading" => {
-            verbosity => 10,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{Reading `%s'...}, CLEAR ],
                 [ qq{\n}, CLEAR ]),
         },
         "rcload-stats" => {
-            verbosity => 10,
+            verbosity => 5,
             argn => 2,
             format => make_format(
                 [ q{Read }, CLEAR ],
@@ -1843,7 +1843,7 @@ BEGIN {
                 [ qq{' was set on the command line. Not overriding.\n}, CLEAR]),
         },
         "rc-profile-missing" => {
-            verbosity => 10,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{Profile "}, CLEAR ],
