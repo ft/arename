@@ -2735,7 +2735,16 @@ sub read_cmdline_options {
     }
 
     # turn on debugging early
-    set_opt("verbosity", 10_000, $CMDLINE_PROTECT) if (cmdopts("debug"));
+    set_opt("verbosity", 10_000, $CMDLINE_PROTECT)
+        if (cmdopts("debug"));
+    set_opt("verbosity", 20, $CMDLINE_PROTECT)
+        if (cmdopts("verbose"));
+    set_opt("verbosity", 10, $CMDLINE_PROTECT)
+        if (cmdopts_or("quiet"));
+    set_opt("verbosity", 5, $CMDLINE_PROTECT)
+        if (cmdopts("uber-quiet"));
+    set_opt("verbosity", cmdoptint("verbosity"), $CMDLINE_PROTECT)
+        if (cmdopts("verbosity"));
 
     set_opt('verbosity', -1, $CMDLINE_PROTECT)
         if (cmdopts("list-cfg") || cmdopts("list-profiles"));
@@ -2789,14 +2798,6 @@ sub read_cmdline_options {
 }
 
 sub read_cmdline_options_late {
-    set_opt("verbosity", 20, $CMDLINE_PROTECT)
-        if (cmdopts("verbose"));
-    set_opt("verbosity", 10, $CMDLINE_PROTECT)
-        if (cmdopts_or("quiet"));
-    set_opt("verbosity", 5, $CMDLINE_PROTECT)
-        if (cmdopts("uber-quiet"));
-    set_opt("verbosity", cmdoptint("verbosity"), $CMDLINE_PROTECT)
-        if (cmdopts("verbosity"));
     set_opt("force", 1, $CMDLINE_PROTECT)
         if (cmdopts("force"));
     set_opt("dryrun", 1, $CMDLINE_PROTECT)
