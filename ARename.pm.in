@@ -406,20 +406,21 @@ sub arename {
 
     run_hook('post_ensure_dir', $datref, \$ext, \$newname);
 
-    op('quoted-file', sub {
-           my ($ret) = @_;
-           $ret =~ s,','\\'',;
-           return $ret;}->($newname))
 
-        or do {
-            my ($mode);
-            if (get_opt("copymode")) {
-                $mode = 'cp';
-            } else {
-                $mode = 'mv';
-            }
-            op('rename', $mode, $file, $newname);
-        };
+    do {
+        my ($mode);
+        if (get_opt("copymode")) {
+            $mode = 'cp';
+        } else {
+            $mode = 'mv';
+        }
+        op('rename', $mode, $file, $newname)
+            or op('quoted-file',
+                  sub {
+                      my ($ret) = @_;
+                      $ret =~ s,','\\'',;
+                      return $ret;}->($newname));
+    };
 
     if (!get_opt("dryrun")) {
         if (!get_opt("copymode")) {
@@ -1455,8 +1456,8 @@ BEGIN {
                 [ q{ '}, RESET ],
                 [ q{%s}, CYAN ],
                 [ q{' }, RESET ],
-                [ qq{\\\n         }, RESET ],
-                [ q{ '}, RESET ],
+                [ qq{\\\n   }, RESET ],
+                [ q{'}, RESET ],
                 [ q{%s}, GREEN ],
                 [ qq{'\n}, RESET ]),
         },
