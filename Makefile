@@ -30,6 +30,7 @@ test-help:
 	@printf '  test-doc       Check the pod syntax using podchecker\n'
 	@printf '  test-install   Check the installation process\n'
 	@printf '  test-suite     Run the ./tests/*.t test suite\n'
+	@printf '  test-output    Run the ./tests/optest-perl script\n'
 	@printf '  prepare-test-data\n'
 	@printf '                 create audio data for the test suite\n'
 	@printf '  test-help      this text\n'
@@ -92,9 +93,9 @@ uninstall-doc:
 	@./bin/uninstall.sh f "$(prefix)/share/man/man1/arename.1"
 	@./bin/uninstall.sh f "$(prefix)/share/man/man1/ataglist.1"
 
-test: test-check test-doc test-suite
+test: test-check test-doc test-output test-suite
 
-test-all: test-check test-install test-code test-doc test-suite
+test-all: test-check test-install test-code test-doc test-output test-suite
 	@printf '\nTested: '\''%s'\''\n\n' "$$(perl -I. ./arename -V)"
 
 test-check:
@@ -134,6 +135,10 @@ test-doc:
 	 fi ; \
 	 printf '\nPod syntax in "%s" passed all tests - okay.\n\n' "$$PODFILE" ; \
 	)
+
+test-output: genperlscripts
+	perl tests/optest-perl
+	@printf '\n\n  -!- Output routines appear to behaving properly.\n\n'
 
 test-suite: test-check
 	prove -I. -v tests/*.t

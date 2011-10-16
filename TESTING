@@ -58,6 +58,9 @@ arename's test suite
   Checking the installation process is done via:
     % make test-install
 
+  If you'd like to check whether the output system behaves:
+    % make test-output
+
   To run the Perl test suite from ./tests/*.t, do:
     % make test-suite
 
