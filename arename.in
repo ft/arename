@@ -1617,7 +1617,8 @@ if (!ARename::get_opt('load_quiet')) {
     ARename::op('newline');
     ARename::op('dryrun') if (ARename::get_opt("dryrun"));
     ARename::op('copymode') if (ARename::get_opt("copymode"));
-    ARename::op('verbose') if (ARename::get_opt("verbosity") > 5);
+    my $v = ARename::get_opt("verbosity");
+    ARename::op('verbosity', $v) if ($v > 5);
     ARename::op('readstdin') if (ARename::get_opt("readstdin"));
     ARename::op('newline');
 }

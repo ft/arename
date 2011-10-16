@@ -1540,13 +1540,14 @@ BEGIN {
                 [ q{%s}, RED ],
                 [ qq{"\n}, RESET ]),
         },
-        "verbose" => {
+        "verbosity" => {
             verbosity => 5,
-            argn => 0,
+            argn => 1,
             format => make_format(
                 [ q{+++}, BOLD, GREEN ],
-                [ qq{ verbose mode enabled\n}, RESET ]
-            ),
+                [ q{ verbosity is at }, RESET ],
+                [ q{%s}, GREEN ],
+                [ qq{.\n}, RESET ]),
         },
         # cmdline handling
         "cmdline-missing-arg" => {
