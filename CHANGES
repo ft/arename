@@ -39,6 +39,15 @@
         a) --ambiguous-use-first
         b) --list-file-types
         c) --list-exts-for-type <type>
+        d) --verbosity <integer-value>
+    + Removed command line options:
+        a) -D (--debug is still there)
+        b) -q (--quiet is still there, but deprecated)
+        c) -Q (--uber-quiet is still there, but deprecated)
+    + Changed command line options:
+        a) -v: Used to be `--verbose' but now is `--verbosity'.
+           `--verbose' is deprecated (may be removed in later versions)
+           and is equal to "--verbosity 20".
     + Identifier aliases let you say "&ar" instead of "&artist".
     + Templates are checked for sanity after arename is done loading
       configuration files.
