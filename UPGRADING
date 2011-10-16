@@ -1,54 +1,54 @@
 * Upgrade information for arename
 
-Major version upgrades (e.g. v3 to v4) may break backward compatibility in
-one or more aspects of the application. This document outlines which parts
-of arename's new version need to be considered and possibly checked before
-using it regularly instead of the prior major release.
+  Major version upgrades (e.g. v3 to v4) may break backward compatibility in
+  one or more aspects of the application. This document outlines which parts of
+  arename's new version need to be considered and possibly checked before using
+  it regularly instead of the prior major release.
 
 
 ** Version 4
 
 *** Template format strings
 
-In version 4 of the application, the template format was significantly
-enhanced. While it is still pretty backwards compatible, it is possible to
-construct format strings from versions 3 and older that will result in
-non-compatible results in version 4.
+    In version 4 of the application, the template format was significantly
+    enhanced. While it is still pretty backwards compatible, it is possible to
+    construct format strings from versions 3 and older that will result in
+    non-compatible results in version 4.
 
-The manual page was updated to reflect the new format in detail.
+    The manual page was updated to reflect the new format in detail.
 
 
 *** Changed meta-information reading backend
 
-Version 4 of arename uses Audio::Scan to gather meta-information from audio
-files instead of the many backend modules in earlier versions. This has
-resulted in rather big changes while processing files. Changing the hook
-API was inevitable. The `CHANGES' file provides an overview of the API
-changes. `arename.hooks' has been updated, too, as has the reference
-documentation within the manual page.
+    Version 4 of arename uses Audio::Scan to gather meta-information from audio
+    files instead of the many backend modules in earlier versions. This has
+    resulted in rather big changes while processing files. Changing the hook
+    API was inevitable. The `CHANGES' file provides an overview of the API
+    changes. `arename.hooks' has been updated, too, as has the reference
+    documentation within the manual page.
 
 
 *** Output system change affecting verbosity options
 
-The way talks to the world changed entirely in version 4. In earlier versions,
-there were four flags that controlled how verbose the output from arename would
-be. That changed. Now there is one option verbosity, that takes an integer
-argument to describe how verbose output should be. A value of zero will
-surpress all output except for bug messages. The old levels roughly translate
-like this:
+    The way talks to the world changed entirely in version 4. In earlier
+    versions, there were four flags that controlled how verbose the output from
+    arename would be. That changed. Now there is one option verbosity, that
+    takes an integer argument to describe how verbose output should be. A value
+    of zero will surpress all output except for bug messages. The old levels
+    roughly translate like this:
 
-    uber-quiet:     5
-    quiet:         10
-    verbose:       20
-    debug:      10000
+        uber-quiet:     5
+        quiet:         10
+        verbose:       20
+        debug:      10000
 
-The old options still remain as long options (and they will set the `verbosity'
-value according to the table above). The `-v' switch is now the short version
-of the new `--verbosity' option, that directly alters the integer value. The
-other short options are gone.
+    The old options still remain as long options (and they will set the
+    `verbosity' value according to the table above). The `-v' switch is now the
+    short version of the new `--verbosity' option, that directly alters the
+    integer value. The other short options are gone.
 
-At present, only the four old levels are used. However, that may be changed in
-future releases without counting as an compatibility implication. In general,
-you should not be parsing arename's output at all in oder to use it in scripts.
-The output is not stable. To script with arename, implement your special needs
-in hooks.
+    At present, only the four old levels are used. However, that may be changed
+    in future releases without counting as an compatibility implication. In
+    general, you should not be parsing arename's output at all in oder to use
+    it in scripts. The output is not stable. To script with arename, implement
+    your special needs in hooks.
