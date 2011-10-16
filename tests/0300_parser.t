@@ -7,7 +7,7 @@ use Test::More tests => 14;
 use Test::Exception;
 
 use ARename;
-ARename::set_opt('shutup', 1);
+ARename::set_opt('verbosity', -1);
 
 # feed some valid lines into the parser() {{{
 

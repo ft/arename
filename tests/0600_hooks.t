@@ -43,8 +43,7 @@ my %data = (
 );
 
 ARename::set_file($file);
-ARename::set_opt('shutup', 1);
-ARename::set_opt('quiet',  1);
+ARename::set_opt('verbosity', -1);
 ARename::set_opt('hookerrfatal',  0);
 
 is( ARename::__read_hook_file('./arename.hooks'), 1, "reading the sample hooks file shouldn't fail");

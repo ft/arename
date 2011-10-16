@@ -10,8 +10,7 @@ my (%bazooka, %foo, %myhands, %tequilla, %waylon, %files);
 my (@types);
 
 $verbose = 0;
-ARename::set_opt('shutup', 1);
-ARename::set_opt('quiet',  1);
+ARename::set_opt('verbosity', -1);
 
 # data hashes
 # BEGIN is needed to be able to calculate the number of tests in here.

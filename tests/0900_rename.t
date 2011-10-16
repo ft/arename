@@ -80,8 +80,7 @@ sub equal {
 
 ARename::set_opt('template', "(&year) - &artist - &album - &tracknumber. &tracktitle");
 ARename::set_opt('prefix', './blah');
-ARename::set_opt('shutup', 1);
-ARename::set_opt('quiet',  1);
+ARename::set_opt('verbosity', -1);
 
 ARename::set_file('./tests/data/Bazooka George and the Shirt - Bodyfluids - 02. Crap me!.ogg');
 ARename::process_file();

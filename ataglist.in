@@ -74,7 +74,7 @@ use strict;
 use ARename;
 use English '-no_match_vars';
 
-my ( $NAME, $VERSION ) = qw( ataglist v0.9 );
+my ( $NAME, $VERSION ) = qw( ataglist v0.10 );
 
 sub list {
     my ($datref, $ext) = @_;
@@ -110,8 +110,7 @@ ARename::set_postproc(\&main::list);
 ARename::set_default_options();
 ARename::disable_hooks();
 ARename::apply_defaults();
-ARename::set_opt("quiet", 1);
-ARename::set_opt("oprefix", q{});
+ARename::set_opt("verbosity", 5);
 ARename::set_opt("ambiguoususefirst", 1);
 ARename::set_file($file);
 ARename::process_file();

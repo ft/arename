@@ -26,3 +26,29 @@ resulted in rather big changes while processing files. Changing the hook
 API was inevitable. The `CHANGES' file provides an overview of the API
 changes. `arename.hooks' has been updated, too, as has the reference
 documentation within the manual page.
+
+
+*** Output system change affecting verbosity options
+
+The way talks to the world changed entirely in version 4. In earlier versions,
+there were four flags that controlled how verbose the output from arename would
+be. That changed. Now there is one option verbosity, that takes an integer
+argument to describe how verbose output should be. A value of zero will
+surpress all output except for bug messages. The old levels roughly translate
+like this:
+
+    uber-quiet:     5
+    quiet:         10
+    verbose:       20
+    debug:      10000
+
+The old options still remain as long options (and they will set the `verbosity'
+value according to the table above). The `-v' switch is now the short version
+of the new `--verbosity' option, that directly alters the integer value. The
+other short options are gone.
+
+At present, only the four old levels are used. However, that may be changed in
+future releases without counting as an compatibility implication. In general,
+you should not be parsing arename's output at all in oder to use it in scripts.
+The output is not stable. To script with arename, implement your special needs
+in hooks.

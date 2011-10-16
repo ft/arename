@@ -33,10 +33,11 @@ that would indicate a possibly broken installation.
 Copy files instead of renaming (moving). This can be useful to copy tracks
 from your audio archive to a portable device for example.
 
-=item B<--debug> (short option: B<-D>)
+=item B<--debug>
 
-Enable debugging output. This is likely to be very noisy. You probably want
-to use the I<--verbose> option (setting: I<verbose>) in addition to this.
+Enable debugging output. This actually sets `I<verbosity>' to 10000. This output
+option will cause very noisy output. You probably want something less verbose,
+like `I<--verbose>'.
 
 =item B<--disable-hooks> (short option: B<-H>)
 
@@ -84,11 +85,9 @@ as a comma-separated list, extensions for all listed types are listed.
 Print a list of profile names defined in the active configuration.
 (This is primarily used by the zsh completion for the I<--profile> option.)
 
-=item B<--quiet> (short option: B<-q>)
+=item B<--quiet> (deprecated)
 
-Make the output way more quiet, when processing files.
-
-This option conflicts with the verbose option.
+This option is a short hand for "--verbosity 10".
 
 =item B<--read-local> (short option: B<-l>)
 
@@ -101,20 +100,21 @@ Read filenames from stdin after processing files given on the command line.
 It reads one file name per line, which means that file names containing
 newlines are not supported.
 
-=item B<--uber-quiet> (short option: B<-Q>)
+=item B<--uber-quiet> (deprecated)
 
-Be even more quiet (this option will suppress, if a file is skipped.
-Except for files, that are skipped because they would overwrite something).
-
-This option implies I<--quiet>.
+This option is a short hand for "--verbosity 5".
 
 =item B<--version> (short option: B<-V>)
 
 Display version information.
 
-=item B<--verbose> (short option: B<-v>)
+=item B<--verbose> (deprecated)
 
-Enable verbose output.
+This is a short hand for "--verbosity 20".
+
+=item B<--verbosity> E<lt>integer-valueE<gt>
+
+Sets the `I<verbosity>' setting to `I<integer-value>'.
 
 =item B<--rc> E<lt>fileE<gt>
 
@@ -163,7 +163,7 @@ should use. There are currently no plans of removing or changing any further
 short options, but there are no guarantees. If it is indeed better to change
 a short option, we will do so.
 
-A list of options that changed from B<arename> I<2.x> to I<3.0> can be
+A list of options that changed from B<arename> I<3.x> to I<4.0> can be
 found in the project's CHANGES file.
 
 =head1 DESCRIPTION
@@ -275,10 +275,6 @@ section is the minimum effort you will want to go through.
 After that, you can open the file I<~/.arenamerc> in your favourite
 text editor and resemble the following text (and presumably change the
 few values in there to your liking):
-
-  # as soon as you get pissed by too much output, while arename is
-  # running, uncomment the following line:
-  #quiet
 
   # now you certainly want your own templates, so define them here
   # one for your normal files
@@ -546,7 +542,7 @@ Of course, profile configuration files may introduce new sections, too.
 =head2 Configuration file example
 
   # switch on verbosity
-  verbose
+  verbosity 20
 
   # canonicalize file names before working with them
   canonicalize
@@ -645,9 +641,7 @@ value: I<va/&album/&tracknumber - &artist - &tracktitle>)
 
 =item B<debug>
 
-Enable debugging by default. This is probably only useful, if you want
-debugging to be enabled as soon as possible, when you are trying to chase
-bugs. Do not set this for normal execution. (default value: I<false>)
+This setting has the same effect as the "--debug" option.
 
 =item B<default_*>
 
@@ -673,15 +667,11 @@ This setting can still be overwritten by the B<--profile> command line option.
 
 =item B<quiet>
 
-Switches on quietness. This makes the output a lot more compact. (default
-value: I<off>)
+This setting has the same effect as the "--quiet" option.
 
 =item B<quiet_skip>
 
-Be quiet about skips. Even if I<quiet> is set, B<arename> will
-report files it does not process, because renaming would not change their
-names. With this option, these skipped files will not be reported. This
-implicitly sets 'quiet'. (default value: I<off>)
+This setting has the same effect as the "--uber-quiet" option.
 
 =item B<sepreplace>
 
@@ -742,9 +732,13 @@ I<true>)
 
 =item B<verbose>
 
-Switches on verbosity by default. This makes B<arename>'s output really
-noisy. This is probably only useful for debugging or if you are really
-interested in what is going on. (default value: I<false>)
+This setting has the same effect as the "--verbose" option.
+
+=item B<verbosity>
+
+Integer option, that sets the verbosity of I<arename>'s output. The default
+value is `I<10>'. The `I<--verbosity>' option may be used to override this
+setting.
 
 =item B<warningsautodryrun>
 
@@ -1144,9 +1138,9 @@ Change the value of I<setting> to I<value>.
 =back
 
 A list of settings B<arename> will use: canonicalize, dryrun, force,
-hookerrfatal, oprefix, prefix, quiet, quiet_skip, readstdin, shutup,
-sepreplace, tnpad, usehooks, uselocalhooks, uselocalrc, verbose,
-comp_template and template.
+hookerrfatal, prefix, quiet, quiet_skip, readstdin, sepreplace, tnpad,
+usehooks, uselocalhooks, uselocalrc, verbose, verbosity, comp_template and
+template.
 
 If you want to actually change these settings, you should have a profound
 knowledge of B<arename>'s internals. Be careful.

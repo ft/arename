@@ -107,8 +107,6 @@ sub data_reset {
     return 1;
 }
 
-set_opt('shutup', 0);
-
 # Audio::Scan uses a certain set of names for file types. It seems to
 # be aiming for three letter names. `arename' however uses "flac" for
 # flac files, not "flc". Therefore we need to map Audio::Scan names to
@@ -356,11 +354,10 @@ set_opt('shutup', 0);
     debug
     hookerrfatal
     prefix
-    quiet quiet_skip
     sepreplace
     template template_aliases tnpad
     usehooks uselocalhooks uselocalrc useprofiles
-    verbose warningsautodryrun
+    warningsautodryrun
 );
 
 $postproc = \&arename;
@@ -409,20 +406,20 @@ sub arename {
 
     run_hook('post_ensure_dir', $datref, \$ext, \$newname);
 
-    if (get_opt("quiet")) {
-        op('quoted-file', sub {
-               my ($ret) = @_;
-               $ret =~ s,','\\'',;
-               return $ret; }->($newname));
-    } else {
-        my ($mode);
-        if (get_opt("copymode")) {
-            $mode = 'cp';
-        } else {
-            $mode = 'mv';
-        }
-        op('rename', $mode, $file, $newname);
-    }
+    op('quoted-file', sub {
+           my ($ret) = @_;
+           $ret =~ s,','\\'',;
+           return $ret;}->($newname))
+
+        or do {
+            my ($mode);
+            if (get_opt("copymode")) {
+                $mode = 'cp';
+            } else {
+                $mode = 'mv';
+            }
+            op('rename', $mode, $file, $newname);
+        };
 
     if (!get_opt("dryrun")) {
         if (!get_opt("copymode")) {
@@ -480,7 +477,7 @@ sub tag_supported {
 sub arename_verbosity {
     my ($datref) = @_;
 
-    return 0 if (!get_opt('verbose'));
+    return 0 if (get_opt('verbosity') < 10);
     my $out = sub {
         my ($thing) = @_;
         my $name = ucfirst $thing;
@@ -649,9 +646,7 @@ sub process_file {
 
     run_hook('next_file_early');
 
-    if (!get_opt("quiet")) {
-        print "Processing: $file\n";
-    }
+    op('processing-file', $file);
     if (-l $file) {
         op('skip-symlink', $file);
         return 0;
@@ -732,14 +727,10 @@ sub set_default_options {
     set_opt("copymode",             0);
     set_opt("checkprofilerc",       1);
     set_opt("checktemplatesinitially", 1);
-    set_opt("debug",                0);
     set_opt("dryrun",               0);
     set_opt("force",                0);
     set_opt("hookerrfatal",         1);
-    set_opt("oprefix",              q{  -!- });
     set_opt("prefix" ,              q{.});
-    set_opt("quiet",                0);
-    set_opt("quiet_skip",           0);
     set_opt("readstdin",            0);
     set_opt("sepreplace",           q{_});
     set_opt("template_aliases",     0);
@@ -749,7 +740,6 @@ sub set_default_options {
     set_opt("uselocalrc",           0);
     set_opt("usetypeasextension",   1);
     set_opt("useprofiles",          1);
-    set_opt("verbose",              0);
     set_opt("warningsautodryrun",   1);
     set_opt("comp_template",
             q{va/&album/&tracknumber - &artist - &tracktitle});
@@ -781,7 +771,7 @@ sub usage {
     print "    --ambiguous-use-first        If a tag has multiple values, use the 1st one.\n";
     print "    --compare-versions           Compare versions of script and module.\n";
     print "    --copy, -c                   Copy files, rather than renaming.\n";
-    print "    --debug, -D                  Enable debugging output.\n";
+    print "    --debug                      Enable debugging output.\n";
     print "    --disable-hooks, -H          Disable *all* hooks.\n";
     print "    --disable-profiles, -N       Deactivate all profiles.\n";
     print "    --dryrun, -d                 Go into dryrun mode.\n";
@@ -793,12 +783,12 @@ sub usage {
     print "    --list-file-types            List all supported file types.\n";
     print "    --list-exts-for-type <type>  List extensions recognised as <type>.\n";
     print "    --list-profiles, -S          Show a list of defined profiles\n";
-    print "    --quiet, -q                  Enable quiet output.\n";
+    print "    --quiet                      Enable quiet output.\n";
     print "    --read-local, -l             Read local rc, if it exists.\n";
     print "    --stdin, -s                  Read file names from stdin.\n";
-    print "    --uber-quiet, -Q             Don't display skips in quiet mode.\n";
+    print "    --uber-quiet                 Don't display skips in quiet mode.\n";
     print "    --version, -V                Display version infomation.\n";
-    print "    --verbose, -v                Enable verbose output.\n";
+    print "    --verbose                    Enable verbose output.\n";
     print "\n";
     print "    --rc <file>                  Read file instead of ~/.arenamerc.\n";
     print "    --post-rc <file>             Read file after ~/.arenamerc.\n";
@@ -1034,7 +1024,7 @@ sub __tokenize_template {
                 # Recurse...
                 $more = __tokenize_complex(
                     $label, $cplxname, $cplxset, $cplxunset);
-                if (get_opt('debug')) {
+                if (get_opt('verbosity') > 10_000) {
                     use Data::Dumper;
                     $Data::Dumper::Indent = 3;
                     print Dumper($more);
@@ -1113,7 +1103,7 @@ sub __tokenize_template {
         }
     }
     if ($nest) {
-        if (get_opt('debug')) {
+        if (get_opt('verbosity') > 10_000) {
             use Data::Dumper;
             $Data::Dumper::Indent = 3;
             print Dumper($out);
@@ -1273,7 +1263,7 @@ sub expand_template {
     run_hook('pre_expand_template', \$template, $datref);
 
     $data = __tokenize_template($template);
-    if (get_opt('debug')) {
+    if (get_opt('verbosity') > 10_000) {
         use Data::Dumper;
         $Data::Dumper::Indent = 3;
         print Dumper($data);
@@ -1400,7 +1390,7 @@ my (%formats, $op_last_format);
 BEGIN {
     # We need to set `verbosity' very very early so everything can output stuff
     # very early, too, without Perl warnings.
-    $conf{verbosity} = 5; # TODO, actually: 5
+    $conf{verbosity} = 10;
     $op_last_format = 'newline';
 
     # `%formats' also needs to be assigned from within "BEGIN", because we are
@@ -1418,7 +1408,7 @@ BEGIN {
                 [ qq{\n}, RESET ]),
         },
         "mkdir" => {
-            verbosity => 10,
+            verbosity => 20,
             argn => 1,
             format => make_format(
                 [ q{mkdir "}, CLEAR ],
@@ -1426,7 +1416,7 @@ BEGIN {
                 [ qq{"\n}, CLEAR ]),
         },
         "mkdir-fail" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 2,
             format => make_format(
                 [ qq{Could not mkdir(%s).\n}, RED ],
@@ -1439,10 +1429,10 @@ BEGIN {
                 [ q{DEBUG:}, BOLD, RED],
                 [ q{ }, RESET ],
                 [ q{%s}, RED ],
-                [ qq{\n}, RESET ]),
+                [ qq{}, RESET ]),
         },
         "rename" => {
-            verbosity => 10,
+            verbosity => 20,
             argn => 3,
             format => make_format(
                 [ q{%s}, YELLOW ],
@@ -1455,7 +1445,7 @@ BEGIN {
                 [ qq{'\n}, CLEAR ]),
         },
         "skip" => {
-            verbosity => 10,
+            verbosity => 20,
             argn => 1,
             format => make_format(
                 [ q{Skipping:}, YELLOW ],
@@ -1464,7 +1454,7 @@ BEGIN {
                 [ qq{'\n}, RESET ]),
         },
         "skip-same" => {
-            verbosity => 10,
+            verbosity => 20,
             argn => 1,
             format => make_format(
                 [ q{'} ],
@@ -1474,7 +1464,7 @@ BEGIN {
             ),
         },
         "tag-alias-without-option" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 2,
             format => make_format(
                 [ q{`}, CLEAR ],
@@ -1486,14 +1476,14 @@ BEGIN {
                 [ qq{' is disabled.\n}, CLEAR ]),
         },
         "tag-list" => {
-            verbosity => 10,
+            verbosity => 20,
             argn => 2,
             format => make_format(
                 [ qq{%12s: %s\n}, CLEAR ]
             ),
         },
         "deprecated-function" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{Using deprecated function: }, RED ],
@@ -1503,7 +1493,7 @@ BEGIN {
         },
         # options
         "auto-dry-run" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{Encountered warnings in }, CLEAR ],
@@ -1512,21 +1502,21 @@ BEGIN {
                 [ qq{  (See `warningsautodryrun' option for details.)\n} ]),
         },
         "copymode" => {
-            verbosity => 5,
+            verbosity => 10,
             argn => 0,
             format => make_format(
                 [ q{+++}, BOLD, GREEN ],
                 [ qq{ copymode enabled\n}, CLEAR ]),
         },
         "read-stdin" => {
-            verbosity => 5,
+            verbosity => 10,
             argn => 0,
             format => make_format(
                 [ q{+++}, BOLD, GREEN ],
                 [ qq{ reading stdin for filenames (after @ARGV)\n}, CLEAR ]),
         },
         "skip-symlink" => {
-            verbosity => 5,
+            verbosity => 10,
             argn => 1,
             format => make_format(
                 [ q{Refusing to handle symbolic links: "}, CLEAR ],
@@ -1534,7 +1524,7 @@ BEGIN {
                 [ qq{"\n}, CLEAR ]),
         },
         "verbose" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 0,
             format => make_format(
                 [ q{+++}, BOLD, GREEN ],
@@ -1543,13 +1533,21 @@ BEGIN {
         },
         # cmdline handling
         "cmdline-missing-arg" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{-}, CLEAR ],
                 [ q{%s}, GREEN ],
                 [ qq{ requires a string argument.\n}, CLEAR ]
             ),
+        },
+        "cmdline-opt-req-int" => {
+            verbosity => 0,
+            argn => 2,
+            format => make_format(
+                [ q{The `%s' option requires an integer argument.}, CLEAR ],
+                [ q{ (Got "%s")}, RED ],
+                [ qq{\n}, CLEAR ]),
         },
         # input file processing
         "quoted-file" => {
@@ -1559,7 +1557,7 @@ BEGIN {
                 [ qq{'%s'\n}, CLEAR ]),
         },
         "file-read-error" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 2,
             format => make_format(
                 [ q{Can't read "%s": }, CLEAR ],
@@ -1567,22 +1565,28 @@ BEGIN {
                 [ qq{\n}, CLEAR ]
             ),
         },
+        "processing-file" => {
+            verbosity => 20,
+            argn => 1,
+            format => make_format(
+                [ qq{Processing: %s\n}, CLEAR ]),
+        },
         "target-exists" => {
-            verbosity => 5,
+            verbosity => 10,
             argn => 1,
             format => make_format(
                 [ q{%s}, CYAN ],
                 [ qq{ exists. Use -f to force overriding.\n}, CLEAR ]),
         },
         "target-exists-twoline" => {
-            verbosity => 5,
+            verbosity => 10,
             argn => 1,
             format => make_format(
                 [ q{%s}, CYAN ],
                 [ qq{ exists.\n    Use -f to force overriding.\n}, CLEAR ]),
         },
         "template-found-separator" => {
-            verbosity => 10,
+            verbosity => 20,
             argn => 2,
             format => make_format(
                 [ q{Found directory separator in `}, CLEAR ],
@@ -1592,7 +1596,7 @@ BEGIN {
                 [ qq{".\n}, CLEAR ]),
         },
         "no-method" => {
-            verbosity => 5,
+            verbosity => 10,
             argn => 1,
             format => make_format(
                 [ q{No method for handling `}, CLEAR ],
@@ -1601,7 +1605,7 @@ BEGIN {
         },
         # template expansion
         "check-template" => {
-            verbosity => 10,
+            verbosity => 20,
             argn => 1,
             format => make_format(
                 [ q{Checking template "}, CLEAR ],
@@ -1609,7 +1613,7 @@ BEGIN {
                 [ qq{"\n}, CLEAR ]),
         },
         "check-comp-template" => {
-            verbosity => 10,
+            verbosity => 20,
             argn => 1,
             format => make_format(
                 [ q{Checking compilation template "}, CLEAR ],
@@ -1617,7 +1621,7 @@ BEGIN {
                 [ qq{"\n}, CLEAR ]),
         },
         "deep-inspect-always" => {
-            verbosity => 5,
+            verbosity => 10,
             argn => 1,
             format => make_format(
                 [ q{This expansion will always use the `}, CLEAR ],
@@ -1626,14 +1630,14 @@ BEGIN {
             ),
         },
         "deep-inspect-fail" => {
-            verbosity => 5,
+            verbosity => 10,
             argn => 0,
             format => make_format(
                 [ qq{This expansion will fail everytime.\n}, CLEAR ]
             ),
         },
         "deep-inspect-unknown-token" => {
-            verbosity => 5,
+            verbosity => 10,
             argn => 1,
             format => make_format(
                 [ q{Unknown token-type: `}, CLEAR ],
@@ -1642,14 +1646,14 @@ BEGIN {
             ),
         },
         "error-any-template" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 0,
             format => make_format(
                 [ qq{Inspecting a template failed. Giving up.\n}, CLEAR ]
             ),
         },
         "error-comp-template" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{Error(s) inspecting template: }, CLEAR ],
@@ -1658,7 +1662,7 @@ BEGIN {
             ),
         },
         "error-template" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{Error(s) inspecting comp_template: }, CLEAR ],
@@ -1667,7 +1671,7 @@ BEGIN {
             ),
         },
         "expand-template-file" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ qq{Error expanding template:\n}, YELLOW, BOLD, ON_BLACK ],
@@ -1677,7 +1681,7 @@ BEGIN {
                 [ qq{)\n}, CLEAR ]),
         },
         "expand-template-error" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{Expansion-error:}, YELLOW, ON_BLACK ],
@@ -1685,7 +1689,7 @@ BEGIN {
                 [ qq{\n}, CLEAR ]),
         },
         "more-than-one-tag" => {
-            verbosity => 5,
+            verbosity => 10,
             argn => 2,
             format => make_format(
                 [ q{%s has more than one `}, CLEAR ],
@@ -1693,19 +1697,19 @@ BEGIN {
                 [ qq{' tag:\n}, CLEAR]),
         },
         "more-than-one-tag-value" => {
-            verbosity => 5,
+            verbosity => 10,
             argn => 1,
             format => make_format(
                 [ qq{'    %s\n}, CLEAR]),
         },
         "tokenize-error" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ qq{%s\n}, CLEAR ]),
         },
         "unknown-tag" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{Unknown tag: `}, CLEAR ],
@@ -1713,7 +1717,7 @@ BEGIN {
                 [ qq{'\n}, CLEAR ]),
         },
         "warnings-while-scanning-file" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 0,
             format => make_format(
                 [ qq{Warnings while gathering data. Skipping file.\n}, YELLOW ],
@@ -1721,7 +1725,7 @@ BEGIN {
         },
         # rcfile loading
         "default-set-value" => {
-            verbosity => 10,
+            verbosity => 20,
             argn => 2,
             format => make_format(
                 [ q{Setting "}, CLEAR ],
@@ -1732,7 +1736,7 @@ BEGIN {
             ),
         },
         "dryrun" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 0,
             format => make_format(
                 [ q{+++}, BOLD, GREEN ],
@@ -1740,13 +1744,13 @@ BEGIN {
             ),
         },
         "no-configuration" => {
-            verbosity => 10,
+            verbosity => 20,
             argn => 0,
             format => make_format(
                 [ qq{Main configuration not found. Using defaults.\n}, CLEAR ]),
         },
         "rcload-error-abort" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{Error(s) in %s. }, CLEAR ],
@@ -1754,13 +1758,13 @@ BEGIN {
                 [ qq{\n}, CLEAR ]),
         },
         "rcload-error-warn" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ qq{Error opening configuration file "%s".\n}, CLEAR ]),
         },
         "rcload-close-fail" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 2,
             format => make_format(
                 [ q{Failed to close %s}, RED ],
@@ -1768,7 +1772,7 @@ BEGIN {
                 [ qq{Reason: %s\n}, CLEAR ]),
         },
         "rcload-open-fail" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 3,
             format => make_format(
                 [ q{Failed to read %s }, RED ],
@@ -1778,14 +1782,14 @@ BEGIN {
                 [ qq{Reason: %s\n}, CLEAR ]),
         },
         "rcload-reading" => {
-            verbosity => 5,
+            verbosity => 10,
             argn => 1,
             format => make_format(
                 [ q{Reading `%s'...}, CLEAR ],
                 [ qq{\n}, CLEAR ]),
         },
         "rcload-stats" => {
-            verbosity => 5,
+            verbosity => 10,
             argn => 2,
             format => make_format(
                 [ q{Read }, CLEAR ],
@@ -1795,32 +1799,32 @@ BEGIN {
                 [ qq{ valid items.\n}, CLEAR]),
         },
         "rcload-warnings" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{%s}, YELLOW ],
                 [ qq{ warnings.\n}, CLEAR]),
         },
         "rc-invalid-line" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 3,
             format => make_format(
                 [ qq{%s,%s: invalid line: %s\n}, CLEAR ]),
         },
         "rc-unknown-line" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 3,
             format => make_format(
                 [ qq{unknown-line:%s,%s: %s\n}, CLEAR ]),
         },
         "rc-line-warning" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 3,
             format => make_format(
                 [ qq{warning:%s,%s: %s\n}, CLEAR ]),
         },
         "rc-opt-not-localizable" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 2,
             format => make_format(
                 [ q{`}, CLEAR ],
@@ -1831,7 +1835,7 @@ BEGIN {
                 [ qq{").\n}, CLEAR ]),
         },
         "rc-overridden-by-cmdline" => {
-            verbosity => 5,
+            verbosity => 10,
             argn => 1,
             format => make_format(
                 [ q{`}, CLEAR ],
@@ -1839,7 +1843,7 @@ BEGIN {
                 [ qq{' was set on the command line. Not overriding.\n}, CLEAR]),
         },
         "rc-profile-missing" => {
-            verbosity => 5,
+            verbosity => 10,
             argn => 1,
             format => make_format(
                 [ q{Profile "}, CLEAR ],
@@ -1847,7 +1851,7 @@ BEGIN {
                 [ qq{" active, but no configuration found.\n}, CLEAR ]),
         },
         "rc-switch-section" => {
-            verbosity => 10,
+            verbosity => 20,
             argn => 1,
             format => make_format(
                 [ q{Switching section: `}, CLEAR ],
@@ -1855,7 +1859,7 @@ BEGIN {
                 [ qq{'\n}, CLEAR ]),
         },
         "parse-boolean-print" => {
-            verbosity => 10,
+            verbosity => 20,
             argn => 2,
             format => make_format(
                 [ q{Boolean option "}, CLEAR ],
@@ -1865,7 +1869,7 @@ BEGIN {
                 [ qq{'\n}, CLEAR ]),
         },
         "parse-default-unknown-tag" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 3,
             format => make_format(
                 [ q{%s,%s: Default for unsupported tag found: `}, CLEAR ],
@@ -1873,7 +1877,7 @@ BEGIN {
                 [ qq{'\n}, CLEAR ]),
         },
         "parse-default-tag-print" => {
-            verbosity => 10,
+            verbosity => 20,
             argn => 2,
             format => make_format(
                 [ q{Default for "}, CLEAR ],
@@ -1883,7 +1887,7 @@ BEGIN {
                 [ qq{"\n}, CLEAR ]),
         },
         "parse-bool-broken" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 4,
             format => make_format(
                 [ q{%s,%s: }, CLEAR ],
@@ -1891,8 +1895,21 @@ BEGIN {
                 [ q{%s}, RED ],
                 [ qq{"\n}, CLEAR ]),
         },
+        "parse-compat-verbose" => {
+            verbosity => 20,
+            argn => 3,
+            format => make_format(
+                [ q{Compatibility:}, YELLOW ],
+                [ q{ }, CLEAR ],
+                [ q{%s}, CYAN ],
+                [ q{ => `}, CLEAR ],
+                [ q{%s}, BOLD, BLUE ],
+                [ q{' (setting: }, CLEAR ],
+                [ q{%s}, MAGENTA ],
+                [ qq{)\n}, CLEAR ]),
+        },
         "parse-int-broken" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 4,
             format => make_format(
                 [ q{%s,%s: }, CLEAR ],
@@ -1901,7 +1918,7 @@ BEGIN {
                 [ qq{"\n}, CLEAR ]),
         },
         "parse-int-print" => {
-            verbosity => 10,
+            verbosity => 20,
             argn => 2,
             format => make_format(
                 [ q{Integer option "}, CLEAR ],
@@ -1911,7 +1928,7 @@ BEGIN {
                 [ qq{"\n}, CLEAR ]),
         },
         "parse-string-print" => {
-            verbosity => 10,
+            verbosity => 20,
             argn => 2,
             format => make_format(
                 [ q{String option "}, CLEAR ],
@@ -1921,7 +1938,7 @@ BEGIN {
                 [ qq{"\n}, CLEAR ]),
         },
         "parse-userset-print" => {
-            verbosity => 10,
+            verbosity => 20,
             argn => 2,
             format => make_format(
                 [ q{User-defined setting}, BOLD, BLUE ],
@@ -1932,7 +1949,7 @@ BEGIN {
                 [ qq{"\n}, CLEAR ]),
         },
         "profile-add-pattern" => {
-            verbosity => 10,
+            verbosity => 20,
             argn => 2,
             format => make_format(
                 [ q{Adding pattern "}, CLEAR ],
@@ -1942,7 +1959,7 @@ BEGIN {
                 [ qq{'.\n}, CLEAR ]),
         },
         "profile-disallowed-chars" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{Disallowed characters in profile name: "}, CLEAR ],
@@ -1950,7 +1967,7 @@ BEGIN {
                 [ qq{"\n}, CLEAR ]),
         },
         "profile-parse-fail" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{Could not find config file for profile `}, CLEAR ],
@@ -1958,7 +1975,7 @@ BEGIN {
                 [ qq{'.\n}, CLEAR ]),
         },
         "profile-missing-config" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{Could not parse profile value "}, CLEAR ],
@@ -1966,7 +1983,7 @@ BEGIN {
                 [ qq{".\n}, CLEAR ]),
         },
         "section-broken-start" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{Broken section start: "}, CLEAR ],
@@ -1974,7 +1991,7 @@ BEGIN {
                 [ qq{"\n}, CLEAR ]),
         },
         "user-setting-broken" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{Broken user setting: "}, CLEAR ],
@@ -1983,7 +2000,7 @@ BEGIN {
         },
         # hook files
         "hooks-file-parse-error" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 2,
             format => make_format(
                 [ q{Could not parse hooks file }, RED ],
@@ -1993,7 +2010,7 @@ BEGIN {
                 [ qq{  - %s\n}, CLEAR ]),
         },
         "hooks-file-read-error" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 2,
             format => make_format(
                 [ q{Could not read hooks file }, RED ],
@@ -2003,7 +2020,7 @@ BEGIN {
                 [ qq{  - %s\n}, CLEAR ]),
         },
         "hooks-non-true" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{Reading hooks file "%s" did }, CLEAR ],
@@ -2021,7 +2038,7 @@ BEGIN {
   CLEAR ]),
         },
         "hooks-no-such-file" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{Hook file }, CLEAR ],
@@ -2029,7 +2046,7 @@ BEGIN {
                 [ qq{: %s\n}, CLEAR ]),
         },
         "hooks-file-read" => {
-            verbosity => 10,
+            verbosity => 20,
             argn => 1,
             format => make_format(
                 [ q{Hook file read ("}, CLEAR ],
@@ -2037,7 +2054,7 @@ BEGIN {
                 [ qq{).\n}, CLEAR ]),
         },
         "hooks-register-undefined" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{Trying to register }, CLEAR ],
@@ -2049,7 +2066,7 @@ BEGIN {
                 [ qq{\n}, CLEAR ]),
         },
         "newline" => {
-            verbosity => 0,
+            verbosity => 5,
             argn => 0,
             format => make_format( [ qq{\n}, CLEAR ] ),
         },
@@ -2095,9 +2112,7 @@ sub oprint {
     my ($string) = @_;
 
     op('deprecated-function', 'oprint');
-    return 0 if (get_opt('shutup'));
-    print get_opt("oprefix") . $string;
-
+    print $string;
     return 1;
 }
 
@@ -2105,9 +2120,7 @@ sub owarn {
     my ($string) = @_;
 
     op('deprecated-function', 'owarn');
-    return 0 if (get_opt('shutup'));
-    warn(get_opt("oprefix") . $string);
-
+    warn($string);
     return 1;
 }
 
@@ -2266,8 +2279,7 @@ sub __rcload {
         return 1;
     }
 
-    op('rcload-reading', $file)
-        if (!get_opt('shutup') && !get_opt('load_quiet'));
+    op('rcload-reading', $file) if (!get_opt('load_quiet'));
 
     while (my $line = <$fh>) {
         chomp $line;
@@ -2373,8 +2385,8 @@ sub read_rcs {
     '^hookerrfatal$'        => \&parse_bool,
     '^prefix$'              => \&parse_string,
     '^profile$'             => \&parse_profile,
-    '^quiet$'               => \&parse_bool,
-    '^quiet_skip$'          => \&parse_bool,
+    '^quiet$'               => \&parse_verbose,
+    '^quiet_skip$'          => \&parse_verbose,
     '^sepreplace$'          => \&parse_string,
     '^set$'                 => \&parse_set,
     '^template$'            => \&parse_string,
@@ -2385,7 +2397,7 @@ sub read_rcs {
     '^uselocalrc$'          => \&parse_bool,
     '^usetypeasextension$'  => \&parse_bool,
     '^useprofiles$'         => \&parse_bool,
-    '^verbose$'             => \&parse_bool,
+    '^verbose$'             => \&parse_verbose,
     '^warningsautodryrun$'  => \&parse_bool,
 );
 
@@ -2412,20 +2424,40 @@ sub parse {
 #       all okay: =0
 #       warning : >0
 #       fatal   : <0
-sub parse_bool {
-    my ($file, $lnum, $count, $key, $val) = @_;
 
-    if (!defined $val || $val eq q{}
-       || $val =~ m/^true$/i || $val eq q{1}) {
+sub bool_is_true {
+    my ($val) = @_;
 
-        $val = 1;
-    } elsif ($val =~ m/^false$/i || $val eq q{0}) {
-        $val = 0;
+    return 1 if (defined $val && ($val =~ m/^true$/i
+                               || $val eq q{1}));
+    return 0;
+}
+
+sub bool_is_false {
+    my ($val) = @_;
+
+    return 1 if (defined $val && ($val =~ m/^false$/i
+                               || $val eq q{0}));
+    return 0;
+}
+
+sub bool_value {
+    my ($file, $lnum, $key, $val) = @_;
+
+    if (!defined $val || $val eq q{} || bool_is_true($val)) {
+        return 1;
+    } elsif (bool_is_false($val)) {
+        return 0;
     } else {
         op('parse-bool-broken', $file, $lnum, $key, $val);
         return -1
     }
+}
+sub parse_bool {
+    my ($file, $lnum, $count, $key, $val) = @_;
 
+    $val = bool_value($file, $lnum, $key, $val);
+    return -1 if ($val < 0);
     op('parse-boolean-print', $key, ($val ? 'true' : 'false'));
     set_opt($key, $val);
     return 0;
@@ -2518,6 +2550,25 @@ sub parse_new_section {
     return 0;
 }
 
+sub parse_verbose {
+    # Backwards compatibility for `quiet', `verbose', `quiet_skip' and `debug'.
+    # Fit this into the new `verbosity' scheme.
+    my ($file, $lnum, $count, $key, $val) = @_;
+    my (%tab);
+
+    %tab = ( debug => 10_000,
+             verbose => 20,
+             quiet => 10,
+             quiet_skip => 5, );
+
+    $val = bool_value($file, $lnum, $key, $val);
+    return -1 if ($val < 0);
+    return 0 if ($val == 0);
+    op('parse-compat-verbose', $key, ($val ? 'true' : 'false'), $tab{$key});
+    set_opt('verbosity', $tab{$key});
+    return 0;
+}
+
 sub parse_set {
     my ($file, $lnum, $count, $key, $val) = @_;
 
@@ -2607,6 +2658,14 @@ sub cmdopts_or {
     return 0;
 }
 
+sub cmdoptint {
+    my ($opt) = @_;
+
+    return $opts{$opt} if ($opts{$opt} =~ m/^-?\d+$/);
+    op('cmdline-opt-req-int', $opt, $opts{$opt});
+    exit 1;
+}
+
 sub cmdoptstr {
     my ($opt) = @_;
 
@@ -2644,7 +2703,7 @@ sub read_cmdline_options {
             "ambiguous-use-first" => \&__handle_options,
             "compare-versions" => \&__handle_options,
             "copy|c" => \&__handle_options,
-            "debug|D" => \&__handle_options,
+            "debug" => \&__handle_options,
             "disable-hooks|H" => \&__handle_options,
             "disable-profiles|N" => \&__handle_options,
             "dryrun|d" => \&__handle_options,
@@ -2655,11 +2714,12 @@ sub read_cmdline_options {
             "list-file-types" => \&__handle_options,
             "list-exts-for-type=s" => \&__handle_options,
             "list-profiles|S" => \&__handle_options,
-            "quiet|q" => \&__handle_options,
+            "quiet" => \&__handle_options,
             "read-local|l" => \&__handle_options,
             "stdin|s" => \&__handle_options,
-            "uber-quiet|Q" => \&__handle_options,
-            "verbose|v" => \&__handle_options,
+            "uber-quiet" => \&__handle_options,
+            "verbose" => \&__handle_options,
+            "verbosity|v=i" => \&__handle_options,
             "version|V" => \&__handle_options,
             "rc=s" => \&__handle_options,
             "post-rc=s" => \&__handle_options,
@@ -2675,18 +2735,14 @@ sub read_cmdline_options {
     }
 
     # turn on debugging early
-    __set_opt("debug", 1, $CMDLINE_PROTECT) if (cmdopts("debug"));
+    set_opt("verbosity", 10_000, $CMDLINE_PROTECT) if (cmdopts("debug"));
 
-    set_opt('shutup', 1, $CMDLINE_PROTECT)
+    set_opt('verbosity', -1, $CMDLINE_PROTECT)
         if (cmdopts("list-cfg") || cmdopts("list-profiles"));
 
     if (cmdopts("help")) {
         usage();
         exit 0;
-    }
-
-    if (cmdopts_or("quiet", "uber-quiet") && cmdopts("verbose")) {
-        croak("Verbose *and* quiet? Please decide!\n");
     }
 
     if (cmdopts("version")) {
@@ -2717,11 +2773,11 @@ sub read_cmdline_options {
     if (defined $tmp && $tmp ne q{}) {
         @cmdline_profiles = split /,/, $tmp;
     }
-    __set_opt("useprofiles", 0, $CMDLINE_PROTECT)
+    set_opt("useprofiles", 0, $CMDLINE_PROTECT)
         if (cmdopts("disable-profiles"));
-    __set_opt("readstdin", 1, $CMDLINE_PROTECT)
+    set_opt("readstdin", 1, $CMDLINE_PROTECT)
         if (cmdopts("stdin"));
-    __set_opt("uselocalrc", 1, $CMDLINE_PROTECT)
+    set_opt("uselocalrc", 1, $CMDLINE_PROTECT)
         if (cmdopts("read-local"));
 
     if ($#main::ARGV < 0 && !cmdopts("list-cfg")
@@ -2733,26 +2789,28 @@ sub read_cmdline_options {
 }
 
 sub read_cmdline_options_late {
-    __set_opt("verbose", 1, $CMDLINE_PROTECT)
+    set_opt("verbosity", 20, $CMDLINE_PROTECT)
         if (cmdopts("verbose"));
-    __set_opt("quiet", 1, $CMDLINE_PROTECT)
-        if (cmdopts_or("quiet", "uber-quiet"));
-    __set_opt("quiet_skip", 1, $CMDLINE_PROTECT)
+    set_opt("verbosity", 10, $CMDLINE_PROTECT)
+        if (cmdopts_or("quiet"));
+    set_opt("verbosity", 5, $CMDLINE_PROTECT)
         if (cmdopts("uber-quiet"));
-    __set_opt("force", 1, $CMDLINE_PROTECT)
+    set_opt("verbosity", cmdoptint("verbosity"), $CMDLINE_PROTECT)
+        if (cmdopts("verbosity"));
+    set_opt("force", 1, $CMDLINE_PROTECT)
         if (cmdopts("force"));
-    __set_opt("dryrun", 1, $CMDLINE_PROTECT)
+    set_opt("dryrun", 1, $CMDLINE_PROTECT)
         if (cmdopts("dryrun"));
-    __set_opt("copymode", 1, $CMDLINE_PROTECT)
+    set_opt("copymode", 1, $CMDLINE_PROTECT)
         if (cmdopts("copy"));
-    __set_opt("template", cmdoptstr("template"), $CMDLINE_PROTECT)
+    set_opt("template", cmdoptstr("template"), $CMDLINE_PROTECT)
         if (cmdopts("template"));
-    __set_opt("comp_template", cmdoptstr("compilation-template"),
+    set_opt("comp_template", cmdoptstr("compilation-template"),
               $CMDLINE_PROTECT)
         if (cmdopts("compilation-template"));
-    __set_opt("prefix", cmdoptstr("prefix"), $CMDLINE_PROTECT)
+    set_opt("prefix", cmdoptstr("prefix"), $CMDLINE_PROTECT)
         if (cmdopts("prefix"));
-    __set_opt("ambiguoususefirst", 1, $CMDLINE_PROTECT)
+    set_opt("ambiguoususefirst", 1, $CMDLINE_PROTECT)
         if (cmdopts("ambiguous-use-first"));
     disable_hooks() if (cmdopts("disable-hooks"));
     enable_hooks() if (cmdopts("enable-hooks"));
@@ -2801,16 +2859,11 @@ sub ensure_dir {
                  );
 
         if (!-d $sofar) {
-            if ((get_opt("dryrun") || get_opt("verbose"))
-               && !get_opt("quiet"))
-            {
+            if (get_opt("dryrun")) {
                 op('mkdir', $sofar);
-            }
-            if (!get_opt("dryrun")) {
-                mkdir $sofar or do {
-                    op('mkdir-fail', $sofar, $ERRNO);
-                    exit 1;
-                }
+            } else {
+                mkdir $sofar or do { op('mkdir-fail', $sofar, $ERRNO);
+                                     exit 1; }
             }
         }
     }
@@ -2917,30 +2970,6 @@ sub get_opt {
 }
 
 sub set_opt {
-    my ($opt, $val) = @_;
-
-    if (
-        ($opt eq 'verbose' && $val == 1 && get_opt('quiet')) ||
-        ($opt eq 'quiet' && $val == 1 && get_opt('verbose'))
-       ) {
-
-        return 0 if ($opt eq 'quiet' && cmdopts("verbose"));
-        return 0 if ($opt eq 'verbose' &&
-            (cmdopts("quiet") || cmdopts("uber-quiet")));
-
-        croak("verbose and quiet set at the same time. Check your config.\n");
-    }
-
-    return 0 if (!__set_opt($opt, $val));
-
-    if ($opt eq 'quiet_skip' && $val == 1 && !get_opt('quiet')) {
-        __set_opt('quiet', 1);
-    }
-
-    return 1;
-}
-
-sub __set_opt {
     my ($opt, $val, $protect) = @_;
 
     my $s = sect_get();
@@ -3094,15 +3123,15 @@ sub sect_reset {
 # hooks code
 
 sub enable_hooks {
-    __set_opt("usehooks", 1);
-    __set_opt("uselocalhooks", 1);
+    set_opt("usehooks", 1);
+    set_opt("uselocalhooks", 1);
 
     return 1;
 }
 
 sub disable_hooks {
-    __set_opt("usehooks", 0);
-    __set_opt("uselocalhooks", 0);
+    set_opt("usehooks", 0);
+    set_opt("uselocalhooks", 0);
 
     return 1;
 }

@@ -9,9 +9,7 @@ use Test::Exception;
 
 use ARename;
 ARename::set_default_options();
-#ARename::set_opt('debug', 1);
-ARename::set_opt('shutup', 1);
-ARename::set_opt('quiet',  1);
+ARename::set_opt('verbosity', -1);
 ARename::set_opt('template_aliases', 0);
 ARename::set_file('need-no-file');
 

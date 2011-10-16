@@ -117,6 +117,7 @@ foreach my $call (@calls) {
     codeprint("# Made this of it: $asm");
     print {$code} q{$rc = } . $asm;
     print {$code} q[if ($rc == 0) { $bugs++; }] . qq{\n};
+    codeprint("\n") if ($call->{key} eq q{debug});
     codeprint("#####################################\n");
 }
 print {$code} q[if ($bugs > 0) { die "$bugs BUG(s)!\n"; }] . qq{\n};
