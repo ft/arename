@@ -1454,7 +1454,7 @@ BEGIN {
             format => make_format(
                 [ q{%s}, YELLOW ],
                 [ q{ '}, RESET ],
-                [ q{%s}, CYAN ],
+                [ q{%s}, BOLD, BLUE ],
                 [ q{' }, RESET ],
                 [ qq{\\\n   }, RESET ],
                 [ q{'}, RESET ],
