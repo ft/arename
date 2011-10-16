@@ -717,7 +717,8 @@ sub get_profile_list {
 
 sub set_default_options {
     if (defined $ENV{'ARENAME_LOAD_QUIET'}
-        && $ENV{'ARENAME_LOAD_QUIET'} eq '1') {
+        && $ENV{'ARENAME_LOAD_QUIET'} eq '1')
+    {
         set_opt("load_quiet",       1);
     } else {
         set_opt("load_quiet",       0);
