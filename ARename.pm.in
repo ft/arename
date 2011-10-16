@@ -1419,7 +1419,7 @@ BEGIN {
             format => make_format(
                 [ q{ -!- }, BOLD, WHITE ],
                 [ q{BUG: }, BOLD, RED ],
-                [ q{%s }, CLEAR ],
+                [ q{%s }, RESET ],
                 [ q{%s}, MAGENTA ],
                 [ qq{\n}, RESET ]),
         },
@@ -1427,16 +1427,16 @@ BEGIN {
             verbosity => 20,
             argn => 1,
             format => make_format(
-                [ q{mkdir "}, CLEAR ],
+                [ q{mkdir "}, RESET ],
                 [ q{%s}, CYAN ],
-                [ qq{"\n}, CLEAR ]),
+                [ qq{"\n}, RESET ]),
         },
         "mkdir-fail" => {
             verbosity => 5,
             argn => 2,
             format => make_format(
                 [ qq{Could not mkdir(%s).\n}, RED ],
-                [ qq{Reason: %s\n}, CLEAR ]),
+                [ qq{Reason: %s\n}, RESET ]),
         },
         "debug" => {
             verbosity => 10_000,
@@ -1452,13 +1452,13 @@ BEGIN {
             argn => 3,
             format => make_format(
                 [ q{%s}, YELLOW ],
-                [ q{ '}, CLEAR ],
+                [ q{ '}, RESET ],
                 [ q{%s}, CYAN ],
-                [ q{' }, CLEAR ],
-                [ qq{\\\n         }, CLEAR ],
-                [ q{ '}, CLEAR ],
+                [ q{' }, RESET ],
+                [ qq{\\\n         }, RESET ],
+                [ q{ '}, RESET ],
                 [ q{%s}, GREEN ],
-                [ qq{'\n}, CLEAR ]),
+                [ qq{'\n}, RESET ]),
         },
         "skip" => {
             verbosity => 10,
@@ -1483,19 +1483,19 @@ BEGIN {
             verbosity => 5,
             argn => 2,
             format => make_format(
-                [ q{`}, CLEAR ],
+                [ q{`}, RESET ],
                 [ q{%s}, GREEN ],
-                [ q{' is an alias for `}, CLEAR ],
+                [ q{' is an alias for `}, RESET ],
                 [ q{%s}, GREEN ],
-                [ q{' but `}, CLEAR ],
+                [ q{' but `}, RESET ],
                 [ q{template_aliases}, CYAN ],
-                [ qq{' is disabled.\n}, CLEAR ]),
+                [ qq{' is disabled.\n}, RESET ]),
         },
         "tag-list" => {
             verbosity => 20,
             argn => 2,
             format => make_format(
-                [ qq{%12s: %s\n}, CLEAR ]
+                [ qq{%12s: %s\n}, RESET ]
             ),
         },
         "deprecated-function" => {
@@ -1504,7 +1504,7 @@ BEGIN {
             format => make_format(
                 [ q{Using deprecated function: }, RED ],
                 [ q{%s}, CYAN ],
-                [ qq{\n}, CLEAR ],
+                [ qq{\n}, RESET ],
                 [ qq{This function will be removed in an upcoming release.\n} ]),
         },
         # options
@@ -1512,9 +1512,9 @@ BEGIN {
             verbosity => 5,
             argn => 1,
             format => make_format(
-                [ q{Encountered warnings in }, CLEAR ],
+                [ q{Encountered warnings in }, RESET ],
                 [ q{%s}, CYAN ],
-                [ qq{, enabling `dryrun'.\n}, CLEAR ],
+                [ qq{, enabling `dryrun'.\n}, RESET ],
                 [ qq{  (See `warningsautodryrun' option for details.)\n} ]),
         },
         "copymode" => {
@@ -1522,29 +1522,29 @@ BEGIN {
             argn => 0,
             format => make_format(
                 [ q{+++}, BOLD, GREEN ],
-                [ qq{ copymode enabled\n}, CLEAR ]),
+                [ qq{ copymode enabled\n}, RESET ]),
         },
         "readstdin" => {
             verbosity => 5,
             argn => 0,
             format => make_format(
                 [ q{+++}, BOLD, GREEN ],
-                [ qq{ reading stdin for filenames (after \@ARGV)\n}, CLEAR ]),
+                [ qq{ reading stdin for filenames (after \@ARGV)\n}, RESET ]),
         },
         "skip-symlink" => {
             verbosity => 10,
             argn => 1,
             format => make_format(
-                [ q{Refusing to handle symbolic links: "}, CLEAR ],
+                [ q{Refusing to handle symbolic links: "}, RESET ],
                 [ q{%s}, RED ],
-                [ qq{"\n}, CLEAR ]),
+                [ qq{"\n}, RESET ]),
         },
         "verbose" => {
             verbosity => 5,
             argn => 0,
             format => make_format(
                 [ q{+++}, BOLD, GREEN ],
-                [ qq{ verbose mode enabled\n}, CLEAR ]
+                [ qq{ verbose mode enabled\n}, RESET ]
             ),
         },
         # cmdline handling
@@ -1552,138 +1552,138 @@ BEGIN {
             verbosity => 0,
             argn => 1,
             format => make_format(
-                [ q{-}, CLEAR ],
+                [ q{-}, RESET ],
                 [ q{%s}, GREEN ],
-                [ qq{ requires a string argument.\n}, CLEAR ]
+                [ qq{ requires a string argument.\n}, RESET ]
             ),
         },
         "cmdline-opt-req-int" => {
             verbosity => 0,
             argn => 2,
             format => make_format(
-                [ q{The `%s' option requires an integer argument.}, CLEAR ],
+                [ q{The `%s' option requires an integer argument.}, RESET ],
                 [ q{ (Got "%s")}, RED ],
-                [ qq{\n}, CLEAR ]),
+                [ qq{\n}, RESET ]),
         },
         # input file processing
         "quoted-file" => {
             verbosity => 5,
             argn => 1,
             format => make_format(
-                [ qq{'%s'\n}, CLEAR ]),
+                [ qq{'%s'\n}, RESET ]),
         },
         "file-read-error" => {
             verbosity => 5,
             argn => 2,
             format => make_format(
-                [ q{Can't read "%s": }, CLEAR ],
+                [ q{Can't read "%s": }, RESET ],
                 [ q{%s}, RED ],
-                [ qq{\n}, CLEAR ]
+                [ qq{\n}, RESET ]
             ),
         },
         "processing-file" => {
             verbosity => 20,
             argn => 1,
             format => make_format(
-                [ qq{Processing: %s\n}, CLEAR ]),
+                [ qq{Processing: %s\n}, RESET ]),
         },
         "target-exists" => {
             verbosity => 10,
             argn => 1,
             format => make_format(
                 [ q{%s}, CYAN ],
-                [ qq{ exists. Use -f to force overriding.\n}, CLEAR ]),
+                [ qq{ exists. Use -f to force overriding.\n}, RESET ]),
         },
         "target-exists-twoline" => {
             verbosity => 10,
             argn => 1,
             format => make_format(
                 [ q{%s}, CYAN ],
-                [ qq{ exists.\n    Use -f to force overriding.\n}, CLEAR ]),
+                [ qq{ exists.\n    Use -f to force overriding.\n}, RESET ]),
         },
         "template-found-separator" => {
             verbosity => 20,
             argn => 2,
             format => make_format(
-                [ q{Found directory separator in `}, CLEAR ],
+                [ q{Found directory separator in `}, RESET ],
                 [ q{%s}, CYAN ],
-                [ qq{'.\nReplacing with "}, CLEAR ],
+                [ qq{'.\nReplacing with "}, RESET ],
                 [ q{%s}, BOLD, BLUE ],
-                [ qq{".\n}, CLEAR ]),
+                [ qq{".\n}, RESET ]),
         },
         "no-method" => {
             verbosity => 10,
             argn => 1,
             format => make_format(
-                [ q{No method for handling `}, CLEAR ],
+                [ q{No method for handling `}, RESET ],
                 [ q{%s}, RED ],
-                [ qq{'\n}, CLEAR ]),
+                [ qq{'\n}, RESET ]),
         },
         # template expansion
         "check-template" => {
             verbosity => 20,
             argn => 1,
             format => make_format(
-                [ q{Checking template "}, CLEAR ],
+                [ q{Checking template "}, RESET ],
                 [ q{%s}, GREEN ],
-                [ qq{"\n}, CLEAR ]),
+                [ qq{"\n}, RESET ]),
         },
         "check-comp-template" => {
             verbosity => 20,
             argn => 1,
             format => make_format(
-                [ q{Checking compilation template "}, CLEAR ],
+                [ q{Checking compilation template "}, RESET ],
                 [ q{%s}, GREEN ],
-                [ qq{"\n}, CLEAR ]),
+                [ qq{"\n}, RESET ]),
         },
         "deep-inspect-always" => {
             verbosity => 10,
             argn => 1,
             format => make_format(
-                [ q{This expansion will always use the `}, CLEAR ],
+                [ q{This expansion will always use the `}, RESET ],
                 [ q{%s}, CYAN ],
-                [ qq{' value.\n}, CLEAR ]
+                [ qq{' value.\n}, RESET ]
             ),
         },
         "deep-inspect-fail" => {
             verbosity => 10,
             argn => 0,
             format => make_format(
-                [ qq{This expansion will fail everytime.\n}, CLEAR ]
+                [ qq{This expansion will fail everytime.\n}, RESET ]
             ),
         },
         "deep-inspect-unknown-token" => {
             verbosity => 10,
             argn => 1,
             format => make_format(
-                [ q{Unknown token-type: `}, CLEAR ],
+                [ q{Unknown token-type: `}, RESET ],
                 [ q{%s}, RED ],
-                [ qq{' value.\n}, CLEAR ]
+                [ qq{' value.\n}, RESET ]
             ),
         },
         "error-any-template" => {
             verbosity => 5,
             argn => 0,
             format => make_format(
-                [ qq{Inspecting a template failed. Giving up.\n}, CLEAR ]
+                [ qq{Inspecting a template failed. Giving up.\n}, RESET ]
             ),
         },
         "error-comp-template" => {
             verbosity => 5,
             argn => 1,
             format => make_format(
-                [ q{Error(s) inspecting template: }, CLEAR ],
+                [ q{Error(s) inspecting template: }, RESET ],
                 [ q{%s}, CYAN ],
-                [ qq{\n}, CLEAR ]
+                [ qq{\n}, RESET ]
             ),
         },
         "error-template" => {
             verbosity => 5,
             argn => 1,
             format => make_format(
-                [ q{Error(s) inspecting comp_template: }, CLEAR ],
+                [ q{Error(s) inspecting comp_template: }, RESET ],
                 [ q{%s}, CYAN ],
-                [ qq{\n}, CLEAR ]
+                [ qq{\n}, RESET ]
             ),
         },
         "expand-template-file" => {
@@ -1691,10 +1691,10 @@ BEGIN {
             argn => 1,
             format => make_format(
                 [ qq{Error expanding template:\n}, YELLOW, BOLD, ON_BLACK ],
-                [ q{File}, CLEAR, RED ],
-                [ q{: %s (}, CLEAR ],
+                [ q{File}, RESET, RED ],
+                [ q{: %s (}, RESET ],
                 [ qq{Skipping}, YELLOW, ON_BLACK ],
-                [ qq{)\n}, CLEAR ]),
+                [ qq{)\n}, RESET ]),
         },
         "expand-template-error" => {
             verbosity => 5,
@@ -1702,53 +1702,53 @@ BEGIN {
             format => make_format(
                 [ q{Expansion-error:}, YELLOW, ON_BLACK ],
                 [ qq{ %s}, MAGENTA ],
-                [ qq{\n}, CLEAR ]),
+                [ qq{\n}, RESET ]),
         },
         "more-than-one-tag" => {
             verbosity => 10,
             argn => 2,
             format => make_format(
-                [ q{%s has more than one `}, CLEAR ],
+                [ q{%s has more than one `}, RESET ],
                 [ q{%s}, CYAN ],
-                [ qq{' tag:\n}, CLEAR]),
+                [ qq{' tag:\n}, RESET]),
         },
         "more-than-one-tag-value" => {
             verbosity => 10,
             argn => 1,
             format => make_format(
-                [ qq{'    %s\n}, CLEAR]),
+                [ qq{'    %s\n}, RESET]),
         },
         "tokenize-error" => {
             verbosity => 5,
             argn => 1,
             format => make_format(
-                [ qq{%s\n}, CLEAR ]),
+                [ qq{%s\n}, RESET ]),
         },
         "unknown-tag" => {
             verbosity => 5,
             argn => 1,
             format => make_format(
-                [ q{Unknown tag: `}, CLEAR ],
+                [ q{Unknown tag: `}, RESET ],
                 [ q{%s}, RED ],
-                [ qq{'\n}, CLEAR ]),
+                [ qq{'\n}, RESET ]),
         },
         "warnings-while-scanning-file" => {
             verbosity => 5,
             argn => 0,
             format => make_format(
                 [ qq{Warnings while gathering data. Skipping file.\n}, YELLOW ],
-                [ qq{\n}, CLEAR ]),
+                [ qq{\n}, RESET ]),
         },
         # rcfile loading
         "default-set-value" => {
             verbosity => 20,
             argn => 2,
             format => make_format(
-                [ q{Setting "}, CLEAR ],
+                [ q{Setting "}, RESET ],
                 [ q{%s}, CYAN ],
-                [ q{" to "}, CLEAR ],
+                [ q{" to "}, RESET ],
                 [ q{%s}, BOLD, GREEN ],
-                [ qq{"\n}, CLEAR ]
+                [ qq{"\n}, RESET ]
             ),
         },
         "dryrun" => {
@@ -1756,263 +1756,263 @@ BEGIN {
             argn => 0,
             format => make_format(
                 [ q{+++}, BOLD, GREEN ],
-                [ qq{ dryrun mode enabled\n}, CLEAR ]
+                [ qq{ dryrun mode enabled\n}, RESET ]
             ),
         },
         "no-configuration" => {
             verbosity => 20,
             argn => 0,
             format => make_format(
-                [ qq{Main configuration not found. Using defaults.\n}, CLEAR ]),
+                [ qq{Main configuration not found. Using defaults.\n}, RESET ]),
         },
         "rcload-error-abort" => {
             verbosity => 5,
             argn => 1,
             format => make_format(
-                [ q{Error(s) in %s. }, CLEAR ],
+                [ q{Error(s) in %s. }, RESET ],
                 [ q{Aborting.}, RED ],
-                [ qq{\n}, CLEAR ]),
+                [ qq{\n}, RESET ]),
         },
         "rcload-error-warn" => {
             verbosity => 5,
             argn => 1,
             format => make_format(
-                [ qq{Error opening configuration file "%s".\n}, CLEAR ]),
+                [ qq{Error opening configuration file "%s".\n}, RESET ]),
         },
         "rcload-close-fail" => {
             verbosity => 5,
             argn => 2,
             format => make_format(
                 [ q{Failed to close %s}, RED ],
-                [ qq{.\n}, CLEAR ],
-                [ qq{Reason: %s\n}, CLEAR ]),
+                [ qq{.\n}, RESET ],
+                [ qq{Reason: %s\n}, RESET ]),
         },
         "rcload-open-fail" => {
             verbosity => 5,
             argn => 3,
             format => make_format(
                 [ q{Failed to read %s }, RED ],
-                [ q{(}, CLEAR ],
+                [ q{(}, RESET ],
                 [ q{%s}, CYAN ],
-                [ qq{).\n}, CLEAR ],
-                [ qq{Reason: %s\n}, CLEAR ]),
+                [ qq{).\n}, RESET ],
+                [ qq{Reason: %s\n}, RESET ]),
         },
         "rcload-reading" => {
             verbosity => 5,
             argn => 1,
             format => make_format(
-                [ q{Reading `%s'...}, CLEAR ],
-                [ qq{\n}, CLEAR ]),
+                [ q{Reading `%s'...}, RESET ],
+                [ qq{\n}, RESET ]),
         },
         "rcload-stats" => {
             verbosity => 5,
             argn => 2,
             format => make_format(
-                [ q{Read }, CLEAR ],
+                [ q{Read }, RESET ],
                 [ q{%s}, CYAN ],
-                [ qq{.\n}, CLEAR ],
+                [ qq{.\n}, RESET ],
                 [ q{%s}, GREEN ],
-                [ qq{ valid items.\n}, CLEAR]),
+                [ qq{ valid items.\n}, RESET]),
         },
         "rcload-warnings" => {
             verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{%s}, YELLOW ],
-                [ qq{ warnings.\n}, CLEAR]),
+                [ qq{ warnings.\n}, RESET]),
         },
         "rc-invalid-line" => {
             verbosity => 5,
             argn => 3,
             format => make_format(
-                [ qq{%s,%s: invalid line: %s\n}, CLEAR ]),
+                [ qq{%s,%s: invalid line: %s\n}, RESET ]),
         },
         "rc-unknown-line" => {
             verbosity => 5,
             argn => 3,
             format => make_format(
-                [ qq{unknown-line:%s,%s: %s\n}, CLEAR ]),
+                [ qq{unknown-line:%s,%s: %s\n}, RESET ]),
         },
         "rc-line-warning" => {
             verbosity => 5,
             argn => 3,
             format => make_format(
-                [ qq{warning:%s,%s: %s\n}, CLEAR ]),
+                [ qq{warning:%s,%s: %s\n}, RESET ]),
         },
         "rc-opt-not-localizable" => {
             verbosity => 5,
             argn => 2,
             format => make_format(
-                [ q{`}, CLEAR ],
+                [ q{`}, RESET ],
                 [ q{%s}, CYAN ],
-                [ q{' cannot be used in sections }, CLEAR ],
-                [ q{(it will not be set to "}, CLEAR ],
+                [ q{' cannot be used in sections }, RESET ],
+                [ q{(it will not be set to "}, RESET ],
                 [ q{%s}, BOLD, BLUE ],
-                [ qq{").\n}, CLEAR ]),
+                [ qq{").\n}, RESET ]),
         },
         "rc-overridden-by-cmdline" => {
             verbosity => 10,
             argn => 1,
             format => make_format(
-                [ q{`}, CLEAR ],
+                [ q{`}, RESET ],
                 [ q{%s}, CYAN ],
-                [ qq{' was set on the command line. Not overriding.\n}, CLEAR]),
+                [ qq{' was set on the command line. Not overriding.\n}, RESET]),
         },
         "rc-profile-missing" => {
             verbosity => 5,
             argn => 1,
             format => make_format(
-                [ q{Profile "}, CLEAR ],
+                [ q{Profile "}, RESET ],
                 [ q{%s}, CYAN ],
-                [ qq{" active, but no configuration found.\n}, CLEAR ]),
+                [ qq{" active, but no configuration found.\n}, RESET ]),
         },
         "rc-switch-section" => {
             verbosity => 20,
             argn => 1,
             format => make_format(
-                [ q{Switching section: `}, CLEAR ],
+                [ q{Switching section: `}, RESET ],
                 [ q{%s}, MAGENTA ],
-                [ qq{'\n}, CLEAR ]),
+                [ qq{'\n}, RESET ]),
         },
         "parse-boolean-print" => {
             verbosity => 20,
             argn => 2,
             format => make_format(
-                [ q{Boolean option "}, CLEAR ],
+                [ q{Boolean option "}, RESET ],
                 [ q{%s}, CYAN ],
-                [ q{" = `}, CLEAR ],
+                [ q{" = `}, RESET ],
                 [ q{%s}, BOLD, GREEN ],
-                [ qq{'\n}, CLEAR ]),
+                [ qq{'\n}, RESET ]),
         },
         "parse-default-unknown-tag" => {
             verbosity => 5,
             argn => 3,
             format => make_format(
-                [ q{%s,%s: Default for unsupported tag found: `}, CLEAR ],
+                [ q{%s,%s: Default for unsupported tag found: `}, RESET ],
                 [ q{%s}, RED ],
-                [ qq{'\n}, CLEAR ]),
+                [ qq{'\n}, RESET ]),
         },
         "parse-default-tag-print" => {
             verbosity => 20,
             argn => 2,
             format => make_format(
-                [ q{Default for "}, CLEAR ],
+                [ q{Default for "}, RESET ],
                 [ q{%s}, CYAN ],
-                [ q{" = "}, CLEAR ],
+                [ q{" = "}, RESET ],
                 [ q{%s}, BOLD, GREEN ],
-                [ qq{"\n}, CLEAR ]),
+                [ qq{"\n}, RESET ]),
         },
         "parse-bool-broken" => {
             verbosity => 5,
             argn => 4,
             format => make_format(
-                [ q{%s,%s: }, CLEAR ],
-                [ q{Broken boolean for `%s': "}, CLEAR ],
+                [ q{%s,%s: }, RESET ],
+                [ q{Broken boolean for `%s': "}, RESET ],
                 [ q{%s}, RED ],
-                [ qq{"\n}, CLEAR ]),
+                [ qq{"\n}, RESET ]),
         },
         "parse-compat-verbose" => {
             verbosity => 20,
             argn => 3,
             format => make_format(
                 [ q{Compatibility:}, YELLOW ],
-                [ q{ }, CLEAR ],
+                [ q{ }, RESET ],
                 [ q{%s}, CYAN ],
-                [ q{ => `}, CLEAR ],
+                [ q{ => `}, RESET ],
                 [ q{%s}, BOLD, BLUE ],
-                [ q{' (setting: }, CLEAR ],
+                [ q{' (setting: }, RESET ],
                 [ q{%s}, MAGENTA ],
-                [ qq{)\n}, CLEAR ]),
+                [ qq{)\n}, RESET ]),
         },
         "parse-int-broken" => {
             verbosity => 5,
             argn => 4,
             format => make_format(
-                [ q{%s,%s: }, CLEAR ],
-                [ q{Broken integer for `%s': "}, CLEAR ],
+                [ q{%s,%s: }, RESET ],
+                [ q{Broken integer for `%s': "}, RESET ],
                 [ q{%s}, RED ],
-                [ qq{"\n}, CLEAR ]),
+                [ qq{"\n}, RESET ]),
         },
         "parse-int-print" => {
             verbosity => 20,
             argn => 2,
             format => make_format(
-                [ q{Integer option "}, CLEAR ],
+                [ q{Integer option "}, RESET ],
                 [ q{%s}, CYAN ],
-                [ q{" = "}, CLEAR ],
+                [ q{" = "}, RESET ],
                 [ q{%s}, BOLD, GREEN ],
-                [ qq{"\n}, CLEAR ]),
+                [ qq{"\n}, RESET ]),
         },
         "parse-string-print" => {
             verbosity => 20,
             argn => 2,
             format => make_format(
-                [ q{String option "}, CLEAR ],
+                [ q{String option "}, RESET ],
                 [ q{%s}, CYAN ],
-                [ q{" = "}, CLEAR ],
+                [ q{" = "}, RESET ],
                 [ q{%s}, BOLD, GREEN ],
-                [ qq{"\n}, CLEAR ]),
+                [ qq{"\n}, RESET ]),
         },
         "parse-userset-print" => {
             verbosity => 20,
             argn => 2,
             format => make_format(
                 [ q{User-defined setting}, BOLD, BLUE ],
-                [ q{: "}, CLEAR ],
+                [ q{: "}, RESET ],
                 [ q{%s}, CYAN ],
-                [ q{" = "}, CLEAR ],
+                [ q{" = "}, RESET ],
                 [ q{%s}, BOLD, GREEN ],
-                [ qq{"\n}, CLEAR ]),
+                [ qq{"\n}, RESET ]),
         },
         "profile-add-pattern" => {
             verbosity => 20,
             argn => 2,
             format => make_format(
-                [ q{Adding pattern "}, CLEAR ],
+                [ q{Adding pattern "}, RESET ],
                 [ q{%s}, CYAN ],
-                [ q{" to profile `}, CLEAR ],
+                [ q{" to profile `}, RESET ],
                 [ q{%s}, BOLD, GREEN ],
-                [ qq{'.\n}, CLEAR ]),
+                [ qq{'.\n}, RESET ]),
         },
         "profile-disallowed-chars" => {
             verbosity => 5,
             argn => 1,
             format => make_format(
-                [ q{Disallowed characters in profile name: "}, CLEAR ],
+                [ q{Disallowed characters in profile name: "}, RESET ],
                 [ q{%s}, RED ],
-                [ qq{"\n}, CLEAR ]),
+                [ qq{"\n}, RESET ]),
         },
         "profile-parse-fail" => {
             verbosity => 5,
             argn => 1,
             format => make_format(
-                [ q{Could not find config file for profile `}, CLEAR ],
+                [ q{Could not find config file for profile `}, RESET ],
                 [ q{%s}, CYAN ],
-                [ qq{'.\n}, CLEAR ]),
+                [ qq{'.\n}, RESET ]),
         },
         "profile-missing-config" => {
             verbosity => 5,
             argn => 1,
             format => make_format(
-                [ q{Could not parse profile value "}, CLEAR ],
+                [ q{Could not parse profile value "}, RESET ],
                 [ q{%s}, RED ],
-                [ qq{".\n}, CLEAR ]),
+                [ qq{".\n}, RESET ]),
         },
         "section-broken-start" => {
             verbosity => 5,
             argn => 1,
             format => make_format(
-                [ q{Broken section start: "}, CLEAR ],
+                [ q{Broken section start: "}, RESET ],
                 [ q{%s}, RED ],
-                [ qq{"\n}, CLEAR ]),
+                [ qq{"\n}, RESET ]),
         },
         "user-setting-broken" => {
             verbosity => 5,
             argn => 1,
             format => make_format(
-                [ q{Broken user setting: "}, CLEAR ],
+                [ q{Broken user setting: "}, RESET ],
                 [ q{%s}, RED ],
-                [ qq{"\n}, CLEAR ]),
+                [ qq{"\n}, RESET ]),
         },
         # hook files
         "hooks-file-parse-error" => {
@@ -2020,71 +2020,71 @@ BEGIN {
             argn => 2,
             format => make_format(
                 [ q{Could not parse hooks file }, RED ],
-                [ qq{`}, CLEAR ],
+                [ qq{`}, RESET ],
                 [ q{%s}, BOLD, RED ],
-                [ qq{':\n}, CLEAR ],
-                [ qq{  - %s\n}, CLEAR ]),
+                [ qq{':\n}, RESET ],
+                [ qq{  - %s\n}, RESET ]),
         },
         "hooks-file-read-error" => {
             verbosity => 5,
             argn => 2,
             format => make_format(
                 [ q{Could not read hooks file }, RED ],
-                [ qq{`}, CLEAR ],
+                [ qq{`}, RESET ],
                 [ q{%s}, BOLD, RED ],
-                [ qq{':\n}, CLEAR ],
-                [ qq{  - %s\n}, CLEAR ]),
+                [ qq{':\n}, RESET ],
+                [ qq{  - %s\n}, RESET ]),
         },
         "hooks-non-true" => {
             verbosity => 5,
             argn => 1,
             format => make_format(
-                [ q{Reading hooks file "%s" did }, CLEAR ],
+                [ q{Reading hooks file "%s" did }, RESET ],
                 [ q{NOT}, RED ],
                 [ qq{ return 1.\n}, RED ],
 [ qq{  While this is not a fatal problem, it is good practice, to let\n},
-  CLEAR ],
+  RESET ],
 [ qq{  perl script files return 1. Just put a '1;' into the last line\n},
-  CLEAR ],
+  RESET ],
 [ qq{  of this file to get rid of this warning. Subroutines like\n},
-  CLEAR ],
+  RESET ],
 [ qq{  register_hook() and remove_hook() return 1 by default, so sticking\n},
-  CLEAR ],
+  RESET ],
 [ qq{  them into the last line of the file will do the trick, too.\n},
-  CLEAR ]),
+  RESET ]),
         },
         "hooks-no-such-file" => {
             verbosity => 5,
             argn => 1,
             format => make_format(
-                [ q{Hook file }, CLEAR ],
+                [ q{Hook file }, RESET ],
                 [ q{not found}, RED ],
-                [ qq{: %s\n}, CLEAR ]),
+                [ qq{: %s\n}, RESET ]),
         },
         "hooks-file-read" => {
             verbosity => 20,
             argn => 1,
             format => make_format(
-                [ q{Hook file read ("}, CLEAR ],
+                [ q{Hook file read ("}, RESET ],
                 [ q{%s}, CYAN ],
-                [ qq{).\n}, CLEAR ]),
+                [ qq{).\n}, RESET ]),
         },
         "hooks-register-undefined" => {
             verbosity => 5,
             argn => 1,
             format => make_format(
-                [ q{Trying to register }, CLEAR ],
+                [ q{Trying to register }, RESET ],
                 [ q{undefined subroutine}, RED ],
-                [ q{ in namespace `}, CLEAR ],
+                [ q{ in namespace `}, RESET ],
                 [ q{%s}, CYAN ],
-                [ q{'.}, CLEAR ],
+                [ q{'.}, RESET ],
                 [ q{ Ignoring}, YELLOW ],
-                [ qq{\n}, CLEAR ]),
+                [ qq{\n}, RESET ]),
         },
         "newline" => {
             verbosity => 5,
             argn => 0,
-            format => make_format( [ qq{\n}, CLEAR ] ),
+            format => make_format( [ qq{\n}, RESET ] ),
         },
     );
 }
