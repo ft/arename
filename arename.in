@@ -1166,24 +1166,6 @@ Sets the value of default_I<tagname> to I<value>.
 
 =back
 
-=head3 Output subroutines
-
-For output, you can use the following functions, the rest of B<arename>
-uses as well:
-
-=over 4
-
-=item B<oprint>(I<args>, ...)
-
-Print to the standard output stream. This can be called the same way as
-Perl's usual I<print> subroutine.
-
-=item B<owarn>(I<args>, ...)
-
-Print to the standard error stream.
-
-=back
-
 =head3 Miscellaneous subroutines
 
 And finally, a few miscellaneous functions ARename.pm provides, that
@@ -1517,7 +1499,7 @@ banner and replaces all whitespace in the expanded template with
 underscores:
 
   sub my_banner {
-      oprint "Hello World.\n";
+      print "Hello World.\n";
   }
   register_hook('startup', \&my_banner);
 

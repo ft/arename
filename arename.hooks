@@ -7,7 +7,7 @@ sub print_banner0 {
     # it's also a pretty big hammer. Think before screwing up. :)
     my ($namespace, $nameref, $verref, $confref, $suptagsref, $argvref) = @_;
 
-    oprint "BANNER! $$nameref $$verref " . $argvref->[0] . "\n";
+    print "BANNER! $$nameref $$verref " . $argvref->[0] . "\n";
 
     # The following actually changes the $NAME variable, used
     # in ARename.pm, which doesn't hurt, because it is only the
@@ -25,7 +25,7 @@ sub print_banner1 {
     # Since $NAME used to be 'arename', the substitution
     # in print_banner0() will have changed $NAME to 'areblame.pl',
     # which $$nameref below will reveal.
-    oprint "ANOTHER BANNER! $$nameref $$verref\n";
+    print "ANOTHER BANNER! $$nameref $$verref\n";
 }
 register_hook('startup', \&print_banner1);
 
@@ -73,7 +73,7 @@ sub remove_empty_subdirs {
     do {
         return if ($dir eq '.');
         $rc = rmdir $dir;
-        if ($rc) { oprint("removed empty dir: \"$dir\"\n"); }
+        if ($rc) { print "removed empty dir: \"$dir\"\n"; }
         $dir = dirname($dir);
 
     } while ($rc);
@@ -130,9 +130,11 @@ sub mp3_recode_iso_to_utf8 {
         $src = $datref->{$tag};
         if ($src =~ m/[^[:ascii:]]/) {
             $datref->{$tag} = Encode::encode("UTF-8", $src);
-            oprint_verbose("$name: * Recoded ($tag)\n");
-            oprint_verbose("$name: * From: \"$src\"\n");
-            oprint_verbose("$name: *   To: \"" . $datref->{$tag} . "\"\n");
+            if (get_opt('verbosity') >= 20) {
+                print "$name: * Recoded ($tag)\n";
+                print "$name: * From: \"$src\"\n";
+                print "$name: *   To: \"" . $datref->{$tag} . "\"\n";
+            }
         }
     }
 }
