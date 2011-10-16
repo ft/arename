@@ -2067,7 +2067,7 @@ BEGIN {
             format => make_format(
                 [ q{Hook file read ("}, RESET ],
                 [ q{%s}, CYAN ],
-                [ qq{).\n}, RESET ]),
+                [ qq{").\n}, RESET ]),
         },
         "hooks-register-undefined" => {
             verbosity => 5,
