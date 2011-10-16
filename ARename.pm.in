@@ -1585,7 +1585,10 @@ BEGIN {
             verbosity => 20,
             argn => 1,
             format => make_format(
-                [ qq{Processing: %s\n}, RESET ]),
+                [ q{Processing:}, MAGENTA ],
+                [ q{ "}, RESET ],
+                [ q{%s}, YELLOW ],
+                [ qq{"\n}, RESET ]),
         },
         "target-exists" => {
             verbosity => 10,
