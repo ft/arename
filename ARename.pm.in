@@ -418,7 +418,7 @@ sub arename {
             or op('quoted-file',
                   sub {
                       my ($ret) = @_;
-                      $ret =~ s,','\\'',;
+                      $ret =~ s,','\\'',g;
                       return $ret;}->($newname));
     };
 
