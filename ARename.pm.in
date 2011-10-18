@@ -406,7 +406,6 @@ sub arename {
 
     run_hook('post_ensure_dir', $datref, \$ext, \$newname);
 
-
     do {
         my ($mode);
         if (get_opt("copymode")) {
