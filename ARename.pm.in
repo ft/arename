@@ -47,10 +47,10 @@ use Term::ANSIColor qw(:constants);
 # OS's packaging system.
 use Audio::Scan;
 
-# So, how does all of this work?  Well, the main entry point is
+# So, how does all of this work? Well, the main entry point is
 # `process_file()', which is called from the executable script for every file,
-# we're about to work on. `process_file()' doesn't take an argument the name
-# of the current file is provided by calling `set_file()'.
+# we're about to work on. The `process_file()' function doesn't take an
+# argument. The name of the current file is provided by calling `set_file()'.
 #
 # Then `process_file()' does the following:
 #
