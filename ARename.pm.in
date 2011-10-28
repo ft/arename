@@ -44,7 +44,7 @@ use Cwd 'abs_path';
 use Term::ANSIColor qw(:constants);
 
 # This one is not. But it's available via CPAN and - if you're lucky - via your
-# OSs packaging system.
+# OS's packaging system.
 use Audio::Scan;
 
 # So, how does all of this work?  Well, the main entry point is
