@@ -73,6 +73,7 @@ function _arename() {
         '(--verbose --quiet)'--quiet'[enable quiet output]'
         '(--read-local -l)'{--read-local,-l}'[read local config file]'
         '(--stdin -s)'{--stdin,-s}'[read filenames from stdin]'
+        '(--suppress-skips -Q)'{--suppress-skips,-Q}'[Don'\''t display data of skipped files]'
         '(--verbose --uber-quiet)'--uber-quiet'[do not display skips in quiet mode]'
         '(--quiet --uber-quiet --verbose)'--verbose'[enable verbose output]'
         '(--verbosity -v)'{--verbosity,-v}'[set verbosity]:verbosity value:_guard "[0-9]#" "numeric value"'

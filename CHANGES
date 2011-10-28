@@ -40,14 +40,16 @@
         b) --list-file-types
         c) --list-exts-for-type <type>
         d) --verbosity <integer-value>
+        e) --suppress-skips
     + Removed command line options:
         a) -D (--debug is still there)
         b) -q (--quiet is still there, but deprecated)
-        c) -Q (--uber-quiet is still there, but deprecated)
     + Changed command line options:
         a) -v: Used to be `--verbose' but now is `--verbosity'.
            `--verbose' is deprecated (may be removed in later versions)
            and is equal to "--verbosity 20".
+        b) -Q is now a short-hand for `--suppress-skips' (the old option
+           `--uber-quiet' is still supported, but deprecated).
     + Changed Perl API:
         a) `oprint()' deprecated. Will be removed in a later release!
         b) `owarn()' deprecated. Will be removed in a later release!

@@ -52,3 +52,8 @@
     general, you should not be parsing arename's output at all in oder to use
     it in scripts. The output is not stable. To script with arename, implement
     your special needs in hooks.
+
+    To suppress output about skipped files (usually because the change of the
+    file in question wouldn't change) a new option `--suppress-skips' was
+    introduced. The option can be used in conjunction with all output
+    verbosities.

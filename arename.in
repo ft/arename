@@ -116,6 +116,14 @@ This is a short hand for "--verbosity 20".
 
 Sets the `I<verbosity>' setting to `I<integer-value>'.
 
+=item B<--suppress-skips> (short option: B<-Q>)
+
+When a file is skipped, because its name would not change, this option will
+cause B<arename> to suppress any output. This sets the `suppress_skips' option.
+
+Note that if the `I<verbosity>' setting is at a high enough level, you may
+still get messages about the file being processed in the first place.
+
 =item B<--rc> E<lt>fileE<gt>
 
 Read I<file> instead of ~/.arenamerc.
@@ -684,6 +692,11 @@ This setting has the same effect as the "--uber-quiet" option.
 Tagging information strings may contain slashes, which is a pretty bad
 idea on most file systems. Therefore, you can define a string, that replaces
 slashes with the value of this setting. (default value: I<_>)
+
+=item B<suppress_skips>
+
+Like the `I<--suppress-skips>' command line option, this disables messages for
+files that B<arename> will skip because the file name would not change.
 
 =item B<template>
 
@@ -1618,6 +1631,7 @@ if (!ARename::get_opt('load_quiet')) {
     ARename::op('dryrun') if (ARename::get_opt("dryrun"));
     ARename::op('copymode') if (ARename::get_opt("copymode"));
     my $v = ARename::get_opt("verbosity");
+    ARename::op('suppress-skips') if (ARename::get_opt("suppress-skips"));
     ARename::op('verbosity', $v) if ($v > 5);
     ARename::op('readstdin') if (ARename::get_opt("readstdin"));
     ARename::op('newline');

@@ -342,6 +342,7 @@ sub data_reset {
     template_aliases
     tnpad
     comp_template
+    suppress_skips
     template
 );
 
@@ -364,27 +365,15 @@ $postproc = \&arename;
 
 # high level code
 
-sub __arename_file_eq {
-    my ($newname, $oldname) = @_;
-
-    if (file_eq($newname, $oldname)) {
-        op('skip-same', $oldname) or op('skip', $oldname);
-        return 1;
-    }
-
-    return 0;
-}
-
 sub arename {
     my ($datref, $ext) = @_;
-    my ($t, $newname);
+    my ($t, $newname, $eq);
 
     my $file = get_file();
 
     run_hook('pre_apply_defaults', $datref, \$ext);
 
     apply_defaults($datref);
-    arename_verbosity($datref);
 
     run_hook('pre_template', $datref, \$ext);
 
@@ -395,7 +384,15 @@ sub arename {
 
     run_hook('post_template', $datref, \$ext, \$newname);
 
-    return if (__arename_file_eq($newname, $file));
+    $eq = file_eq($newname, $file);
+    if (!$eq || !get_opt('suppress_skips')) {
+        arename_verbosity($datref);
+    }
+    if ($eq && !get_opt('suppress_skips')) {
+        op('skip-same', $file) or op('skip', $file);
+    }
+
+    return if ($eq);
 
     if (-e $newname && !get_opt("force")) {
         op('target-exists-twoline', $newname) or op('target-exists', $newname);
@@ -734,6 +731,7 @@ sub set_default_options {
     set_opt("prefix" ,              q{.});
     set_opt("readstdin",            0);
     set_opt("sepreplace",           q{_});
+    set_opt("suppress_skips",       0);
     set_opt("template_aliases",     0);
     set_opt("tnpad",                2);
     set_opt("usehooks",             1);
@@ -787,6 +785,7 @@ sub usage {
     print "    --quiet                      Enable quiet output.\n";
     print "    --read-local, -l             Read local rc, if it exists.\n";
     print "    --stdin, -s                  Read file names from stdin.\n";
+    print "    --suppress-skips, -Q         Don't display data of skipped files\n";
     print "    --uber-quiet                 Don't display skips in quiet mode.\n";
     print "    --version, -V                Display version infomation.\n";
     print "    --verbose                    Enable verbose output.\n";
@@ -1538,6 +1537,13 @@ BEGIN {
                 [ q{Refusing to handle symbolic links: "}, RESET ],
                 [ q{%s}, RED ],
                 [ qq{"\n}, RESET ]),
+        },
+        "suppress-skips" => {
+            verbosity => 5,
+            argn => 0,
+            format => make_format(
+                [ q{+++}, BOLD, GREEN ],
+                [ qq{ suppressing unchanged file skips\n}, RESET ]),
         },
         "verbosity" => {
             verbosity => 5,
@@ -2407,6 +2413,7 @@ sub read_rcs {
     '^profile$'             => \&parse_profile,
     '^quiet$'               => \&parse_verbose,
     '^quiet_skip$'          => \&parse_verbose,
+    '^suppress_skips$'      => \&parse_bool,
     '^sepreplace$'          => \&parse_string,
     '^set$'                 => \&parse_set,
     '^template$'            => \&parse_string,
@@ -2738,6 +2745,7 @@ sub read_cmdline_options {
             "read-local|l" => \&__handle_options,
             "stdin|s" => \&__handle_options,
             "uber-quiet" => \&__handle_options,
+            "suppress-skips|Q" => \&__handle_options,
             "verbose" => \&__handle_options,
             "verbosity|v=i" => \&__handle_options,
             "version|V" => \&__handle_options,
@@ -2824,6 +2832,8 @@ sub read_cmdline_options_late {
         if (cmdopts("dryrun"));
     set_opt("copymode", 1, $CMDLINE_PROTECT)
         if (cmdopts("copy"));
+    set_opt("suppress-skips", 1, $CMDLINE_PROTECT)
+        if (cmdopts("suppress-skips"));
     set_opt("template", cmdoptstr("template"), $CMDLINE_PROTECT)
         if (cmdopts("template"));
     set_opt("comp_template", cmdoptstr("compilation-template"),
