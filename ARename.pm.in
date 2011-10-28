@@ -1458,7 +1458,7 @@ BEGIN {
                 [ qq{'\n}, RESET ]),
         },
         "skip" => {
-            verbosity => 10,
+            verbosity => 5,
             argn => 1,
             format => make_format(
                 [ q{Skipping:}, YELLOW ],
@@ -2817,7 +2817,7 @@ sub read_cmdline_options_late {
         if (cmdopts("dryrun"));
     set_opt("copymode", 1, $CMDLINE_PROTECT)
         if (cmdopts("copy"));
-    set_opt("suppress-skips", 1, $CMDLINE_PROTECT)
+    set_opt("suppress_skips", 1, $CMDLINE_PROTECT)
         if (cmdopts("suppress-skips"));
     set_opt("template", cmdoptstr("template"), $CMDLINE_PROTECT)
         if (cmdopts("template"));

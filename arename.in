@@ -1653,7 +1653,7 @@ if (!ARename::get_opt('load_quiet')) {
     ARename::op('dryrun') if (ARename::get_opt("dryrun"));
     ARename::op('copymode') if (ARename::get_opt("copymode"));
     my $v = ARename::get_opt("verbosity");
-    ARename::op('suppress-skips') if (ARename::get_opt("suppress-skips"));
+    ARename::op('suppress-skips') if (ARename::get_opt("suppress_skips"));
     ARename::op('verbosity', $v) if ($v > 5);
     ARename::op('readstdin') if (ARename::get_opt("readstdin"));
     ARename::op('newline');
