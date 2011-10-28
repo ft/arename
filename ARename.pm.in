@@ -2422,6 +2422,7 @@ sub read_rcs {
     '^usetypeasextension$'  => \&parse_bool,
     '^useprofiles$'         => \&parse_bool,
     '^verbose$'             => \&parse_deprecate_off,
+    '^verbosity$'           => \&parse_integer,
     '^warningsautodryrun$'  => \&parse_bool,
 );
 
@@ -2511,7 +2512,7 @@ sub parse_defaultvalues {
 sub parse_integer {
     my ($file, $lnum, $count, $key, $val) = @_;
 
-    if ($val ne q{} && $val !~ m/^\d+$/) {
+    if ($val eq q{} || $val !~ m/^\d+$/) {
         op('parse-int-broken', $file, $lnum, $key, $val);
         return -1;
     }
