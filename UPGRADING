@@ -47,6 +47,11 @@
     short version of the new `--verbosity' option, that directly alters the
     integer value. The other short options are gone.
 
+    The configuration file options `verbose', `quiet', `quiet_skip' and `debug'
+    are deprecated now and don't have any effect. Please use an appropriate
+    `verbosity' setting instead. If an old option is encountered, a deprecation
+    message is printed and a config file warning is emitted.
+
     At present, only the four old levels are used. However, that may be changed
     in future releases without counting as an compatibility implication. In
     general, you should not be parsing arename's output at all in oder to use

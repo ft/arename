@@ -782,13 +782,11 @@ sub usage {
     print "    --list-file-types            List all supported file types.\n";
     print "    --list-exts-for-type <type>  List extensions recognised as <type>.\n";
     print "    --list-profiles, -S          Show a list of defined profiles\n";
-    print "    --quiet                      Enable quiet output.\n";
     print "    --read-local, -l             Read local rc, if it exists.\n";
     print "    --stdin, -s                  Read file names from stdin.\n";
     print "    --suppress-skips, -Q         Don't display data of skipped files\n";
-    print "    --uber-quiet                 Don't display skips in quiet mode.\n";
+    print "    --verbosity <level>          Set verbosity of arename's output.\n";
     print "    --version, -V                Display version infomation.\n";
-    print "    --verbose                    Enable verbose output.\n";
     print "\n";
     print "    --rc <file>                  Read file instead of ~/.arenamerc.\n";
     print "    --post-rc <file>             Read file after ~/.arenamerc.\n";
@@ -1497,6 +1495,18 @@ BEGIN {
                 [ qq{%12s: %s\n}, RESET ]
             ),
         },
+        "deprecated-variable" => {
+            verbosity => 5,
+            argn => 1,
+            format => make_format(
+                [ q{DEPRECATED OPTION: }, RED ],
+                [ q{`}, RESET ],
+                [ q{%s}, BOLD, RED ],
+                [ qq{'\n}, RESET ],
+[ qq{   This option does nothing and will be removed in a later release.\n},
+  RESET ],
+[ qq{   See the UPGRADING file for details.\n},
+  RESET ])},
         "deprecated-function" => {
             verbosity => 5,
             argn => 1,
@@ -1920,19 +1930,6 @@ BEGIN {
                 [ q{Broken boolean for `%s': "}, RESET ],
                 [ q{%s}, RED ],
                 [ qq{"\n}, RESET ]),
-        },
-        "parse-compat-verbose" => {
-            verbosity => 20,
-            argn => 3,
-            format => make_format(
-                [ q{Compatibility:}, YELLOW ],
-                [ q{ }, RESET ],
-                [ q{%s}, CYAN ],
-                [ q{ => `}, RESET ],
-                [ q{%s}, BOLD, BLUE ],
-                [ q{' (setting: }, RESET ],
-                [ q{%s}, MAGENTA ],
-                [ qq{)\n}, RESET ]),
         },
         "parse-int-broken" => {
             verbosity => 5,
@@ -2407,12 +2404,12 @@ sub read_rcs {
     '^checktemplatesinitially$' => \&parse_bool,
     '^comp_template$'       => \&parse_string,
     '^default_.*$'          => \&parse_defaultvalues,
-    '^debug$'               => \&parse_bool,
+    '^debug$'               => \&parse_deprecate_off,
     '^hookerrfatal$'        => \&parse_bool,
     '^prefix$'              => \&parse_string,
     '^profile$'             => \&parse_profile,
-    '^quiet$'               => \&parse_verbose,
-    '^quiet_skip$'          => \&parse_verbose,
+    '^quiet$'               => \&parse_deprecate_off,
+    '^quiet_skip$'          => \&parse_deprecate_off,
     '^suppress_skips$'      => \&parse_bool,
     '^sepreplace$'          => \&parse_string,
     '^set$'                 => \&parse_set,
@@ -2424,7 +2421,7 @@ sub read_rcs {
     '^uselocalrc$'          => \&parse_bool,
     '^usetypeasextension$'  => \&parse_bool,
     '^useprofiles$'         => \&parse_bool,
-    '^verbose$'             => \&parse_verbose,
+    '^verbose$'             => \&parse_deprecate_off,
     '^warningsautodryrun$'  => \&parse_bool,
 );
 
@@ -2451,6 +2448,12 @@ sub parse {
 #       all okay: =0
 #       warning : >0
 #       fatal   : <0
+
+sub parse_deprecate_off {
+    my ($file, $lnum, $count, $key, $val) = @_;
+    op('deprecated-variable', $key);
+    return 1;
+}
 
 sub bool_is_true {
     my ($val) = @_;
@@ -2574,25 +2577,6 @@ sub parse_new_section {
     $s =~ s/^~\//$ENV{HOME}\//;
     sect_set($s);
     op('rc-switch-section', $s);
-    return 0;
-}
-
-sub parse_verbose {
-    # Backwards compatibility for `quiet', `verbose', `quiet_skip' and `debug'.
-    # Fit this into the new `verbosity' scheme.
-    my ($file, $lnum, $count, $key, $val) = @_;
-    my (%tab);
-
-    %tab = ( debug => 10_000,
-             verbose => 20,
-             quiet => 10,
-             quiet_skip => 5, );
-
-    $val = bool_value($file, $lnum, $key, $val);
-    return -1 if ($val < 0);
-    return 0 if ($val == 0);
-    op('parse-compat-verbose', $key, ($val ? 'true' : 'false'), $tab{$key});
-    set_opt('verbosity', $tab{$key});
     return 0;
 }
 

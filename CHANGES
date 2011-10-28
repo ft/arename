@@ -53,6 +53,14 @@
     + Changed Perl API:
         a) `oprint()' deprecated. Will be removed in a later release!
         b) `owarn()' deprecated. Will be removed in a later release!
+    + Deprecated configuration file options:
+        The effects of the following options are disabled, deprecation
+        messages are printed and warnings are emitted. The options will
+        be removed at a later date.
+        a) `debug'
+        b) `quiet'
+        c) `quiet_skip'
+        d) `verbose'
     + New environment variables:
         a) `$ARENAME_SUPPRESS_COLOURS': Entirely disable coloured
            output from arename (version 4.0 uses colours by default).

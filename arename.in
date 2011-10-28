@@ -37,7 +37,7 @@ from your audio archive to a portable device for example.
 
 Enable debugging output. This actually sets `I<verbosity>' to 10000. This output
 option will cause very noisy output. You probably want something less verbose,
-like `I<--verbose>'.
+like `I<--verbosity 20>'.
 
 =item B<--disable-hooks> (short option: B<-H>)
 
@@ -85,10 +85,6 @@ as a comma-separated list, extensions for all listed types are listed.
 Print a list of profile names defined in the active configuration.
 (This is primarily used by the zsh completion for the I<--profile> option.)
 
-=item B<--quiet> (deprecated)
-
-This option is a short hand for "--verbosity 10".
-
 =item B<--read-local> (short option: B<-l>)
 
 Read a local config file (./.arename.local). Overwrites the B<uselocalrc>
@@ -100,17 +96,9 @@ Read filenames from stdin after processing files given on the command line.
 It reads one file name per line, which means that file names containing
 newlines are not supported.
 
-=item B<--uber-quiet> (deprecated)
-
-This option is a short hand for "--verbosity 5".
-
 =item B<--version> (short option: B<-V>)
 
 Display version information.
-
-=item B<--verbose> (deprecated)
-
-This is a short hand for "--verbosity 20".
 
 =item B<--verbosity> E<lt>integer-valueE<gt>
 
@@ -164,15 +152,39 @@ Input files, that are subject for renaming.
 
 A word about option name stability: With I<arename version 3.0> we are now
 using Getopt::Long for parsing command lines options. That change was made,
-because the meaningful single letter options where used up. Every option
-is available via a I<--long-option>. B<That interface will remain stable>.
-So, if you want to use B<arename> in scripts, those are the options you
-should use. There are currently no plans of removing or changing any further
-short options, but there are no guarantees. If it is indeed better to change
-a short option, we will do so.
+because the meaningful single letter options where used up. Every option is
+available via a I<--long-option>. B<That interface will remain stable>. If
+changes to the I<--long-option> interface are done, that will happen with an
+appropriate deprecation phase, so users can adjust. So, if you want to use
+B<arename> in scripts, those are the options you should use. There are
+currently no plans of removing or changing any further short options, but there
+are no guarantees. If it is indeed better to change a short option, we will do
+so.
 
-A list of options that changed from B<arename> I<3.x> to I<4.0> can be
-found in the project's CHANGES file.
+A list of options that changed from B<arename> I<3.x> to I<4.0> can be found in
+the project's CHANGES file and general advice about incompatible changes from
+major version to major version are documented in the UPGRADING file.
+
+=head2 Deprecated Command Line Options
+
+The following options are deprecated and will be removed in a later version of
+B<arename>.
+
+=over 4
+
+=item B<--quiet>
+
+This option is a short hand for "--verbosity 10".
+
+=item B<--uber-quiet>
+
+This option is a short hand for "--verbosity 5".
+
+=item B<--verbose>
+
+This is a short hand for "--verbosity 20".
+
+=back
 
 =head1 DESCRIPTION
 
@@ -653,10 +665,6 @@ Defines a template to use with files that provide a compilation tag
 overwritten by the B<--compilation-template> command line option. (default
 value: I<va/&album/&tracknumber - &artist - &tracktitle>)
 
-=item B<debug>
-
-This setting has the same effect as the "--debug" option.
-
 =item B<default_*>
 
 default_artist, default_album, default_compilation, default_genre,
@@ -678,14 +686,6 @@ in destination files named '/foo/bar/Expanded Template.ogg'
 
 This setting can still be overwritten by the B<--profile> command line option.
 (default value: I<.>)
-
-=item B<quiet>
-
-This setting has the same effect as the "--quiet" option.
-
-=item B<quiet_skip>
-
-This setting has the same effect as the "--uber-quiet" option.
 
 =item B<sepreplace>
 
@@ -749,10 +749,6 @@ renamed using I<.ogg> as the extension, since its type is
 I<ogg>. Otherwise, the original extension is left untouched. (default:
 I<true>)
 
-=item B<verbose>
-
-This setting has the same effect as the "--verbose" option.
-
 =item B<verbosity>
 
 Integer option, that sets the verbosity of I<arename>'s output. The default
@@ -765,6 +761,32 @@ Switches on the I<dryrun> option (if not enabled already), as soon as the
 configuration file parser encounters non-fatal warnings. This option was
 introduced to avoid destructive behaviour due to incorrect lines in any
 of the configuration files. (default value: I<true>)
+
+=back
+
+=head2 Deprecated Settings
+
+=over 4
+
+=item B<verbose>
+
+This setting has no effect and will be removed in a later version. Use an
+appropriate `I<verbosity>' setting instead.
+
+=item B<quiet>
+
+This setting has no effect and will be removed in a later version. Use an
+appropriate `I<verbosity>' setting instead.
+
+=item B<quiet_skip>
+
+This setting has no effect and will be removed in a later version. Use an
+appropriate `I<verbosity>' setting instead.
+
+=item B<debug>
+
+This setting has no effect and will be removed in a later version. Use an
+appropriate `I<verbosity>' setting instead.
 
 =back
 
