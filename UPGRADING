@@ -37,10 +37,14 @@
     of zero will surpress all output except for bug messages. The old levels
     roughly translate like this:
 
-        uber-quiet:     5
-        quiet:         10
-        verbose:       20
-        debug:      10000
+        |---------------------+-------------------------|
+        | old boolean setting | approx. verbosity value |
+        |---------------------+-------------------------|
+        | uber-quiet          |                       5 |
+        | quiet               |                      10 |
+        | verbose             |                      20 |
+        | debug               |                   10000 |
+        |---------------------+-------------------------|
 
     The old options still remain as long options (and they will set the
     `verbosity' value according to the table above). The `-v' switch is now the
