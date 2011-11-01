@@ -30,6 +30,10 @@ either an array reference or a string. In any case, the result must be one or
 more event names (strings) to which the subroutine reference from the second
 argument will be registered to within B<arename>.
 
+=head1 VERSION
+
+Part of B<arename> B<@@arenameversioninfo@@>.
+
 =head1 SEE ALSO
 
 B<arename(1)>
@@ -52,6 +56,8 @@ use Exporter;
 use vars qw{ @ISA @EXPORT };
 @ISA = qw{ Exporter };
 @EXPORT = qw{ register_module_hook };
+
+my $ARENAME_VERSION = q{@@arenameversioninfo@@};
 
 sub register_module_hook {
     my ($default, $fn, $h) = @_;

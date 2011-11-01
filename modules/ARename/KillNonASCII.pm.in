@@ -33,6 +33,10 @@ are longer than one character.
 
 =back
 
+=head1 VERSION
+
+Part of B<arename> B<@@arenameversioninfo@@>.
+
 =head1 SEE ALSO
 
 B<arename(1)>
@@ -52,6 +56,8 @@ use warnings;
 use strict;
 
 use ARename::RegisterModuleHook;
+
+my $ARENAME_VERSION = q{@@arenameversioninfo@@};
 
 sub kill_nonascii {
     my ($namespace, $templateref, $datref) = @_;
