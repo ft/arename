@@ -59,7 +59,12 @@ USING arename FROM ITS GIT REPOSITORY
 
   To get the actual perl script, do:
 
-    % make genperlscript
+    % make genperlscripts
+
+  If your Perl5 binary is in a place different from `/usr/bin/perl',
+  you may use the `PERL' variable to adjust the path accordingly:
+
+    % make genperlscripts PERL=/opt/perl5.10/bin/perl
 
   And to generate the documentation, do:
 

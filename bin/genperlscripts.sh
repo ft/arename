@@ -2,6 +2,8 @@
 
 [ ! -e "arename.in" ] && exit 0         # probably a tarball...
 
+PERL=${PERL:-/usr/bin/perl}
+
 version="$(./bin/getversion.sh build)"
 
 for scr in "${@}" ; do
@@ -18,7 +20,8 @@ for scr in "${@}" ; do
 
     printf 'Generating '\''%s'\''... ' "${scr}"
 
-    sed -e 's/@@arenameversioninfo@@/'"${version}"'/' < "${scr}.in" > "${scr}"
+    sed -e 's/@@arenameversioninfo@@/'"${version}"'/' \
+        -e 's:@@perl@@:'"${PERL}"':' < "${scr}.in" > "${scr}"
     chmod +x "${scr}"
 
     printf 'done.\n'
