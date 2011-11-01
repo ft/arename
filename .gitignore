@@ -5,7 +5,7 @@
 *.orig
 *.log
 *.tar.gz
-ARename.pm
+*.pm
 ataglist
 arename
 arename.1
