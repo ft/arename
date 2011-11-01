@@ -52,6 +52,7 @@ doc: genperlscripts
 clean:
 	@[ ! -e arename.in ] && { printf 'DO NOT CALL THIS!\n' ; exit 1 ; } || true
 	rm -f arename.html arename.1 ataglist.html ataglist.1 *.tmp .*~ *~ bin/*~ tests/*~ arename ataglist
+	rm -f optest.pl
 	rm -f */*.pm */*/*.pm */*/*/*.pm
 	rm -Rf tests/data
 
