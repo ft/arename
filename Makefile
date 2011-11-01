@@ -7,6 +7,8 @@ fakeroot="/usr/bin/fakeroot"
 critic=""
 maxwidth="14"
 
+PERL ?= /usr/bin/perl
+
 all:
 	@printf 'Makefile targets intended for users:\n'
 	@printf '  all            this text\n'
@@ -41,8 +43,7 @@ dev-help: all test-help
 	@printf '  genperlscripts generate arename from arename.in\n'
 
 genperlscripts:
-	@./bin/genperlscripts.sh ARename.pm arename ataglist
-	@chmod -x ARename.pm
+	@$(PERL) ./bin/gps
 
 doc: genperlscripts
 	@./bin/gendoc.sh arename
@@ -60,7 +61,7 @@ distclean: clean
 install:
 	@./bin/install.sh x arename       "$(prefix)/bin"                        $(maxwidth)
 	@./bin/install.sh x ataglist      "$(prefix)/bin"                        $(maxwidth)
-	@./bin/install.sh x ARename.pm    "$(prefix)/$(libpath)/"                $(maxwidth)
+	@./bin/install.sh x modules/ARename.pm "$(prefix)/$(libpath)/"           $(maxwidth)
 
 install-doc:
 	@./bin/install.sh n README        "$(prefix)/share/doc/arename"          $(maxwidth)
@@ -89,7 +90,7 @@ uninstall-doc:
 test: test-check test-doc test-output test-suite
 
 test-all: test-check test-install test-code test-doc test-output test-suite
-	@printf '\nTested: '\''%s'\''\n\n' "$$(perl -I. ./arename -V)"
+	@printf '\nTested: '\''%s'\''\n\n' "$$(perl -Imodules ./arename -V)"
 
 test-check:
 	@[ ! -e tests/data/input.wav ] && { \
@@ -134,7 +135,7 @@ test-output: genperlscripts
 	@printf '\n\n  -!- Output routines appear to behaving properly.\n\n'
 
 test-suite: test-check
-	prove -I. -v tests/*.t
+	prove -Imodules -v tests/*.t
 
 prepare-test-data:
 	./bin/gentestsdata.sh

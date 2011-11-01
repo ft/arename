@@ -125,4 +125,4 @@ print {$code} qq{exit 0;\n};
 
 close $code;
 
-exec(($EXECUTABLE_NAME, '-I.', $output));
+exec(($EXECUTABLE_NAME, '-Imodules', $output));
