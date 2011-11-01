@@ -30,12 +30,8 @@ SCRIPTS
 
 INSTALLATION
 
-  If you're just interested in the scripts included in this package,
-  do (as root):
-
-    # make install
-
-  If you want both, the scripts and the documentation (as root):
+  To install both the package's scripts and the accompanying
+  documentation, do the following as root:
 
     # make install install-doc
 
