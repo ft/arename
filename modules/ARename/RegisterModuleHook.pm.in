@@ -49,7 +49,9 @@ use warnings;
 use strict;
 
 use Exporter;
-@ISA = qw{ register_module_hook };
+use vars qw{ @ISA @EXPORT };
+@ISA = qw{ Exporter };
+@EXPORT = qw{ register_module_hook };
 
 sub register_module_hook {
     my ($default, $fn, $h) = @_;
@@ -65,7 +67,7 @@ sub register_module_hook {
 
     $hook = [ $hook ] if (ref($hook) ne 'ARRAY');
     foreach my $event (@{ $hook }) {
-        register_hook($event, $fn);
+        ARename::register_hook($event, $fn);
     }
 }
 
