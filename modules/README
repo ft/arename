@@ -1,0 +1,32 @@
+Since arename is extensible by user code in hooks already, let's borrow the
+idea to put code into separate modules from project's like xmonad or emacs.
+
+The idea is to stop extending arename's core any further, but to implement new
+features in extension modules. If necessary, new hook events will have to be
+introduced.
+
+
+  # Import the module's code.
+  use ARename::KillNonASCII;
+
+  # This registers the kill-non-ascii hook in the place intended by the author.
+  ARename::KillNonASCII::register();
+
+  # This, on the other hand, registers it for the `foo' event.
+  ARename::KillNonASCII::register('foo');
+
+  # And finally, this registers the code with the `foo' and `bar' events.
+  ARename::KillNonASCII::register(qw{foo bar});
+
+
+The modules should all be POD-documented, so the following should always get
+you the appropriate reference documentation:
+
+  % perldoc ARename::KillNonASCII
+
+
+There is already a separate name-space for extension-code configurability,
+namely the `--userset' variables (the "set foo = bar" syntax). That should be
+used by distributed extension code, too.
+
+  set killnonascii = yes

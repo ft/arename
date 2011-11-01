@@ -1,0 +1,72 @@
+=pod
+
+=head1 NAME
+
+ARename::KillNonASCII - Remove non-ascii characters from meta data
+
+=head1 SYNOPSIS
+
+use ARename::KillNonASCII;
+
+ARename::KillNonASCII::register();
+
+=head1 DESCRIPTION
+
+The code within the module is intended to be registered to the
+`I<post_expand_template>' hook event. When registered and activated (see
+L</SETTINGS> below), it will replace all non-ascii characters from the result
+of B<arename>'s template expansion.
+
+=head1 SETTINGS
+
+=over 4
+
+=item B<killnonascii> (default: <unset>)
+
+When set to `B<yes>', the hook is enabled. Only `yes' will be accepted.
+
+=item B<KNA_replace> (default: "_")
+
+This option defines which string non-ascii characters are replaced with. The
+default is an underscore, but it may also be the empty string or strings that
+are longer than one character.
+
+=back
+
+=head1 SEE ALSO
+
+B<arename(1)>
+
+=head1 AUTHOR
+
+Frank Terbeck <ft@bewatermyfriend.org>
+
+=head1 LICENCE
+
+This extension module is licenced under the same terms as B<arename> itself.
+
+=cut
+
+package ARename::KillNonASCII;
+use warnings;
+use strict;
+
+use ARename::RegisterModuleHook;
+
+sub kill_nonascii {
+    my ($namespace, $templateref, $datref) = @_;
+    my ($opt, $replace);
+
+    $opt = user_get("killnonascii"),
+    $replace = user_get("KNA_replace"),
+    return if (!defined $opt || $opt ne 'yes');
+    $replace = q{_} if (!defined $replace);
+    $$templateref =~ s/[^[:ascii:]]+/$replace/g;
+}
+
+sub register {
+    my ($h) = @_;
+    register_module_hook('post_expand_template', \&kill_nonascii, $h);
+}
+
+1;
