@@ -62,7 +62,8 @@ distclean: clean
 install:
 	@./bin/install.sh x arename       "$(prefix)/bin"                        $(maxwidth)
 	@./bin/install.sh x ataglist      "$(prefix)/bin"                        $(maxwidth)
-	@./bin/install.sh x modules/ARename.pm "$(prefix)/$(libpath)/"           $(maxwidth)
+	@./bin/install.sh n modules/ARename.pm "$(prefix)/$(libpath)/"           $(maxwidth)
+	@find modules/ARename -name "*.pm" -exec sh -c 's=$$1; d=$${1%/*}; d=$${d#modules/}; ./bin/install.sh n "$$s" "$(prefix)/$(libpath)/$$d/" $(maxwidth)' {} {} \;
 
 install-doc:
 	@./bin/install.sh n README        "$(prefix)/share/doc/arename"          $(maxwidth)
