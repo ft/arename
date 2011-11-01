@@ -57,8 +57,8 @@ sub kill_nonascii {
     my ($namespace, $templateref, $datref) = @_;
     my ($opt, $replace);
 
-    $opt = user_get("killnonascii"),
-    $replace = user_get("KNA_replace"),
+    $opt = ARename::user_get("killnonascii");
+    $replace = ARename::user_get("KNA_replace");
     return if (!defined $opt || $opt ne 'yes');
     $replace = q{_} if (!defined $replace);
     $$templateref =~ s/[^[:ascii:]]+/$replace/g;
