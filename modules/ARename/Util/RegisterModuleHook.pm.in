@@ -2,11 +2,12 @@
 
 =head1 NAME
 
-ARename::RegisterModuleHook - B<arename>'s default hook registration method.
+ARename::Util::RegisterModuleHook - B<arename>'s default hook registration
+method.
 
 =head1 SYNOPSIS
 
-use ARename::RegisterModuleHook;
+use ARename::Util::RegisterModuleHook;
 
 # ...
 
@@ -48,7 +49,7 @@ This extension module is licenced under the same terms as B<arename> itself.
 
 =cut
 
-package ARename::RegisterModuleHook;
+package ARename::Util::RegisterModuleHook;
 use warnings;
 use strict;
 
