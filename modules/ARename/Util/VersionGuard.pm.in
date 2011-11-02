@@ -57,11 +57,15 @@ use warnings;
 use strict;
 
 use Exporter;
-use vars qw{ @ISA @EXPORT };
-@ISA = qw{ Exporter };
+use base qw{ Exporter };
+## no critic (ProhibitAutomaticExportation)
+use vars qw{ @EXPORT };
 @EXPORT = qw{ arename_version_guard };
+## use critic
 
+## no critic (RequireInterpolationOfMetachars)
 my $ARENAME_VERSION = q{@@arenameversioninfo@@};
+## use critic
 
 my $self_warning = 1;
 
@@ -95,6 +99,7 @@ sub arename_version_guard {
         ARename::op('auto-dry-run', $package);
         ARename::set_opt('dryrun', 1);
     }
+    return $didwarn;
 }
 
 1;

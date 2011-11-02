@@ -79,9 +79,13 @@ use ARename::Util::RegisterModuleHook;
 # below).
 use ARename::Util::VersionGuard;
 
-# This is one of those "generation tags". This particular one expands to the
-# arename version that the module was built with.
+# The following is one of those "generation tags". This particular one expands
+# to the arename version that the module was built with. It requires us to
+# temporarily disable one critic policy.
+
+## no critic (RequireInterpolationOfMetachars)
 my $ARENAME_VERSION = q{@@arenameversioninfo@@};
+## use critic
 
 # Now this is the subroutine, that does the actual work. It's parameters depend
 # on the hook event the function is registered to. Details about that can be
@@ -105,7 +109,8 @@ sub kill_nonascii {
 
     # And finally, the actual functionality is implemented in this one line. It
     # simply uses Perl's regular expressions to do the replacement.
-    $$templateref =~ s/[^[:ascii:]]+/$replace/g;
+    ${ $templateref } =~ s/[^[:ascii:]]+/$replace/g;
+    return 1;
 }
 
 # Each extension module, that implements hook code, should provide a
@@ -138,7 +143,7 @@ sub register {
     # then the `kill_nonascii' function will be registered to the `startup'
     # event, instead of the `post_expand_template' event. That doesn't make
     # much sense with this particular function, but it might with others.
-    register_module_hook('post_expand_template', \&kill_nonascii, $h);
+    return register_module_hook('post_expand_template', \&kill_nonascii, $h);
 }
 
 # The obligatory final one.

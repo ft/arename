@@ -54,11 +54,15 @@ use warnings;
 use strict;
 
 use Exporter;
-use vars qw{ @ISA @EXPORT };
-@ISA = qw{ Exporter };
+use base qw{ Exporter };
+## no critic (ProhibitAutomaticExportation)
+use vars qw{ @EXPORT };
 @EXPORT = qw{ register_module_hook };
+## use critic
 
+## no critic (RequireInterpolationOfMetachars)
 my $ARENAME_VERSION = q{@@arenameversioninfo@@};
+## use critic
 
 sub register_module_hook {
     my ($default, $fn, $h) = @_;
@@ -76,6 +80,7 @@ sub register_module_hook {
     foreach my $event (@{ $hook }) {
         ARename::register_hook($event, $fn);
     }
+    return 1;
 }
 
 1;
