@@ -1,0 +1,95 @@
+=pod
+
+=head1 NAME
+
+ARename::MP3RecodeToUTF8 - Try to recode tag data from mp3 files to UTF8 before
+using them to expand templates
+
+=head1 SYNOPSIS
+
+use ARename::MP3RecodeToUTF8;
+
+ARename::MP3RecodeToUTF8::register();
+
+=head1 DESCRIPTION
+
+Tags in mp3 files suck.
+
+id3v2.2 uses iso encoding. 2.3 let's you use unicode, but just utf16. 2.4 let's
+you use utf8 instead of -16 if you ask nicely. But nobody really really
+supports 2.4.
+
+So, if you want your applications to work without mojibake, you probably want
+to remain with using an iso encoding. (Unless your language really doesn't work
+with iso at all - but in that case you probably know far more about handling
+such problems than I will ever...) But if you are on a recent-ish unix system
+and your default character encoding is UTF-8 you probably don't want your
+filenames to be encoded differently.
+
+So, this is an example hooks that shows how one *could* tackle the problem.
+Scan the tag strings for non-ascii data, assume iso encoding, and recode to
+UTF-8.
+
+This can be done more clever, probably by guessing the encoding of the source
+strings; but that's for someone else to tackle.
+
+This hook is supposed to be registered to the `B<post_fill>' event.
+
+=head1 VERSION
+
+Part of B<arename> B<@@arenameversioninfo@@>.
+
+=head1 SEE ALSO
+
+B<arename(1)>
+
+=head1 AUTHOR
+
+Frank Terbeck <ft@bewatermyfriend.org>
+
+=head1 LICENCE
+
+This extension module is licenced under the same terms as B<arename> itself.
+
+=cut
+
+package ARename::MP3RecodeToUTF8;
+use warnings;
+use strict;
+
+use ARename::Util::RegisterModuleHook;
+use ARename::Util::VersionGuard;
+use Encode;
+
+## no critic (RequireInterpolationOfMetachars)
+my $ARENAME_VERSION = q{@@arenameversioninfo@@};
+## use critic
+
+sub mp3_recode_to_utf8 {
+    my ($namespace, $rcref, $typeref, $rdref, $datref) = @_;
+
+    my $name = __PACKAGE__;
+    $name =~ s,^.*::,,;
+
+    return 0 if (${ $typeref } ne 'mp3');
+    foreach my $tag (keys %{ $datref }) {
+        my $src = $datref->{$tag};
+        if ($src =~ m/[^[:ascii:]]/) {
+            $datref->{$tag} = Encode::encode("UTF-8", $src);
+            if (ARename::get_opt('verbosity') >= 20) {
+                print "$name: * Recoded ($tag)\n";
+                print "$name: * From: \"$src\"\n";
+                print "$name: *   To: \"" . $datref->{$tag} . "\"\n";
+            }
+        }
+    }
+    return 1;
+}
+
+sub register {
+    my ($h) = @_;
+    arename_version_guard(__PACKAGE__, $ARENAME_VERSION);
+    return register_module_hook('post_fill', \&mp3_recode_to_utf8, $h);
+}
+
+1;
