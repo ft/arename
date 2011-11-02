@@ -1,0 +1,127 @@
+=pod
+
+=head1 NAME
+
+ARename::TNPadAdjustByAlbum - Adjust the `tnpad' core setting for albums
+depending on the album tag of the processed file.
+
+=head1 SYNOPSIS
+
+use ARename::TNPadAdjustByAlbum;
+
+ARename::TNPadAdjustByAlbum::register();
+
+=head1 DESCRIPTION
+
+Some audiobooks do have more than 99 Tracks as a whole. In that case tnpad
+should be `3' (or more, whatever you like). Since arename works on a per-file
+basis, we need to fix this up based on the album name. This uses a
+user-settable variable `tnpad_normal' to keep track of what the user set
+arename's `tnpad' variable to (possible the default of `2').
+
+This hook is supposed to be registered to the
+`B<expand_template_pre_expand_tag>' event.
+
+=head1 SETTINGS
+
+=over 4
+
+=item B<tnpad_huge> (default: "3")
+
+Defines the `tnpad' setting for huge audio books (i.e. such, that you defined -
+See L</VARIABLES> below).
+
+=item B<tnpad_normal> (default: `tnpad' from the core library)
+
+Before changing `tnpad' to the value from `tnpad_huge', this variable is used
+to save the "normal" value. You should set the `tnpad' setting instead of this
+one.
+
+=back
+
+=head1 VARIABLES
+
+=over 4
+
+=item B<@ARename::TNPadAdjustByAlbum::ALBUM_PATTERNS> (default: <I<empty list>)
+
+This is a Perl array, of which each of the elements contains a pattern, that is
+matched against the track's album tag. As soon as a match is found, the
+`tnpad_huge' value is used for `tnpad'. If nothing matched, the normal `tnpad'
+value will be used.
+
+=back
+
+=head1 VERSION
+
+Part of B<arename> B<@@arenameversioninfo@@>.
+
+=head1 SEE ALSO
+
+B<arename(1)>
+
+=head1 AUTHOR
+
+Frank Terbeck <ft@bewatermyfriend.org>
+
+=head1 LICENCE
+
+This extension module is licenced under the same terms as B<arename> itself.
+
+=cut
+
+package ARename::TNPadAdjustByAlbum;
+use warnings;
+use strict;
+
+use ARename::Util::RegisterModuleHook;
+use ARename::Util::VersionGuard;
+use ARename::Util::IsNumber qw{ is_an_int };
+## no critic (RequireInterpolationOfMetachars)
+my $ARENAME_VERSION = q{@@arenameversioninfo@@};
+## use critic
+
+use vars '@ALBUM_PATTERNS';
+@ALBUM_PATTERNS = ();
+
+sub tnpad_adjust {
+    my ($namespace, $templateref, $datref) = @_;
+    my ($tnpad_normal, $tnpad_huge, $adjust);
+
+    return 0 if (${ $templateref } ne q{album});
+    return 0 if ($#ALBUM_PATTERNS < 0);
+
+    $adjust = 0;
+    for my $str (@ALBUM_PATTERNS) {
+        my $pat = qr{$str};
+        if (defined $datref->{album} && $datref->{album} =~ $pat) {
+            $adjust = 1;
+            last;
+        }
+    }
+
+    $tnpad_normal = ARename::user_get('tnpad_normal');
+    if (!is_an_int($tnpad_normal)) {
+        $tnpad_normal = ARename::get_opt('tnpad');
+        ARename::user_set('tnpad_normal', $tnpad_normal);
+    }
+
+    if ($adjust == 1) {
+        $tnpad_huge = ARename::user_get('tnpad_huge');
+        $tnpad_huge = 3 if (!is_an_int($tnpad_huge));
+        ARename::set_opt('tnpad', $tnpad_huge);
+    } else {
+        ARename::set_opt('tnpad', $tnpad_normal);
+    }
+
+    return 1;
+}
+
+sub register {
+    my ($h) = @_;
+    arename_version_guard(__PACKAGE__, $ARENAME_VERSION);
+    return register_module_hook('expand_template_pre_expand_tag',
+                                \&tnpad_adjust, $h);
+}
+
+1;
