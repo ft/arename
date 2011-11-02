@@ -1,0 +1,79 @@
+=pod
+
+=head1 NAME
+
+ARename::ReplaceSpaces - Remove whitespace characters from meta data
+
+=head1 SYNOPSIS
+
+use ARename::ReplaceSpaces;
+
+ARename::ReplaceSpaces::register();
+
+=head1 DESCRIPTION
+
+Some people have an unrational fear of white-space characters in file names.
+This hook was added to help with that.
+
+The code within the module is intended to be registered to the
+`I<post_expand_template>' hook event. When registered, it will replace all
+whitespace characters from the result of B<arename>'s template expansion.
+
+=head1 SETTINGS
+
+=over 4
+
+=item B<RS_replace> (default: "_")
+
+This option defines which string white-space characters are replaced with. Note
+that replacements are always done in multiples of whitespace characters. So, if
+there are three such characters next to each other, the tupel will be replaced
+by one of these characters.
+
+=back
+
+=head1 VERSION
+
+Part of B<arename> B<@@arenameversioninfo@@>.
+
+=head1 SEE ALSO
+
+B<arename(1)>
+
+=head1 AUTHOR
+
+Frank Terbeck <ft@bewatermyfriend.org>
+
+=head1 LICENCE
+
+This extension module is licenced under the same terms as B<arename> itself.
+
+=cut
+
+package ARename::ReplaceSpaces;
+use warnings;
+use strict;
+
+use ARename::Util::RegisterModuleHook;
+use ARename::Util::VersionGuard;
+## no critic (RequireInterpolationOfMetachars)
+my $ARENAME_VERSION = q{@@arenameversioninfo@@};
+## use critic
+
+sub replace_spaces_by_something_else {
+    my ($namespace, $templateref, $datref) = @_;
+
+    my $replace = ARename::user_get("RS_replace");
+    $replace = q{_} if (!defined $replace);
+    ${ $templateref } =~ s/\s+/$replace/g;
+    return 1;
+}
+
+sub register {
+    my ($h) = @_;
+    arename_version_guard(__PACKAGE__, $ARENAME_VERSION);
+    return register_module_hook('post_expand_template',
+                                \&replace_spaces_by_something_else, $h);
+}
+
+1;
