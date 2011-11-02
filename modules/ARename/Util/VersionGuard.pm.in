@@ -77,8 +77,8 @@ sub arename_version_guard {
     if ($self_warning && ($ARENAME_VERSION ne $ARename::VERSION)) {
         ARename::op('version-mismatch',
                     __PACKAGE__,
-                    $ARENAME_VERSION,
                     $ARename::VERSION,
+                    $ARENAME_VERSION,
                     __PACKAGE__);
         $self_warning = 0;
         $didwarn = 1;
@@ -87,8 +87,8 @@ sub arename_version_guard {
     if ($version ne $ARename::VERSION) {
         ARename::op('version-mismatch',
                     $package,
-                    $version,
                     $ARename::VERSION,
+                    $version,
                     $package);
         $didwarn = 1;
     }
