@@ -86,7 +86,7 @@ my (
     $__arename_file, $postproc, $sect,
     @cmdline_profiles, @localizables, @settables, @supported_tags,
 );
-my ( $NAME, $VERSION ) = qw( unset unset );
+our ( $NAME, $VERSION ) = qw( unset unset );
 
 # a helper for the testsuite
 sub data_reset {
@@ -1580,6 +1580,22 @@ BEGIN {
             format => make_format(
                 [ q{The `%s' option requires an integer argument.}, RESET ],
                 [ q{ (Got "%s")}, RED ],
+                [ qq{\n}, RESET ]),
+        },
+        # extension code messages
+        "version-mismatch" => {
+            verbosity => 0,
+            argn => 4,
+            format => make_format(
+                [ q{Version mismatch between `}, RESET ],
+                [ q{%s}, RED ],
+                [ q{' and }, RESET ],
+                [ q{ARename}, RED ],
+                [ qq{.\n}, RESET ],
+                [ q{  %s}, YELLOW ],
+                [ qq{: ARename::VERSION\n}, RESET ],
+                [ q{  %s}, YELLOW ],
+                [ q{: %s}, RESET ],
                 [ qq{\n}, RESET ]),
         },
         # input file processing
