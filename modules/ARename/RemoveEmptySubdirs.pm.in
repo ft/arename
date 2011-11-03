@@ -1,0 +1,130 @@
+=pod
+
+=head1 NAME
+
+ARename::RemoveEmptySubdirs - Remove empty subdirs after moving files
+
+=head1 SYNOPSIS
+
+use ARename::RemoveEmptySubdirs;
+
+ARename::RemoveEmptySubdirs::register();
+
+=head1 DESCRIPTION
+
+When arename renames files, it can be quite likely, that due to the rename the
+directory a file was in previously will become empty. arename itself will not
+remove such directories and it will not in the future. If you want such house
+keeping, this hook can do that for you.
+
+Per default the hook takes the following actions: remove a directory, if that
+worked, move a level up and try to remove that directory, too. This pattern
+stops if removing a directory failed (which might be because of insufficient
+permissions or because the directory in question is non empty), if the
+directory to remove would be the current working directory, or if the root
+directory is reached. This algorithm can be altered by setting the options
+found in L</SETTINGS> below.
+
+This hook is intended to be registered to the `I<file_done>' event.
+
+=head1 SETTINGS
+
+=over 4
+
+=item B<RES_maxlevels> (default: 0)
+
+If set to an integer value, at most that many levels of directories will be
+removed. A value of `I<0>' (the default) means remove infinite levels.
+
+=item B<RES_stopatcwd> (default: I<true>)
+
+If set to I<false>, don't stop at the current working directory when removing
+directories. Note, that with certain prefix settings and input file paths, the
+removal path does not I<have> to cross the current directory.
+
+=back
+
+=head1 VERSION
+
+Part of B<arename> B<@@arenameversioninfo@@>.
+
+=head1 SEE ALSO
+
+B<arename(1)>
+
+=head1 AUTHOR
+
+Frank Terbeck <ft@bewatermyfriend.org>
+
+=head1 LICENCE
+
+This extension module is licenced under the same terms as B<arename> itself.
+
+=cut
+
+package ARename::RemoveEmptySubdirs;
+use warnings;
+use strict;
+
+use ARename::Util::RegisterModuleHook;
+use ARename::Util::VersionGuard;
+use ARename::Util::IsNumber qw{ is_an_unsigned_int };
+use ARename::Util::Files qw{ is_cwd get_containing_dir };
+
+## no critic (RequireInterpolationOfMetachars)
+my $ARENAME_VERSION = q{@@arenameversioninfo@@};
+## use critic
+
+sub remove_empty_subdirs {
+    my ($dir, $name, $rc, $cl, $v);
+    my ($stopatcwd, $level);
+
+    $v = ARename::get_opt('verbosity');
+    $dir = ARename::get_file();
+    $name = __PACKAGE__;
+    $name =~ s,^.*::,,;
+
+    $level = ARename::user_get('RES_maxlevels');
+    $level = 0 if (!defined $level || !is_an_unsigned_int($level));
+
+    $stopatcwd = ARename::user_get('RES_stopatcwd');
+    if (defined $stopatcwd && $stopatcwd eq 'false') {
+        $stopatcwd = 0;
+    } else {
+        $stopatcwd = 1;
+    }
+
+    $cl = 0;
+    $rc = 1;
+    while ($rc) {
+        if ($stopatcwd && is_cwd($dir)) {
+            if ($v >= 20) {
+                print qq{$name: Reached current directory. Stopping.\n};
+            }
+            return 0;
+        }
+        if ($level > 0 && $cl >= $level) {
+            if ($v >= 20) {
+                print qq{$name: Removed $cl directory level(s). Stopping.\n};
+            }
+            return 0;
+        }
+        $dir = get_containing_dir($dir);
+        return 0 if ($dir eq q{});
+        $rc = rmdir $dir;
+        if ($rc && $v >= 6) {
+            print qq{$name: Removed empty directory: "$dir"\n};
+        }
+        $cl++;
+
+    }
+    return 1;
+}
+
+sub register {
+    my ($h) = @_;
+    arename_version_guard(__PACKAGE__, $ARENAME_VERSION);
+    return register_module_hook('file_done', \&remove_empty_subdirs, $h);
+}
+
+1;
