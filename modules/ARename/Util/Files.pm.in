@@ -1,0 +1,91 @@
+=pod
+
+=head1 NAME
+
+ARename::Util::Files - File related utilities
+
+=head1 SYNOPSIS
+
+use ARename::Util::Files qw{ is_cwd };
+
+is_cwd($some_directory);
+
+=head1 DESCRIPTION
+
+This module implements helper functions related to files.
+
+=head1 SUBROUTINES
+
+=over 4
+
+=item B<is_cwd(<value>)>
+
+Returns true if `I<value>' is the current working directory; false otherwise.
+
+=back
+
+=head1 VERSION
+
+Part of B<arename> B<@@arenameversioninfo@@>.
+
+=head1 SEE ALSO
+
+B<arename(1)>
+
+=head1 AUTHOR
+
+Frank Terbeck <ft@bewatermyfriend.org>
+
+=head1 LICENCE
+
+This extension module is licenced under the same terms as B<arename> itself.
+
+=cut
+
+package ARename::Util::Files;
+use warnings;
+use strict;
+
+use English '-no_match_vars';
+
+use Exporter;
+use base qw{ Exporter };
+use vars qw{ @EXPORT_OK };
+@EXPORT_OK = qw{ is_cwd };
+
+use Cwd;
+use File::stat;
+
+## no critic (RequireInterpolationOfMetachars)
+my $ARENAME_VERSION = q{@@arenameversioninfo@@};
+## use critic
+
+sub __check_stat {
+    my ($s, $f) = @_;
+
+    if (!defined $s) {
+        warn "Couldn't stat($f): $ERRNO\n";
+        return 0;
+    }
+    return 1;
+}
+
+sub is_cwd {
+    my ($dir) = @_;
+    my ($cwd, $cwd_st, $dir_st);
+
+    return 0 if (!defined $dir);
+    return 0 if (! -d $dir);
+
+    $cwd = getcwd();
+    $cwd_st = stat($cwd);
+    __check_stat($cwd_st, $cwd) or return 0;
+
+    $dir_st = stat($dir);
+    __check_stat($dir_st, $dir) or return 0;
+
+    return 1 if ($cwd_st->ino == $dir_st->ino);
+    return 0;
+}
+
+1;
