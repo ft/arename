@@ -3,12 +3,10 @@
 use strict;
 use warnings;
 
-use Test::More tests => 7;
+use Test::More tests => 1;
 use Test::Exception;
 
 use ARename;
-
-# test the infrastructure {{{
 
 my $foo = 0;
 
@@ -25,11 +23,7 @@ ARename::run_hook('file_done');
 
 is(whatisfoo(), 666, "registering and running hooks should really REALLY work...");
 
-#}}}
-# test the sample hooks file arename.hooks {{{
-
 ARename::data_reset();
-
 # fake data
 my $file = './tests/data/Foo Bar - Deaftracks - 01. Foo.ogg';
 my $ext = '.ogg';
@@ -41,43 +35,3 @@ my %data = (
     tracktitle  => "FOO",
     year        => "1980",
 );
-
-ARename::set_file($file);
-ARename::set_opt('verbosity', -1);
-ARename::set_opt('hookerrfatal',  0);
-
-is( ARename::__read_hook_file('./arename.hooks'), 1, "reading the sample hooks file shouldn't fail");
-
-lives_ok {
-    ARename::print_banner0(
-        'startup', \$ARename::NAME, \$ARename::VERSION, \%ARename::conf,
-        \%ARename::methods, \@ARename::supported_tags, \@main::ARGV
-    )
-} "print_banner0()";
-
-lives_ok {
-    ARename::print_banner1(
-        'startup', \$ARename::NAME, \$ARename::VERSION, \%ARename::conf,
-        \%ARename::methods, \@ARename::supported_tags, \@main::ARGV
-    )
-} "print_banner1()";
-
-lives_ok {
-    ARename::replace_spaces_by_underscore(
-        'post_expand_template', \$template, \%data
-    )
-} "replace_spaces_by_underscore()";
-
-lives_ok {
-    ARename::remove_empty_subdirs(
-        'file_done'
-    )
-} "remove_empty_subdirs()";
-
-lives_ok {
-    ARename::fix_template_albumless(
-        'pre_expand_template', \$template, \%data
-    )
-} "fix_template_albumless()";
-
-# }}}
