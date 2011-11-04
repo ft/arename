@@ -63,7 +63,7 @@ sub fix_template_albumless {
     my($namespace, $templateref, $datref) = @_;
 
     if (!defined $datref->{album} || $datref->{album} eq $EMPTY) {
-        my $altemplate = user_get('albumless_template');
+        my $altemplate = ARename::user_get('albumless_template');
         ${ $templateref } = defined $altemplate
                               ? $altemplate
                               : q{&artist/&tracktitle};
