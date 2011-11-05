@@ -97,15 +97,15 @@ sub remove_empty_subdirs {
     $cl = 0;
     $rc = 1;
     while ($rc) {
-        if ($stopatcwd && is_cwd($dir)) {
-            if ($v >= 20) {
-                print qq{$name: Reached current directory. Stopping.\n};
-            }
-            return 0;
-        }
         if ($level > 0 && $cl >= $level) {
             if ($v >= 20) {
                 print qq{$name: Removed $cl directory level(s). Stopping.\n};
+            }
+            return 0;
+        }
+        if ($stopatcwd && is_cwd($dir)) {
+            if ($v >= 20) {
+                print qq{$name: Reached current directory. Stopping.\n};
             }
             return 0;
         }
