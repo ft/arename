@@ -77,7 +77,6 @@ install-doc:
 	@./bin/install.sh n arename.1     "$(prefix)/share/man/man1"             $(maxwidth)
 	@./bin/install.sh n ataglist.html "$(prefix)/share/doc/arename"          $(maxwidth)
 	@./bin/install.sh n ataglist.1    "$(prefix)/share/man/man1"             $(maxwidth)
-	@./bin/install.sh n arename.hooks "$(prefix)/share/doc/arename/examples" $(maxwidth)
 	@./bin/install.sh n _arename      "$(prefix)/share/doc/arename/examples" $(maxwidth)
 
 uninstall:

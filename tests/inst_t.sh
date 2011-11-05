@@ -86,7 +86,7 @@ checkinstall () {
     local subd='share/doc/arename'
     printf 'Checking %s/ installation...\n' "${subd}"
     for file in CHANGES  LICENCE  README  arename.html \
-                examples/_arename  examples/arename.hooks ; do
+                examples/_arename ; do
         file_exists "$p/${subd}" "${file}"
     done
 }
