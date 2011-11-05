@@ -28,25 +28,3 @@ sub print_banner1 {
     print "ANOTHER BANNER! $$nameref $$verref\n";
 }
 register_hook('startup', \&print_banner1);
-
-sub remove_empty_subdirs {
-    # When arename renames files, it can be quite likely, that
-    # due to the rename the directory a file was in previously will
-    # become empty. arename itself will not remove such directories
-    # and it will not in the future. If you want such house keeping,
-    # you can achieve that by a hook, like this one.
-    # Note, that this an example; there are probably better solutions.
-    my ($namespace) = @_;
-    my $file = get_file();
-    my $dir = dirname($file);
-    my $rc;
-
-    do {
-        return if ($dir eq '.');
-        $rc = rmdir $dir;
-        if ($rc) { print "removed empty dir: \"$dir\"\n"; }
-        $dir = dirname($dir);
-
-    } while ($rc);
-}
-register_hook('file_done', \&remove_empty_subdirs);
