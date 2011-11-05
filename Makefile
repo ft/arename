@@ -83,6 +83,7 @@ uninstall:
 	@./bin/uninstall.sh f "$(prefix)/bin/arename"
 	@./bin/uninstall.sh f "$(prefix)/bin/ataglist"
 	@./bin/uninstall.sh f "$(prefix)/$(libpath)/ARename.pm"
+	@./bin/uninstall.sh d "$(prefix)/$(libpath)/ARename"
 
 uninstall-doc:
 	@./bin/uninstall.sh d "$(prefix)/share/doc/arename"
