@@ -1,0 +1,74 @@
+=pod
+
+=head1 NAME
+
+ARename::BailOut - Bail out after configuration files are read
+
+=head1 SYNOPSIS
+
+use ARename::BailOut;
+
+ARename::BailOut::register();
+
+=head1 DESCRIPTION
+
+Sometime, when testing settings, you may just want to read config files and
+quit right after that. With this function registered to the `B<startup>' hook,
+you can do this:
+
+    % arename -u quitaftersetup=yes foo.ogg
+
+=head1 SETTINGS
+
+=over 4
+
+=item B<quitaftersetup> (default: I<unset>)
+
+If set to `B<yes>' (and only `yes'), B<arename> will exit when this hook is
+run.
+
+=back
+
+=head1 VERSION
+
+Part of B<arename> B<@@arenameversioninfo@@>.
+
+=head1 SEE ALSO
+
+B<arename(1)>
+
+=head1 AUTHOR
+
+Frank Terbeck <ft@bewatermyfriend.org>
+
+=head1 LICENCE
+
+This extension module is licenced under the same terms as B<arename> itself.
+
+=cut
+
+package ARename::BailOut;
+use warnings;
+use strict;
+
+use ARename::Util::RegisterModuleHook;
+use ARename::Util::VersionGuard;
+
+## no critic (RequireInterpolationOfMetachars)
+my $ARENAME_VERSION = q{@@arenameversioninfo@@};
+## use critic
+
+sub bail_out {
+    my $opt = ARename::user_get("quitaftersetup");
+    return 0 if (!defined $opt || $opt ne q{yes});
+    print q{User-option `quitaftersetup' is set. Bailing out.}, qq{\n};
+    exit 0;
+}
+
+sub register {
+    my ($h) = @_;
+    arename_version_guard(__PACKAGE__, $ARENAME_VERSION);
+    return register_module_hook('startup', \&bail_out, $h);
+}
+
+1;

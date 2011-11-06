@@ -176,7 +176,7 @@ severity   = 4
 severity   = 2
 
 [Perl::Critic::Policy::Documentation::RequirePodSections]
-lib_sections = NAME | SYNOPSIS | OPTIONS | AUTHOR
+lib_sections = NAME | SYNOPSIS | AUTHOR
 script_sections = NAME | SYNOPSIS | OPTIONS AND ARGUMENTS | DESCRIPTION | LICENCE | AUTHOR
 severity   = 2
 

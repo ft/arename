@@ -1535,28 +1535,162 @@ I<Arguments>: B<1:> the program's argument list
 
 =head2 Example
 
-This is a very simple example for a hook file, that prints a custom
-banner and replaces all whitespace in the expanded template with
-underscores:
+First, to give you an idea about how argument passing works in B<arename>
+hooks, take a look at these two `I<startup>' hooks:
 
-  sub my_banner {
-      print "Hello World.\n";
+  sub print_banner0 {
+      # Yes, everything handed over to hooks (except for the namespace)
+      # are references. This gives us simple two way communication, but
+      # it's also a pretty big responsibility to handle. Think before
+      # screwing up. :)
+      my ($ns, $nameref, $verref, $confref, $suptagsref, $argvref) = @_;
+
+      print "BANNER! $$nameref $$verref " . $argvref->[0] . "\n";
+
+      # The following actually changes the $NAME variable, used
+      # in ARename.pm, which doesn't hurt, because it is only the
+      # name of the program running. For other hook events and variables,
+      # there might be vital data in one of the references. Be very careful
+      # before changing values willy-nilly.
+      $$nameref =~ s/name/blame/;
   }
-  register_hook('startup', \&my_banner);
+  register_hook('startup', \&print_banner0);
+
+  sub print_banner1 {
+      my ($ns, $nameref, $verref, $confref, $suptagsref, $argvref) = @_;
+
+      # Since $NAME used to be 'arename', the substitution
+      # in print_banner0() will have changed $NAME to 'areblame',
+      # which $$nameref below will reveal.
+      print "ANOTHER BANNER! $$nameref $$verref\n";
+  }
+  register_hook('startup', \&print_banner1);
+
+After that short introduction, here is something more useful. The following
+hook will replace all whitespace with underscores in generated file names.
 
   sub replace_spaces_by_underscore {
       my ($templateref, $datref) = @_;
       $$templateref =~ s/\s+/_/g;
   }
-  register_hook('post_expand_template',
-      \&replace_spaces_by_underscore);
+  register_hook('post_expand_template', \&replace_spaces_by_underscore);
 
-Further examples can be found in the B<arename.hooks> file of the
-distribution.
+This will do the trick, but there is actually an B<arename> extension that is
+distributed with the application, which is designed to solve exactly this
+problem. See L</EXTENSIONS> below for details on the `B<ReplaceSpaces>'
+extension module.
+
+=head1 EXTENSIONS
+
+B<Arename> comes with a number of extensions implemented as Perl modules, to
+solve a number of more exotic tasks, that are not addressed within the core
+Module `ARename.pm'.
+
+All of these bundled extension modules (which are all children of the `ARename'
+namespace) are fully documented within their source files and is accessible by
+the `B<perldoc>' utility:
+
+  % perldoc ARename::ReplaceSpaces
+
+Modules, that implement a hook all feature a convenience subroutine
+`B<register()>', which registers the hook code to the event the author
+indended. For example, to use the `B<RenameSpaces>' hook, add the following to
+your hooks file:
+
+  use ARename::RemoveSpaces;
+  ARename::RemoveSpaces::register();
+
+Here is a list of bundled extensions:
+
+=over 4
+
+=item B<AlbumlessTemplate>
+
+Implements a hook to handle tracks with missing `album' tags, by offering to
+switch to an entirely different template for these files.
+
+=item B<BailOut>
+
+This is a hook, to terminate B<arename> after reading all configuration files.
+It is designed to help with testing new settings and is probably not very
+useful for the average user.
+
+=item B<KillNonASCII>
+
+This module implements a hook that removes all non-ascii characters from
+generated file names.
+
+This is also the extension module you want look at, if you are interested in
+writing your own extension modules. It features all code and documentation,
+that is required of an extension to make it into the B<arename> package.
+
+=item B<MP3RecodeToUTF8>
+
+`B<MP3RecodeToUTF8>' is a hook that attempts to cure problems caused by the
+different types of mp3 tag versions and the encoding mess that comes along with
+it.
+
+If you are on an UTF-8 based system and wonder why B<arename> produces latin1
+characters for mp3 files, that have non-ascii characters in their tags, this
+extension may be of help.
+
+=item B<RemoveEmptySubdirs>
+
+This module tries to remove empty directories that might have emerged due to
+files being moved to another directory in the renaming process.
+
+=item B<ReplaceSpaces>
+
+This is a hook that replaces whitespace in genrated filenames by a configurable
+string, which defaults to a single underscore character B<"_">.
+
+=item B<TNPadAdjustByAlbum>
+
+This module allows to adjust the value of the `I<tnpad>' core setting based on
+patterns that are matched against a track's `album' tag.
+
+The idea is to have proper padding the large audiobooks that contain more than
+99 tracks.
+
+=back
+
+There are a few utility modules, that implement helpful code that is shared
+among all bundled extension modules. Some of the code may be useful to user
+defined hooks or extension modules, too.
+
+=over 4
+
+=item B<Util::Files>
+
+This is a module that contains file-related utilities.
+
+=item B<Util::IsNumber>
+
+The purpose of this module is to provide helper subroutines, which check if
+values look like numbers (integers, unsigned integers, etc.).
+
+=item B<Util::RegisterModuleHook>
+
+This implements a helper to quickly create the `I<register()>' subroutine of
+hook extension modules.
+
+=item B<Util::VersionGuard>
+
+This module implements a subroutine, that is designed to detect version
+discrepancies between an extension module and the `ARename.pm' core module.
+
+=back
 
 =head1 SEE ALSO
 
-B<find(1)>, B<xargs(1)>, B<Audio::Scan>.
+B<find(1)>, B<xargs(1)>, B<perldoc(1)>, B<Audio::Scan>.
+
+B<ARename::AlbumlessTemplate>, B<ARename::BailOut>, B<ARename::KillNonASCII>,
+B<ARename::MP3RecodeToUTF8>, B<ARename::RemoveEmptySubdirs>,
+B<ARename::ReplaceSpaces>, B<ARename::TNPadAdjustByAlbum>.
+
+B<ARename::Util::Files>, B<ARename::Util::IsNumber>,
+B<ARename::Util::RegisterModuleHook>, B<ARename::Util::VersionGuard>.
 
 =head1 VERSION
 

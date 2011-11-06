@@ -67,7 +67,7 @@ arename's test suite
   If you want to run tests by hand, you can use the 'prove' utility,
   from Test::Harness (if you want to look at a problem in detail, for
   example):
-    % prove -I. -v tests/data.t
+    % prove -Imodules -v tests/data.t
 
 
  TESTING THE INSTALLATION PROCESS

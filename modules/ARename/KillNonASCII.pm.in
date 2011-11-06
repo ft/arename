@@ -1,0 +1,150 @@
+# This file implements an extension for `arename', that allows you to strip
+# non-ascii characters from destination filenames that were generated. It also
+# serves as an example to how such an extension should be written.
+#
+# First of all, the extension should be in a Foo.pm.in file, so that the script
+# generation tags (see below) are available. Then, because the extension is a
+# module, it should be properly documented. Properly means, that at least the
+# information as in this module should be included. So, `NAME', `SYNOPSIS',
+# `DESCRIPTION', `SETTINGS' (if available), `VERSION', `SEE ALSO', `AUTHOR' and
+# `LICENCE' should be there.
+
+=pod
+
+=head1 NAME
+
+ARename::KillNonASCII - Remove non-ascii characters from meta data
+
+=head1 SYNOPSIS
+
+use ARename::KillNonASCII;
+
+ARename::KillNonASCII::register();
+
+=head1 DESCRIPTION
+
+The code within the module is intended to be registered to the
+`I<post_expand_template>' hook event. When registered and activated (see
+L</SETTINGS> below), it will replace all non-ascii characters from the result
+of B<arename>'s template expansion.
+
+=head1 SETTINGS
+
+=over 4
+
+=item B<killnonascii> (default: <unset>)
+
+When set to `B<yes>', the hook is enabled. Only `yes' will be accepted.
+
+=item B<KNA_replace> (default: "_")
+
+This option defines which string non-ascii characters are replaced with. The
+default is an underscore, but it may also be the empty string or strings that
+are longer than one character.
+
+=back
+
+=head1 VERSION
+
+Part of B<arename> B<@@arenameversioninfo@@>.
+
+=head1 SEE ALSO
+
+B<arename(1)>
+
+=head1 AUTHOR
+
+Frank Terbeck <ft@bewatermyfriend.org>
+
+=head1 LICENCE
+
+This extension module is licenced under the same terms as B<arename> itself.
+
+=cut
+
+# When that's done, the package needs to be started. The `ARename::' namespace is
+# reasonable. `strict' should definitely enabled.
+
+package ARename::KillNonASCII;
+use warnings;
+use strict;
+
+# This imports a convenience subroutine `register_module_hook()', which
+# implements the way all standard hook extension modules should handle their
+# `register()' subroutine (see below).
+use ARename::Util::RegisterModuleHook;
+
+# The next module implements another subroutine, which standard modules should
+# use. It should be used in `register()' to detect version mismatches (see
+# below).
+use ARename::Util::VersionGuard;
+
+# The following is one of those "generation tags". This particular one expands
+# to the arename version that the module was built with. It requires us to
+# temporarily disable one critic policy.
+
+## no critic (RequireInterpolationOfMetachars)
+my $ARENAME_VERSION = q{@@arenameversioninfo@@};
+## use critic
+
+# Now this is the subroutine, that does the actual work. It's parameters depend
+# on the hook event the function is registered to. Details about that can be
+# found in `arename(1)'.
+sub kill_nonascii {
+    my ($namespace, $templateref, $datref) = @_;
+    my ($opt, $replace);
+
+    # This particular hook is configurable. First, it must be enabled to run.
+    # That's done by checking the `killnonascii' user setting. Note that if you
+    # want to access symbols from the `ARename' module, you have to call them
+    # by their full name. Like `ARename::user_get()' here.
+    $opt = ARename::user_get("killnonascii");
+    return if (!defined $opt || $opt ne 'yes');
+
+    # Similarly, `KNA_replace' ([K]ill-[N]on-[A]SCII replace) can be used to
+    # configure what non-ascii characters should be replaced with. Again
+    # `ARename::user_get()' is used.
+    $replace = ARename::user_get("KNA_replace");
+    $replace = q{_} if (!defined $replace);
+
+    # And finally, the actual functionality is implemented in this one line. It
+    # simply uses Perl's regular expressions to do the replacement.
+    ${ $templateref } =~ s/[^[:ascii:]]+/$replace/g;
+    return 1;
+}
+
+# Each extension module, that implements hook code, should provide a
+# `register()' subroutine, in order to make usage as simple as possible. The
+# idea is to be able to to the following:
+#
+# ARename::KillNonASCII::register();
+#
+# And have the hook registered to the hook event, the author intended.
+sub register {
+    my ($h) = @_;
+
+    # First, the version guard. This checks if this module matches the version
+    # of the core ARename package, which is calling this `register()'
+    # subroutine. Unless you're actively working on arename, they should
+    # *always* be the same. If they are not, that suggests a broken
+    # installation. So, *all* standard hooks should do this.
+    arename_version_guard(__PACKAGE__, $ARENAME_VERSION);
+
+    # This is the convenience function from the `ARename::RegisterModuleHook'
+    # module, which we imported earlier. The first argument is the intended
+    # module, the second is a reference to the function that does the real work
+    # and the third parameter is the just the parameter from the surrounding
+    # function passed through.
+    #
+    # What does this `$h' do? Well, if the user does this:
+    #
+    # ARename::KillNonASCII::register('startup');
+    #
+    # then the `kill_nonascii' function will be registered to the `startup'
+    # event, instead of the `post_expand_template' event. That doesn't make
+    # much sense with this particular function, but it might with others.
+    return register_module_hook('post_expand_template', \&kill_nonascii, $h);
+}
+
+# The obligatory final one.
+1;

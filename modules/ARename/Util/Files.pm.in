@@ -1,0 +1,127 @@
+=pod
+
+=head1 NAME
+
+ARename::Util::Files - File related utilities
+
+=head1 SYNOPSIS
+
+use ARename::Util::Files qw{ is_cwd };
+
+is_cwd($some_directory);
+
+=head1 DESCRIPTION
+
+This module implements helper functions related to files.
+
+=head1 SUBROUTINES
+
+=over 4
+
+=item B<is_cwd(<value>)>
+
+Returns true if `I<value>' is the current working directory; false otherwise.
+
+=item B<get_containing_dir(<file-ish>)>
+
+Returns the directory `I<file-ish>' would be residing in. Note that
+`I<file-ish>' does not have to be an actually existing file. If it is not, the
+function still returns what would be the containing directory if it were an
+actual file or directory. No tests are done as to whether the returned string
+is an actual directory.
+
+If the path in `I<file-ish>' is absolute and `B<get_containing_dir>' is called
+multiple times, it will return an B<empty string> when it it being passed the
+root directory (`I</>'). If the path is relative (`I<./foo/bar>' or even
+`I<../../foo/bar>)' and the same is done, then an empty string is returned when
+the top-most part of the relative path is reached (`I<.>' or `I<../..>'
+respectively). An empty string in the return value means "I can't go up any
+further."
+
+If you want to go up to the root directory every time, you need to canonicalize
+the input path beforehand.
+
+=back
+
+=head1 VERSION
+
+Part of B<arename> B<@@arenameversioninfo@@>.
+
+=head1 SEE ALSO
+
+B<arename(1)>
+
+=head1 AUTHOR
+
+Frank Terbeck <ft@bewatermyfriend.org>
+
+=head1 LICENCE
+
+This extension module is licenced under the same terms as B<arename> itself.
+
+=cut
+
+package ARename::Util::Files;
+use warnings;
+use strict;
+
+use English '-no_match_vars';
+
+use Exporter;
+use base qw{ Exporter };
+use vars qw{ @EXPORT_OK };
+@EXPORT_OK = qw{ is_cwd
+                 get_containing_dir };
+
+use Cwd;
+use File::stat;
+use File::Spec;
+
+## no critic (RequireInterpolationOfMetachars)
+my $ARENAME_VERSION = q{@@arenameversioninfo@@};
+## use critic
+
+sub __check_stat {
+    my ($s, $f) = @_;
+
+    if (!defined $s) {
+        warn "Couldn't stat($f): $ERRNO\n";
+        return 0;
+    }
+    return 1;
+}
+
+sub is_cwd {
+    my ($dir) = @_;
+    my ($cwd, $cwd_st, $dir_st);
+
+    return 0 if (!defined $dir);
+    return 0 if (! -d $dir);
+
+    $cwd = getcwd();
+    $cwd_st = stat($cwd);
+    __check_stat($cwd_st, $cwd) or return 0;
+
+    $dir_st = stat($dir);
+    __check_stat($dir_st, $dir) or return 0;
+
+    return 1 if ($cwd_st->ino == $dir_st->ino);
+    return 0;
+}
+
+sub get_containing_dir {
+    # `$thing' can be a file or a directory or something that just looks like
+    # one of the two; like a file that was there a minute ago but is gone now.
+    my ($thing) = @_;
+
+    # First shave off trailing slashes. `splitpath()' won't return "/foo" for
+    # "/foo/bar/".
+    $thing =~ s,/*$,,;
+    my ($v, $d, $f) = File::Spec->splitpath($thing);
+    # We don't care about the volume returned by `splitpath()'. And throwing
+    # away the file part is kind of the point of all of this.
+    defined $d && $d =~ s,/*$,,;
+    return (!defined $d || $d eq $thing) ? q{} : $d;
+}
+
+1;

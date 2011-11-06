@@ -1,0 +1,82 @@
+=pod
+
+=head1 NAME
+
+ARename::Util::IsNumber - Check for number-like values
+method.
+
+=head1 SYNOPSIS
+
+use ARename::Util::IsNumber;
+
+is_a_number($some_value);
+
+=head1 DESCRIPTION
+
+This module implements helper functions for checking if values look like
+numbers.
+
+=head1 SUBROUTINES
+
+=over 4
+
+=item B<is_an_unsigned_int(<value>)>
+
+Return true is I<<value>> looks like an unsigned integer; false otherwise.
+
+=item B<is_an_int(<value>)>
+
+Return true is I<<value>> looks like an (possibly signed) integer; false
+otherwise.
+
+=back
+
+=head1 VERSION
+
+Part of B<arename> B<@@arenameversioninfo@@>.
+
+=head1 SEE ALSO
+
+B<arename(1)>
+
+=head1 AUTHOR
+
+Frank Terbeck <ft@bewatermyfriend.org>
+
+=head1 LICENCE
+
+This extension module is licenced under the same terms as B<arename> itself.
+
+=cut
+
+package ARename::Util::IsNumber;
+use warnings;
+use strict;
+
+use Exporter;
+use base qw{ Exporter };
+use vars qw{ @EXPORT_OK };
+@EXPORT_OK = qw{ is_an_unsigned_int
+                 is_an_int };
+
+## no critic (RequireInterpolationOfMetachars)
+my $ARENAME_VERSION = q{@@arenameversioninfo@@};
+## use critic
+
+sub is_an_unsigned_int {
+    my ($value) = @_;
+
+    return 0 if (!defined $value);
+    return 1 if ($value =~ m/^\d+$/);
+    return 0;
+}
+
+sub is_an_int {
+    my ($value) = @_;
+
+    return 0 if (!defined $value);
+    return 1 if ($value =~ m/^-?\d+$/);
+    return 0;
+}
+
+1;

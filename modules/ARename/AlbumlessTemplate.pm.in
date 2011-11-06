@@ -1,0 +1,81 @@
+=pod
+
+=head1 NAME
+
+ARename::AlbumlessTemplate - Adjust the template in use, in case a track does
+not define an album tag.
+
+=head1 SYNOPSIS
+
+use ARename::AlbumlessTemplate;
+
+ARename::AlbumlessTemplate::register();
+
+=head1 DESCRIPTION
+
+If a track does not define an album tag, templates using said tag will fail. To
+handle that situation, you could use a complex template expansion; or use a
+hook like this one, in order to change to a completely different template. It
+is supposed to be registered to the `pre_expand_template' hook event.
+
+=head1 SETTINGS
+
+=over 4
+
+=item B<albumless_template> (default: "&artist/&tracktitle")
+
+This option defines the template to use for tracks that don't define an album
+tag.
+
+=back
+
+=head1 VERSION
+
+Part of B<arename> B<@@arenameversioninfo@@>.
+
+=head1 SEE ALSO
+
+B<arename(1)>
+
+=head1 AUTHOR
+
+Maximilian Gaß <mxey@cloudconnected.org>
+
+=head1 LICENCE
+
+This extension module is licenced under the same terms as B<arename> itself.
+
+=cut
+
+package ARename::AlbumlessTemplate;
+use warnings;
+use strict;
+
+use ARename::Util::RegisterModuleHook;
+use ARename::Util::VersionGuard;
+## no critic (RequireInterpolationOfMetachars)
+my $ARENAME_VERSION = q{@@arenameversioninfo@@};
+## use critic
+
+my $EMPTY = q{};
+
+sub fix_template_albumless {
+    my($namespace, $templateref, $datref) = @_;
+
+    if (!defined $datref->{album} || $datref->{album} eq $EMPTY) {
+        my $altemplate = ARename::user_get('albumless_template');
+        ${ $templateref } = defined $altemplate
+                              ? $altemplate
+                              : q{&artist/&tracktitle};
+    }
+    return 1;
+}
+
+sub register {
+    my ($h) = @_;
+    arename_version_guard(__PACKAGE__, $ARENAME_VERSION);
+    return register_module_hook('pre_expand_template',
+                                \&fix_template_albumless, $h);
+}
+
+1;

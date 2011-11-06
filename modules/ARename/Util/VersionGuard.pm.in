@@ -1,0 +1,105 @@
+=pod
+
+=head1 NAME
+
+ARename::Util::VersionGuard - Test whether ARename::VERSION matches extension
+versions
+
+=head1 SYNOPSIS
+
+use ARename::Util::VersionGuard;
+
+my $ARENAME_VERSION = q{...};
+
+# ...
+
+sub register {
+    # ...
+    arename_version_guard(__PACKAGE__, $ARENAME_VERSION);
+    # ...
+}
+
+=head1 DESCRIPTION
+
+This module exports one subroutine by default: `I<arename_version_guard()>'.
+
+The function takes two arguments: A package name (which should be obtained by
+passing `I<__PACKAGE__>') and a version string (which should be obtained by
+passing the package's `I<$ARENAME_VERSION>' variable, which in turn should
+contain data filled in by the `I<arenameversioninfo>' generation tag in the
+`B<.in>' file).
+
+It will then compare the version to `B<$ARename::VERSION>' and print a warning
+if it detects a version mismatch. If the `I<warningsautodryrun>' option is set
+in B<arename>'s core, `B<arename_version_guard()>' will turn on the `I<dryrun>'
+option, to make standard extensions behave like the core functionality would.
+
+=head1 VERSION
+
+Part of B<arename> B<@@arenameversioninfo@@>.
+
+=head1 SEE ALSO
+
+B<arename(1)>
+
+=head1 AUTHOR
+
+Frank Terbeck <ft@bewatermyfriend.org>
+
+=head1 LICENCE
+
+This extension module is licenced under the same terms as B<arename> itself.
+
+=cut
+
+package ARename::Util::VersionGuard;
+use warnings;
+use strict;
+
+use Exporter;
+use base qw{ Exporter };
+## no critic (ProhibitAutomaticExportation)
+use vars qw{ @EXPORT };
+@EXPORT = qw{ arename_version_guard };
+## use critic
+
+## no critic (RequireInterpolationOfMetachars)
+my $ARENAME_VERSION = q{@@arenameversioninfo@@};
+## use critic
+
+my $self_warning = 1;
+
+sub arename_version_guard {
+    my ($package, $version) = @_;
+    my ($didwarn);
+
+    $didwarn = 0;
+    if ($self_warning && ($ARENAME_VERSION ne $ARename::VERSION)) {
+        ARename::op('version-mismatch',
+                    __PACKAGE__,
+                    $ARename::VERSION,
+                    $ARENAME_VERSION,
+                    __PACKAGE__);
+        $self_warning = 0;
+        $didwarn = 1;
+    }
+
+    if ($version ne $ARename::VERSION) {
+        ARename::op('version-mismatch',
+                    $package,
+                    $ARename::VERSION,
+                    $version,
+                    $package);
+        $didwarn = 1;
+    }
+
+    if ($didwarn && ARename::get_opt('warningsautodryrun')
+                 && !ARename::get_opt('dryrun'))
+    {
+        ARename::op('auto-dry-run', $package);
+        ARename::set_opt('dryrun', 1);
+    }
+    return $didwarn;
+}
+
+1;
