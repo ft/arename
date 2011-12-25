@@ -1681,6 +1681,35 @@ discrepancies between an extension module and the `ARename.pm' core module.
 
 =back
 
+=head2 User-defined Extensions
+
+Say you have decided, that the `I<ARename::Extension::register()>' idea to
+encapsulate extensions is a good idea and now you want to do that yourself,
+too. Maybe because, you just like to keep your `hooks' file tidy or maybe
+because you want to contribute your awesome extension code back to
+B<arename>. Either way, you will need a place to put your Perl code.
+
+B<Arename> does B<NOT> set such a place by default. But it is very easy to set
+it yourself from the `hooks' file:
+
+  BEGIN {
+      unshift @INC, $ENV{HOME} . q{/.arename};
+  }
+
+That way you can place Perl modules into `I<~/.arename>' like this:
+
+  ~/.arename/ARename/MyAwesomeExtension.pm
+
+And then just use it like the bundled extensions:
+
+  use ARename::MyAwesomeExtension.pm;
+  ARename::MyAwesomeExtension::register();
+
+Take a look at the `B<KillNonASCII.pm.in>' file in the `B<arename>' sources,
+for details about how to write proper extensions and how to make them
+configurable and how to make use of the bundled utilities to make your
+extension appropriate for inclusion with `B<arename>'.
+
 =head1 SEE ALSO
 
 B<find(1)>, B<xargs(1)>, B<perldoc(1)>, B<Audio::Scan>.
