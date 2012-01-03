@@ -135,6 +135,11 @@ test-output: genperlscripts
 test-suite: test-check
 	prove -Imodules -v tests/*.t
 
+coverage:
+	cover -delete
+	PERL5OPT='-MDevel::Cover=-ignore,.,-select,ARename.pm,+select,ARename/.+\.pm' $(MAKE) test-all
+	cover
+
 prepare-test-data:
 	./bin/gentestsdata.sh
 
@@ -151,4 +156,4 @@ tags:
 	ctags --language-force=perl arename.in ARename.pm.in ataglist.in
 	ctags -e --language-force=perl arename.in ARename.pm.in ataglist.in
 
-.PHONY: install install-doc distclean clean all doc test-check tags
+.PHONY: coverage install install-doc distclean clean all doc test-check tags

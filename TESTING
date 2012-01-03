@@ -22,6 +22,8 @@ arename's test suite
 
       + fakeroot (opt)   - fake root previleges
       + perlcritic (opt) - check code style using ./perlcriticrc.
+      + Devel::Cover     - for generating test coverage statistics
+                           (optional)
 
 
   This test suite should run without failing tests on all systems. If
@@ -85,3 +87,15 @@ arename's test suite
   To run the installation tests by hand, do (from the source's root):
 
     % fakeroot /bin/sh ./tests/inst_t.sh
+
+
+ TEST COVERAGE
+
+  In order to have some sort of measurement about which parts of the code
+  is currently covered by the test-suite, you may call the following:
+
+    % make coverage
+    % $BROWSER cover_db/coverage.html
+
+  This function depends on the availability of the Devel::Cover module,
+  available from CPAN.

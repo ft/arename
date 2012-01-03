@@ -16,3 +16,4 @@ optest.pl
 tests/data/*
 tags
 TAGS
+cover_db/
