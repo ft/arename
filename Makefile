@@ -156,4 +156,6 @@ tags:
 	ctags --language-force=perl arename.in ARename.pm.in ataglist.in
 	ctags -e --language-force=perl arename.in ARename.pm.in ataglist.in
 
-.PHONY: coverage install install-doc distclean clean all doc test-check tags
+happiness: genperlscripts prepare-test-data tags doc test-all
+
+.PHONY: happiness coverage install install-doc distclean clean all doc test-check tags
