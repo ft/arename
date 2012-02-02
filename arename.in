@@ -883,7 +883,7 @@ And this is equal to `B<&identifier[length]>'.
 
 =back
 
-Backslashes are special in template strings, becuase they are used to
+Backslashes are special in template strings, because they are used to
 quote characters that bear special meaning (for example, to get a
 ampersand character, you need to use "B<\&>"). To get an actual
 backslash in the resulting string, you need to use a backslash, quoted
