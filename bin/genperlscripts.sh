@@ -5,6 +5,13 @@
 PERL=${PERL:-/usr/bin/perl}
 
 version="$(./bin/getversion.sh build)"
+ret=$?
+
+if [ $ret -gt 0 ]; then
+    printf '\n  %s\n' "$version"
+    printf '  Extracting version information failed.\n\n'
+    exit 1
+fi
 
 for scr in "${@}" ; do
 
