@@ -936,7 +936,7 @@ I<template_aliases> option is set, you may use shorter alias names
 instead of the the real identifier. Available aliases are listed with
 their corresponding idetifier below.
 
-This is a list of all all informational identifiers available for
+This is a list of all informational identifiers available for
 B<all> file-types:
 
 =over 8
