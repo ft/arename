@@ -1597,8 +1597,8 @@ Modules, that implement a hook all feature a convenience subroutine
 indended. For example, to use the `B<RenameSpaces>' hook, add the following to
 your hooks file:
 
-  use ARename::RemoveSpaces;
-  ARename::RemoveSpaces::register();
+  use ARename::ReplaceSpaces
+  ARename::ReplaceSpaces::register();
 
 Here is a list of bundled extensions:
 
