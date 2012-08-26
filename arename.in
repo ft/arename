@@ -1792,14 +1792,14 @@ if (ARename::get_opt('checktemplatesinitially')) {
     ARename::op('newline');
     foreach my $t (ARename::get_opt_from_everywhere('template')) {
         ARename::op('check-template', $t);
-        if (!ARename::template_deep_inspect($t)) {
+        if (ARename::template_deep_inspect($t) < 1) {
             $err++;
             ARename::op('error-template', $t);
         }
     }
     foreach my $t (ARename::get_opt_from_everywhere('comp_template')) {
         ARename::op('check-comp-template', $t);
-        if (!ARename::template_deep_inspect($t)) {
+        if (ARename::template_deep_inspect($t) < 1) {
             $err++;
             ARename::op('error-comp-template', $t);
         }
