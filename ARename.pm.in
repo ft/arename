@@ -1098,8 +1098,14 @@ sub __tokenize_template {
         # token buffer.
         } elsif ($in =~ m/\G([^\\\&]*)/gc) {
             $buf .= $1;
+
+        # Eat the rest, if we dropped until this point. Something is wrong.
+        } else {
+            $in =~ m/\G(.*)$/gc;
+            push @{ $out }, [ 'ERROR', "REST: ($1)" ];
         }
     }
+
     if ($nest) {
         if (get_opt('verbosity') >= 10_000) {
             use Data::Dumper;
@@ -1266,7 +1272,7 @@ sub expand_template {
         $Data::Dumper::Indent = 3;
         print Dumper($data);
     }
-    exit 1 if (__tokenize_error($data));
+    return if (__tokenize_error($data));
     $retval = __expand_tokens($data, $datref);
     if ($retval->[0] eq 'ERROR') {
         my $file = get_file();

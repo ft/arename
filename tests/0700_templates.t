@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 23;
+use Test::More tests => 24;
 use Test::Exception;
 
 use ARename;
@@ -143,3 +143,8 @@ ARename::set_opt('template_aliases', 1);
 $expanded = ARename::template_deep_inspect('&al');
 $expected = 1;
 is( equal($expected, $expanded), 1, "No alias warning with template_aliases on");
+
+# "&{artist &album" caused infinite loop.
+is(ARename::expand_template("&{artist&foo}", \%woot),
+   undef,
+   "Unclosed template expansion with trailing expansion");
