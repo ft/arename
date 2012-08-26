@@ -1426,6 +1426,14 @@ data was retrieved and post-processed (like zero-padding the
 
 I<Arguments>: B<1:> the tag's name, B<2:> the data hash
 
+=item B<expand_template_unknown_tag>
+
+This hook gets called whenever arename tries to expand a tag within a template,
+for which it does not have any data available.
+
+I<Arguments>: B<1:> the supposedly expanded string (`undef' upon hook-entry),
+B<2:> the tag's name, B<2:> the data hash
+
 =item B<expand_template_post_expand_tag>
 
 Called each time the value of an existing tag is expanded. Like with

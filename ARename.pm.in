@@ -1133,6 +1133,9 @@ sub __tag_expand {
         $tag = $aliasmap{$tag};
     }
     $retval = $dat->{$tag};
+    if (!defined $retval) {
+        run_hook('expand_template_unknown_tag', \$retval, \$tag, $dat);
+    }
     return if (!defined $retval);
     __template_separator_replace($tag, \$retval);
     if ($tag eq 'tracknumber') {
