@@ -1,3 +1,10 @@
+4.0 -> 4.1
+    + Implement add-ons, previously listed in `arename.hooks', in sub-modules
+      to the ARename::* namespace. The official add-ons are documented, see
+      "perldoc ARename::ReplaceSpaces" for example.
+    + The manual points out how to use the same system for "User-defined
+      extensions".
+
 3.0 -> 4.0
     + Changed meta-information gathering to one module, that deals with
       all supported file types: Audio::Scan.
