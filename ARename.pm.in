@@ -35,6 +35,7 @@ use strict;
 # These are commonly installed along with Perl:
 use Readonly;
 use Carp;
+use Data::Dumper;
 use English '-no_match_vars';
 use Getopt::Long;
 use File::Basename;
@@ -1023,7 +1024,6 @@ sub __tokenize_template {
                 $more = __tokenize_complex(
                     $label, $cplxname, $cplxset, $cplxunset);
                 if (get_opt('verbosity') >= 10_000) {
-                    use Data::Dumper;
                     $Data::Dumper::Indent = 3;
                     print Dumper($more);
                 }
@@ -1108,7 +1108,6 @@ sub __tokenize_template {
 
     if ($nest) {
         if (get_opt('verbosity') >= 10_000) {
-            use Data::Dumper;
             $Data::Dumper::Indent = 3;
             print Dumper($out);
         }
@@ -1268,7 +1267,6 @@ sub expand_template {
 
     $data = __tokenize_template($template);
     if (get_opt('verbosity') >= 10_000) {
-        use Data::Dumper;
         $Data::Dumper::Indent = 3;
         print Dumper($data);
     }
