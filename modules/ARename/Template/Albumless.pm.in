@@ -4,14 +4,14 @@
 
 =head1 NAME
 
-ARename::AlbumlessTemplate - Adjust the template in use, in case a track does
+ARename::Template::Albumless - Adjust the template in use, in case a track does
 not define an album tag.
 
 =head1 SYNOPSIS
 
-use ARename::AlbumlessTemplate;
+use ARename::Template::Albumless;
 
-ARename::AlbumlessTemplate::register();
+ARename::Template::Albumless::register();
 
 =head1 DESCRIPTION
 
@@ -49,7 +49,7 @@ This extension module is licenced under the same terms as B<arename> itself.
 
 =cut
 
-package ARename::AlbumlessTemplate;
+package ARename::Template::Albumless;
 use warnings;
 use strict;
 

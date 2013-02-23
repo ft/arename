@@ -1612,11 +1612,6 @@ Here is a list of bundled extensions:
 
 =over 4
 
-=item B<AlbumlessTemplate>
-
-Implements a hook to handle tracks with missing `album' tags, by offering to
-switch to an entirely different template for these files.
-
 =item B<BailOut>
 
 This is a hook, to terminate B<arename> after reading all configuration files.
@@ -1651,6 +1646,11 @@ files being moved to another directory in the renaming process.
 
 This is a hook that replaces whitespace in genrated filenames by a configurable
 string, which defaults to a single underscore character B<"_">.
+
+=item B<Template::Albumless>
+
+Implements a hook to handle tracks with missing `album' tags, by offering to
+switch to an entirely different template for these files.
 
 =item B<TNPadAdjustByAlbum>
 
@@ -1722,9 +1722,11 @@ extension appropriate for inclusion with `B<arename>'.
 
 B<find(1)>, B<xargs(1)>, B<perldoc(1)>, B<Audio::Scan>.
 
-B<ARename::AlbumlessTemplate>, B<ARename::BailOut>, B<ARename::KillNonASCII>,
+B<ARename::BailOut>, B<ARename::KillNonASCII>,
 B<ARename::MP3RecodeToUTF8>, B<ARename::RemoveEmptySubdirs>,
 B<ARename::ReplaceSpaces>, B<ARename::TNPadAdjustByAlbum>.
+
+B<ARename::Template::Albumless>
 
 B<ARename::Util::Files>, B<ARename::Util::IsNumber>,
 B<ARename::Util::RegisterModuleHook>, B<ARename::Util::VersionGuard>.
