@@ -1,6 +1,10 @@
 #!@@perl@@
 use warnings;
 use strict;
+# Open all other files as UTF-8.
+use open qw{ :encoding(utf8) };
+# Setup stdin, stdout and stderr according to locale.
+use open qw{ :std :locale };
 use ARename;
 
 # documentation
