@@ -27,7 +27,7 @@ for scr in "${@}" ; do
 
     printf 'Generating '\''%s'\''... ' "${scr}"
 
-    sed -e 's/@@arenameversioninfo@@/'"${version}"'/' \
+    sed -e 's:@@arenameversioninfo@@:'"${version}"':' \
         -e 's:@@perl@@:'"${PERL}"':' < "${scr}.in" > "${scr}" || exit 1
     chmod +x "${scr}"
 
