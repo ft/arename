@@ -5,7 +5,7 @@ mkdir -p tests/data || exit 1
 cd tests/data
 
 # create
-[ ! -e input.wav ] && arecord -d3 -fcd input.wav || true
+[ ! -e input.wav ] && cp ../input.wav .
 
 lame -m s -b 192 --noreplaygain input.wav "Foo Bar - Deaftracks - 01. Foo.mp3"
 oggenc input.wav -b 256 -o "Foo Bar - Deaftracks - 01. Foo.ogg"

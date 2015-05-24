@@ -9,7 +9,6 @@ arename's test suite
 
   In addition to that, you will need a few audio related tools (because the
   testsuite generates audio data to do tests with):
-      + arecord          - record a wav file
       + oggenc           - encode to ogg vorbis
       + flac             - encode to flac
       + lame             - encode to mp3
