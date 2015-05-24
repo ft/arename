@@ -2910,6 +2910,13 @@ sub ensure_dir {
     return 1;
 }
 
+sub xstat {
+    my ($file) = @_;
+    my @ret = stat $file;
+    croak("Could not stat($file): $ERRNO\n") if ($#ret == -1);
+    return @ret;
+}
+
 sub file_eq {
     my ($f0, $f1) = @_;
     my (@stat0, @stat1);
@@ -2919,8 +2926,8 @@ sub file_eq {
         return 0;
     }
 
-    @stat0 = stat $f0 or croak("Could not stat($f0): $ERRNO\n");
-    @stat1 = stat $f1 or croak("Could not stat($f1): $ERRNO\n");
+    @stat0 = xstat($f0);
+    @stat1 = xstat($f1);
 
     if ($stat0[0] == $stat1[0] && $stat0[1] == $stat1[1]) {
         # device and inode are the same. same file.
@@ -2941,8 +2948,8 @@ sub xrename {
 
     $d0 = dirname($src);
     $d1 = dirname($dest);
-    @stat0 = stat $d0 or croak("Could not stat($d0): $ERRNO\n");
-    @stat1 = stat $d1 or croak("Could not stat($d1): $ERRNO\n");
+    @stat0 = xstat($d0);
+    @stat1 = xstat($d1);
 
     if ($stat0[0] == $stat1[0]) {
         $cause = 'rename';
@@ -2964,7 +2971,11 @@ ERR:
 sub xcopy {
     my ($src, $dest) = @_;
 
-    return copy($src, $dest) or croak("Could not copy($src, $dest): $ERRNO\n");
+    if (!copy($src, $dest)) {
+        croak("Could not copy($src, $dest): $ERRNO\n");
+    }
+
+    return 1;
 }
 
 # {get,set}_opt() API
