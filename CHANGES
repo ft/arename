@@ -6,6 +6,7 @@
     + The manual points out how to use the same system for "User-defined
       extensions".
     + Add `expand_template_unknown_tag' hook.
+    + KillNonASCII module gains ‘sanitisefat’ option (defaults to "off")
 
 3.0 -> 4.0
     + Changed meta-information gathering to one module, that deals with
