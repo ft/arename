@@ -36,6 +36,11 @@ of B<arename>'s template expansion.
 
 When set to `B<yes>', the hook is enabled. Only `yes' will be accepted.
 
+=item B<sanitisefat> (default: <unset>)
+
+When set to `B<yes>' and the hook is enabled, also strip colons, numbersigns
+and question marks from destination file names. Only `yes' will be accepted.
+
 =item B<KNA_replace> (default: "_")
 
 This option defines which string non-ascii characters are replaced with. The
@@ -110,6 +115,10 @@ sub kill_nonascii {
     # And finally, the actual functionality is implemented in this one line. It
     # simply uses Perl's regular expressions to do the replacement.
     ${ $templateref } =~ s/[^[:ascii:]]+/$replace/g;
+    $opt = ARename::user_get("sanitisefat");
+    if (defined $opt && $opt eq 'yes') {
+        ${ $templateref } =~ s/[?:#]+/$replace/g;
+    }
     return 1;
 }
 
