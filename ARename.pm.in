@@ -958,7 +958,7 @@ sub __tokenize_template {
         # Now for stuff we can read at once:
 
         # The complex and simple sized expression types.
-        } elsif (!$nest && ($in =~ m/\G\&{([\d\w]+\[\d+\])}/gc ||
+        } elsif (!$nest && ($in =~ m/\G\&[{]([\d\w]+\[\d+\])[}]/gc ||
                             $in =~ m/\G\&([\d\w]+\[\d+\])/gc))
         {
             my ($match, $more) = ($1, $EMPTY);
@@ -972,7 +972,7 @@ sub __tokenize_template {
             $buf = $EMPTY;
 
         # The trivial expression (the complex-looking one and the real deal).
-        } elsif (!$nest && ($in =~ m/\G\&{([\d\w]+)}/gc ||
+        } elsif (!$nest && ($in =~ m/\G\&[{]([\d\w]+)[}]/gc ||
                             $in =~ m/\G\&([\d\w]+)/gc))
         {
             push @{ $out }, [ 'LITERAL', $buf ] if ($buf ne $EMPTY);
@@ -983,14 +983,14 @@ sub __tokenize_template {
         # here on out needs to be copied literally until the matching
         # "}" is found. That is why the token-handling above looks
         # at `$nest', too.
-        } elsif (!$nest && $in =~ m/\G\&{/gc) {
+        } elsif (!$nest && $in =~ m/\G\&[{]/gc) {
             $nest++;
             push @{ $out }, [ 'LITERAL', $buf ] if ($buf ne $EMPTY);
             $buf = $EMPTY;
 
         # When we're looking at a nested expression already, we need
         # to read the "&{" literally.
-        } elsif ($nest && $in =~ m/\G\&{/gc) {
+        } elsif ($nest && $in =~ m/\G\&[{]/gc) {
             $nest++;
             $buf .= q<&{>;
             $cplxbuf .= q<&{>;
