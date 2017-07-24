@@ -371,6 +371,7 @@ sub arename {
     my ($t, $newname, $eq);
 
     my $file = get_file();
+    my $printable = get_file_printable();
 
     run_hook('pre_apply_defaults', $datref, \$ext);
 
@@ -390,7 +391,7 @@ sub arename {
         arename_verbosity($datref);
     }
     if ($eq && !get_opt('suppress_skips')) {
-        op('skip-same', $file) or op('skip', $file);
+        op('skip-same', $printable) or op('skip', $printable);
     }
 
     return if ($eq);
@@ -411,7 +412,7 @@ sub arename {
         } else {
             $mode = 'mv';
         }
-        op('rename', $mode, $file, $newname)
+        op('rename', $mode, $printable, $newname)
             or op('quoted-file',
                   sub {
                       my ($ret) = @_;
@@ -631,26 +632,27 @@ sub scan_file {
 }
 
 sub process_warn {
-    op('no-method', get_file());
+    op('no-method', get_file_printable());
     return 1;
 }
 
 sub process_file {
     # process_file() assumes, that set_file() was used to tell
     # ARename.pm which file to work on currently.
-    my (%data, $file, $type, $ext);
+    my (%data, $file, $printable, $type, $ext);
 
     $file = get_file();
+    $printable = get_file_printable();
 
     run_hook('next_file_early');
 
-    op('processing-file', $file);
+    op('processing-file', $printable);
     if (-l $file) {
-        op('skip-symlink', $file);
+        op('skip-symlink', $printable);
         return 0;
     }
     if (! -r $file) {
-        op('file-read-error', $file, $ERRNO);
+        op('file-read-error', $printable, $ERRNO);
         return 0;
     }
 
@@ -1276,8 +1278,7 @@ sub expand_template {
     return if (__tokenize_error($data));
     $retval = __expand_tokens($data, $datref);
     if ($retval->[0] eq 'ERROR') {
-        my $file = get_file();
-        op('expand-template-file', $file);
+        op('expand-template-file', get_file_printable());
         foreach my $err (@{ $retval->[1] }) {
             op('expand-template-error', $err);
         }
@@ -3054,6 +3055,15 @@ sub set_opt {
 # accessing the currently processed audio file's name
 
 sub get_file {
+    return $__arename_file;
+}
+
+sub get_file_printable {
+    if (utf8::valid($__arename_file)) {
+        my $new = $__arename_file;
+        utf8::decode($new);
+        return $new;
+    }
     return $__arename_file;
 }
 
