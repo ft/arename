@@ -2,11 +2,15 @@
     + Implement add-ons, previously listed in `arename.hooks', in sub-modules
       to the ARename::* namespace. The official add-ons are documented, see
       "perldoc ARename::ReplaceSpaces" for example. See "EXTENSIONS" in the
-      manual for details.
-    + The manual points out how to use the same system for "User-defined
-      extensions".
+      manual for details. The manual points out how to use the same system for
+      "User-defined extensions".
     + Add `expand_template_unknown_tag' hook.
     + KillNonASCII module gains ‘sanitisefat’ option (defaults to "off")
+    + Silence “Unescaped left brace in regex” warning with recent versions
+      of Perl.
+    + Improve Unicode support.
+    + Fix possible infinite loop due to a bug in the template parser.
+    + General reliability improvements.
 
 3.0 -> 4.0
     + Changed meta-information gathering to one module, that deals with
