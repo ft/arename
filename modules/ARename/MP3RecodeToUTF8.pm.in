@@ -76,6 +76,9 @@ sub mp3_recode_to_utf8 {
         my $src = $datref->{$tag};
         if ($src =~ m/[^[:ascii:]]/) {
             $datref->{$tag} = Encode::encode("UTF-8", $src);
+            if (utf8::valid($datref->{$tag})) {
+                utf8::decode($datref->{$tag});
+            }
             if (ARename::get_opt('verbosity') >= 20) {
                 print "$name: * Recoded ($tag)\n";
                 print "$name: * From: \"$src\"\n";
