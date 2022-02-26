@@ -1606,7 +1606,7 @@ the `B<perldoc>' utility:
 
 Modules, that implement a hook all feature a convenience subroutine
 `B<register()>', which registers the hook code to the event the author
-indended. For example, to use the `B<RenameSpaces>' hook, add the following to
+intended. For example, to use the `B<RenameSpaces>' hook, add the following to
 your hooks file:
 
   use ARename::ReplaceSpaces;
@@ -1648,7 +1648,7 @@ files being moved to another directory in the renaming process.
 
 =item B<ReplaceSpaces>
 
-This is a hook that replaces whitespace in genrated filenames by a configurable
+This is a hook that replaces whitespace in generated filenames by a configurable
 string, which defaults to a single underscore character B<"_">.
 
 =item B<Template::Albumless>
@@ -1658,7 +1658,7 @@ switch to an entirely different template for these files.
 
 =item B<TNPadAdjustByAlbum>
 
-This module allows to adjust the value of the `I<tnpad>' core setting based on
+This module allows one to adjust the value of the `I<tnpad>' core setting based on
 patterns that are matched against a track's `album' tag.
 
 The idea is to have proper padding the large audiobooks that contain more than
