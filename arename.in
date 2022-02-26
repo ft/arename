@@ -227,7 +227,7 @@ module with said feature. Adding support for it in B<arename> after
 that should be trivial.
 
 To give you an idea, arename (in connection with Audio::Scan B<0.85>)
-let's you rename I<mp3>, I<mp4>, I<aac>, I<ogg>, I<flac>, I<asf>,
+lets you rename I<mp3>, I<mp4>, I<aac>, I<ogg>, I<flac>, I<asf>,
 I<musepack>, I<monkey audio>, I<wav> (this type also supports I<aiff>)
 and I<wavpack> files.
 
@@ -854,7 +854,7 @@ then using 'B<&artist[1]>' will expand to 'I<F>'.
 
 =item B<&{>I<identifier>B<:>I<default-template>B<}>
 
-This is the first complex expession, called `B<complex-default>'. When
+This is the first complex expression, called `B<complex-default>'. When
 the tag, which corresponds to `I<identifier>' is available, this
 expression will expand exactly like the trivial expression would.
 
