@@ -8,6 +8,7 @@ critic=""
 maxwidth="14"
 
 PERL ?= /usr/bin/perl
+CTAGS ?= ctags-exuberant
 
 all:
 	@printf 'Makefile targets intended for users:\n'
@@ -153,8 +154,8 @@ snapshot: clean
 	@./bin/dist.sh -s
 
 tags:
-	ctags --language-force=perl arename.in ARename.pm.in ataglist.in
-	ctags -e --language-force=perl arename.in ARename.pm.in ataglist.in
+	$(CTAGS) --language-force=perl arename.in ARename.pm.in ataglist.in
+	$(CTAGS) -e --language-force=perl arename.in ARename.pm.in ataglist.in
 
 happiness: genperlscripts prepare-test-data tags doc test-all
 
